@@ -145,8 +145,10 @@ p {
 
               <body>
                 <gmp-map center="{{row['lat']}},{{row['lng']}}" zoom="2" map-id="map">
-                  <gmp-advanced-marker position="{{row['lat']}},{{row['lng']}}" title="Pin">
-                  </gmp-advanced-marker>
+                    <gmp-advanced-marker
+                        position="{{row['lat']}},{{row['lng']}}"
+                        title="Pin"
+                    ></gmp-advanced-marker>
                 </gmp-map>
               </body>
                 {% endif %}

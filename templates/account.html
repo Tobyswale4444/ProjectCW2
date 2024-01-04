@@ -120,9 +120,11 @@ p {
              <div class="map-container">
              {% if row["album"] != "True" %}
               <body>
-                <gmp-map center="{{row['lat']}},{{row['lng']}}" zoom="2" map-id="map">
-                  <gmp-advanced-marker position="{{row['lat']}},{{row['lng']}}" title="Pin">
-                  </gmp-advanced-marker>
+               <gmp-map center="{{row['lat']}},{{row['lng']}}" zoom="2" map-id="map">
+                    <gmp-advanced-marker
+                        position="{{row['lat']}},{{row['lng']}}"
+                        title="Pin"
+                    ></gmp-advanced-marker>
                 </gmp-map>
               </body>
              {% endif %}
@@ -134,7 +136,7 @@ p {
 
 
 
-        
+
         
      
   </div>

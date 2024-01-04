@@ -116,9 +116,11 @@
           </head>
           <body>
             <gmp-map center="{{row['lat']}},{{row['lng']}}" zoom="4" map-id="map">
-              <gmp-advanced-marker position="{{row['lat']}},{{row['lng']}}" title="Pin">
-              </gmp-advanced-marker>
-            </gmp-map>
+                    <gmp-advanced-marker
+                        position="{{row['lat']}},{{row['lng']}}"
+                        title="Pin"
+                    ></gmp-advanced-marker>
+                </gmp-map>
           </body>
       </div>
 <br>

@@ -76,7 +76,7 @@
 
                     });
 
-                    map.addListener('gmp-click', function(event) {
+                    map.addListener('click', function(event) {
                         if (existingmarker) {
                             existingmarker.setMap(null);
                         }
@@ -134,7 +134,7 @@
 
                     sendCoordinates(existinglat, existinglng);
 
-                    map.addListener('gmp-click', function (event) {
+                    map.addListener('click', function (event) {
                         if (existingmarker) {
                             existingmarker.setMap(null);
                         }

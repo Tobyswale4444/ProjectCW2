@@ -62,7 +62,7 @@
                     icon: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
                  });
 
-                 postmarker.addListener('gmp-click', function () {
+                 postmarker.addListener('click', function () {
                     if (state === 'False') {
                         window.location.href = "/viewpost?id=" + postid;
                     } else {
@@ -70,7 +70,7 @@
                     }
                 });
             }
-            map.addListener('gmp-click', function(event) {
+            map.addListener('click', function(event) {
                 if (!sliderMoved) {
                     alert("Set the radius!");
                     return;
@@ -199,9 +199,11 @@
               {% if row["album"] != "True" %}
                 <body>
                   <gmp-map center="{{row['lat']}},{{row['lng']}}" zoom="2" map-id="map">
-                    <gmp-advanced-marker position="{{row['lat']}},{{row['lng']}}" title="Pin">
-                    </gmp-advanced-marker>
-                  </gmp-map>
+                    <gmp-advanced-marker
+                        position="{{row['lat']}},{{row['lng']}}"
+                        title="Pin"
+                    ></gmp-advanced-marker>
+                </gmp-map>
                 </body>
 
               {% endif %}

@@ -94,7 +94,7 @@
                 }
                 });
 
-                marker.addListener('gmp-click', function () {
+                marker.addListener('click', function () {
                     window.location.href = "/viewpost?id=" + postid;
                 });
             }
@@ -148,10 +148,11 @@
            <div class="map-container">
             <body>
               <gmp-map center="{{row['lat']}},{{row['lng']}}" zoom="2" map-id="map">
-                <gmp-advanced-marker position="{{row['lat']}},{{row['lng']}}" title="Pin">
-                </gmp-advanced-marker>
-
-              </gmp-map>
+                    <gmp-advanced-marker
+                        position="{{row['lat']}},{{row['lng']}}"
+                        title="Pin"
+                    ></gmp-advanced-marker>
+                </gmp-map>
             </body>
             </div>
           {% if row2["user"] == username %}
