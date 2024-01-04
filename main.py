@@ -82,10 +82,16 @@ def GetNamedLocation(lat,lng, id):
     location = geolocator.reverse(latlng)
     try:
         country = location.raw['address']['country']
-        city = location.raw['address']['city']
     except:
         country = ""
+
+
+    try:
+        city = location.raw['address']['city']
+    except:
         city = ""
+
+
     if country == None:
         country = ""
     if city == None:
@@ -598,6 +604,7 @@ def addpost():
 
 @web_site.route('/drafts', methods=['GET', 'POST'])
 def drafts():
+    msg = ""
     username = session["username"]
 
     con = sqlite3.connect('database.db')
@@ -620,9 +627,11 @@ def drafts():
     cursor.execute(sql, (username,))
     rows = cursor.fetchall()
 
+    if rows == []:
+        msg = "No drafts"
 
 
-    return render_template("drafts.html", rows = rows)
+    return render_template("drafts.html", rows = rows, msg = msg)
 
 
 @web_site.route('/removefromdrafts', methods=['GET', 'POST'])
@@ -1755,6 +1764,7 @@ def listallposts():
 
 @web_site.route('/friends', methods=['GET', 'POST'])
 def friends():
+    msg = ""
     username = session["username"]
     con = sqlite3.connect('database.db')
     con.row_factory = sqlite3.Row
@@ -1771,8 +1781,9 @@ def friends():
     con.commit()
     rows = cursor.fetchall()
 
-
-    return render_template("friends.html", rows = rows)
+    if rows == []:
+        msg = "No friends' posts found"
+    return render_template("friends.html", rows = rows, msg=msg)
 
 @web_site.route('/account_settings', methods=['GET', 'POST'])
 def account_settings():
@@ -2368,6 +2379,7 @@ def viewaccount():
 
 @web_site.route('/activity', methods=['GET', 'POST'])
 def activity():
+    msg = ""
     username = session["username"]
     con = sqlite3.connect('database.db')
     con.row_factory = sqlite3.Row
@@ -2436,7 +2448,10 @@ def activity():
     newrows += newrows4
     newrows += newrows5
     sortedrows = sorted(newrows, key=lambda x: x.get('timesent'))
-    return render_template("activity.html", rows=sortedrows, username=username)
+
+    if sortedrows == []:
+        msg = "No recent activity"
+    return render_template("activity.html", rows=sortedrows, username=username,msg=msg)
 
 
 
@@ -2467,6 +2482,7 @@ def acceptignore():
 
 @web_site.route('/followinglist')
 def followinglist():
+    msg = ""
     username = session["username"]
     viewusername = request.args.get('id')
     con = sqlite3.connect('database.db')
@@ -2484,8 +2500,10 @@ def followinglist():
     #sorts it based of the index of x.lower() in list "usernames"
     rows = sorted(rows, key=lambda x: usernames.index(x["userreceive"].lower()))
 
+    if rows == []:
+        msg = "No followers found"
 
-    return render_template("followinglist.html", rows=rows,username=username)
+    return render_template("followinglist.html", rows=rows,username=username, msg= msg)
 
 
 def mergesort(usernames):
@@ -2545,6 +2563,7 @@ def removefollowing():
 
 @web_site.route('/followerlist')
 def followerlist():
+    msg = ""
     username = session["username"]
     viewusername = request.args.get('id')
     con = sqlite3.connect('database.db')
@@ -2562,7 +2581,10 @@ def followerlist():
 
     # sorts it based of the index of x.lower() in list "usernames"
     rows = sorted(rows, key=lambda x: usernames.index(x["usersend"].lower()))
-    return render_template("followerlist.html", rows=rows,username=username)
+
+    if rows == []:
+        msg = "No followers...yet?"
+    return render_template("followerlist.html", rows=rows,username=username, msg = msg)
 
 
 @web_site.route('/removefollower', methods=['GET', 'POST'])
@@ -2982,6 +3004,7 @@ def deletepost():
 
 @web_site.route('/savedposts')
 def savedposts():
+    msg = ""
     username = session["username"]
     con = sqlite3.connect('database.db')
     con.row_factory = sqlite3.Row
@@ -2994,7 +3017,10 @@ def savedposts():
     cursor.execute(sql, (username,))
     rows = cursor.fetchall()
     rows = rows[::-1]
-    return render_template("savedposts.html", rows=rows, username=username)
+
+    if rows == []:
+        msg = "No saved posts found"
+    return render_template("savedposts.html", rows=rows, username=username, msg=msg)
 
 
 @web_site.route('/search')
@@ -3011,6 +3037,7 @@ def GeoSnaps():
 
 @web_site.route('/ajaxsearchposts/<search>')
 def ajaxsearchposts(search):
+    msg = ""
     username = session["username"]
     con = sqlite3.connect('database.db')
     con.row_factory = sqlite3.Row
@@ -3046,6 +3073,9 @@ def ajaxsearchposts(search):
 
     newrows += newrows2
 
-    return render_template('ajaxsearchposts.html', rows = newrows, username=username )
+    if newrows == []:
+        msg = "No results found"
+
+    return render_template('ajaxsearchposts.html', rows = newrows, username=username,msg=msg )
 
 web_site.run(host='0.0.0.0', port=8080)

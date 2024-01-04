@@ -1,6 +1,5 @@
 {% extends 'base.html' %}
 {% block content %}
-<h1>My Account</h1>
 
 <head>
   <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCrLn37j2Aln7yh58GPY2AuQIDU3poAgrg&callback=console.debug&libraries=maps,marker&v=beta">
@@ -10,7 +9,9 @@
 
 
 
-<h2>Saved Posts</h2>
+<h1>Saved Posts</h1>
+
+<h3>{{msg}}</h3>
  <div class="image-grid">
   {% for row in rows %}
   <div class="image-item">
