@@ -83,19 +83,19 @@ def GetNamedLocation(lat,lng, id):
     try:
         country = location.raw['address']['country']
     except:
-        country = ""
+        country = "N/A"
 
 
     try:
         city = location.raw['address']['city']
     except:
-        city = ""
+        city = "N/A"
 
 
     if country == None:
-        country = ""
+        country = "N/A"
     if city == None:
-        city = ""
+        city = "N/A"
 
     con = sqlite3.connect('database.db')  #
     sql = "UPDATE Posts SET country = ?, city = ? WHERE id = ?"
@@ -1758,6 +1758,7 @@ def listallposts():
                 latlnglist.append(latlng)
     if not postinfo:
         msg = "No results found. It's Hard to Explain..."
+
 
     return render_template("allposts.html", rows=postinfo, username=username,filtered = filtered, latlnglist=latlnglist, msg= msg)
 
