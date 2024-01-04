@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<form method="POST">
+  <br>
+  <input type="submit" value="Remove" name="remove">
+  <br>
+  <br>
+  <a href ='/viewaccount?id={{follower}}' class="linkbutton">View {{follower}}'s account</a>
+</form>
+
+
+
+{% endblock %}

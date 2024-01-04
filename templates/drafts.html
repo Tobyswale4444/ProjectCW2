@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% block content %}
+
+
+<head>
+  <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCrLn37j2Aln7yh58GPY2AuQIDU3poAgrg&callback=console.debug&libraries=maps,marker&v=beta">
+</script>
+</head>
+
+<h1>Drafts</h1>
+ <div class="image-grid">
+  {% for row in rows %}
+  <div class="image-item">
+    <div class="image-title image-title-red" >
+
+
+
+
+
+          <a href="/addpost?id={{row['id']}}">
+          <br>
+
+
+
+
+
+          <img src="{{ url_for('static', filename='UploadedPhotos/' + row['filename']) }}" alt="Image" class="scaled-image">
+              <br>
+              <br>
+
+              {% if row['text']|length > 50 %}
+                {{ row['text'][:50] }}...</a>
+              {% else %}
+                {{ row['text'] }}</a>
+              {% endif %}
+
+
+
+
+
+
+
+               <div class="map-container">
+                {% if row["album"] != "True" %}
+                <body>
+                  <gmp-map center="{{row['lat']}},{{row['lng']}}" zoom="2" map-id="map">
+                    <gmp-advanced-marker position="{{row['lat']}},{{row['lng']}}" title="Pin">
+                    </gmp-advanced-marker>
+                  </gmp-map>
+                </body>
+               {% endif %}
+                </div>
+
+
+
+
+
+
+
+
+
+
+  </div>
+      <div class="image-title">
+          <a href="/removefromdrafts?id={{row['id']}}" class="linkbuttonsmall">Remove</a>
+      </div>
+</div>
+  {% endfor %}
+{% endblock %}

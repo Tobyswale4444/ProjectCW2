@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<style>
+    .photoandmeta {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        margin-bottom: 20px;
+    }
+
+    .photo-container {
+        float: left;
+        margin-right: 20px;
+    }
+
+    .meta-container h3 {
+        width: 300px;
+        margin: 3;
+        margin-bottom: 20px;
+    }
+
+    .meta-container {
+        text-align: left;
+    }
+
+    .meta-container input {
+        margin-bottom: 10px;
+    }
+
+    .clear {
+        clear: both;
+    }
+
+    .like-dislike-container {
+    display: flex;
+    justify-content: center;
+    }
+
+    .like,
+    .dislike {
+        text-align: center;
+        margin: 10px;
+    }
+    .likebutton {
+        border: none;
+        padding: 0;
+        background: none;
+        cursor: pointer;
+    }
+</style>
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+
+
+
+<br>
+<br>
+{% if postuser != username %}
+  <a href ='/viewaccount?id={{postuser}}' class="linkbuttonsmall">View {{postuser}}'s account</a>
+{% endif %}
+
+
+    {% for row in rows %}
+      {% if postuser == username %}
+        <a href ='/editpost?id={{row["id"]}}' class="linkbuttonsmall">Edit Post</a>
+        <a href ='/deletepost?id={{row["id"]}}' class="linkbuttonsmall">Delete Post</a>
+        <h3>Add to album:</h3>
+<form method="POST">
+        <select name="selected_option">
+          <option value="none">None</option>
+            {% for row3 in rows3 %}
+                <option value="{{row3['text']}}">{{row3['text']}}</option>
+            {% endfor %}
+        </select>
+    <input type="submit" name="add" value="Add">
+</form>
+      {% endif %}
+      <div class="text-container">
+          <h2>{{row["text"]}}</h2>
+          <h4>{{row["descr"]}}</h4>
+      </div>
+
+      <br>
+      <br>
+      <div class = "photoandmeta">
+          <div class="photo-container">
+              <img src="{{ url_for('static', filename='UploadedPhotos/' + row['filename']) }}" alt="Image" class="scaled-image-big">
+          </div>
+      <br> 
+      <br>
+          <div class="meta-container">
+            {% for row2 in rows2 %}
+
+                <h3>Date: {{date}} {{time}}</h3>
+                <h3>Aperture: {{row2['fstop']}}</h3>
+                <h3>ISO: {{row2['ISO']}}</h3>
+                {% if row2['shutterspeed'] != "N/A" %}
+                    <h3>Shutterspeed: 1/{{row2['shutterspeed']}}</h3>
+                {% else %}
+                    <h3>Shutterspeed: {{row2['shutterspeed']}}</h3>
+                {% endif %}
+                <h3>Make: {{row2['make']}}</h3>
+                <h3>Model: {{row2['model']}}</h3>
+                <h3>Lens Model: {{row2['lensmodel']}}</h3>
+            {% endfor %}
+            <h3>Coordinates: {{row['lat']}}, {{row['lng']}}</h3>
+            <h3>Country: {{row['country']}}</h3>
+            <h3>City: {{row['city']}}</h3>
+          </div>
+      </div>
+
+      <div class="map-container-big">
+        <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCrLn37j2Aln7yh58GPY2AuQIDU3poAgrg&callback=console.debug&libraries=maps,marker&v=beta">
+            </script>
+          </head>
+          <body>
+            <gmp-map center="{{row['lat']}},{{row['lng']}}" zoom="4" map-id="map">
+              <gmp-advanced-marker position="{{row['lat']}},{{row['lng']}}" title="Pin">
+              </gmp-advanced-marker>
+            </gmp-map>
+          </body>
+      </div>
+<br>
+<form method="POST">
+    <div class="like-dislike-container">
+        <div class="like">
+            <input type="hidden" name="action" value="Like">
+            <button name="Like" type="submit" class="likebutton">
+                <img src="static/Thumbs/thumbs-up.png" width="50" height="50">
+            </button>
+            <h4>{{row["likes"]}}</h4>
+        </div>
+        <div class="dislike">
+            <button name="Dislike" type="submit" class="likebutton">
+                <img src="static/Thumbs/thumbs-down.png" width="50" height="50">
+            </button>
+            <h4>{{row["dislikes"]}}</h4>
+        </div>
+    </div>
+
+      {% if checksaved == False %}
+        <p><input type="submit" value="Save" name="save"></p>
+      {% else %}
+        <p><input type="submit" value="Unsave" name="unsave"></p>
+      {% endif %}
+
+</form>
+        {% if getalbumid != "" and gettitle != "" %}
+            <td><a href ='/viewalbum?id={{getalbumid}}' class="linkbuttonsmall">View album: "{{gettitle}}"</a></td>
+        {% endif %}
+
+    {% if row["timeposted"][-5:] == "12:51" %}
+        <h4>Posted at: {{row["timeposted"]}} ;)</h4><br><br>
+    {% else %}
+        <h4>Posted at: {{row["timeposted"]}}</h4><br><br>
+    {% endif %}
+    {% endfor %}
+
+
+
+{% endblock %}
+

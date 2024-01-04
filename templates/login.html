@@ -1,0 +1,25 @@
+
+{% extends 'base.html' %}
+{% block content %}
+<h1>Login</h1>
+
+
+
+<body>
+  <form method="POST">
+    <input type="text" name="username" placeholder="Username"><br>
+    <br>
+    <input name="password" type="password" placeholder="Password"><br>
+    <br>
+    <input type="submit" name="action" value="Login">
+  
+  
+    <h4>or</h4>
+    <br>
+    <br>
+    <a href="/Index" class="linkbutton">Create an account</a>
+  </form>
+  <h4 style="color: red;">{{msg}}</h4>
+</body>
+
+{% endblock %}

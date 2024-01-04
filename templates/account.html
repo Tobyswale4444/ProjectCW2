@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+{% block content %}
+
+
+<style>
+
+.container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 50px;
+    margin-bottom: 20px;
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    text-align: center;
+    margin: 20px;
+    width: 500px;
+}
+
+.stattitle {
+    padding: 10px;
+    margin: 5px;
+    width: 80px;
+}
+
+h4 {
+    margin: 0;
+
+}
+p {
+    margin: 5px 0;
+}
+</style>
+
+<br><br><img src="{{ url_for('static', filename='ProfilePictures/' + pfp) }}" alt="Swap the long and the short" class="rounded-image">
+
+<h1>My Account</h1>
+<div class="container">
+    <div class="stats">
+        <div class="stattitle">
+            <h4>{{postcount}}</h4>
+            <p><h4>Posts</h4></p>
+        </div>
+        <div class="stattitle">
+            <h4>{{albumcount}}</h4>
+            <p><h4>Albums</h4></p>
+        </div>
+        <div class="stattitle">
+            <a href="/followerlist?id={{username}}">
+            <h4>{{followercount}}</h4>
+            <p><h4>Followers</h4></p></a>
+        </div>
+        <div class="stattitle">
+            <a href="/followinglist?id={{username}}">
+            <h4>{{followingcount}}</h4>
+            <p><h4>Following</h4></p></a>
+        </div>
+    </div>
+</div>
+
+
+<head>
+  <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCrLn37j2Aln7yh58GPY2AuQIDU3poAgrg&callback=console.debug&libraries=maps,marker&v=beta">
+</script>
+</head>
+
+<div class="text-container">
+    <h4>{{desc}}</h4>
+</div>
+{% if age != "" %}
+  <h4>Age: {{age}}</h4>
+{% endif %}
+{% if gender != None and gender != "None" %}
+  <h4>Gender: {{gender}}</h4>
+{% endif %}
+<br>
+
+<a href="/account_settings" class="linkbutton">Account Settings</a>
+
+<a href="/uploadphoto" class="linkbutton">Create a post</a>
+<a href="/addalbum" class="linkbutton">Create an album</a>
+<a href="/savedposts" class="linkbutton">Saved posts</a>
+<a href="/activity" class="linkbutton">Activity</a>
+<a href="/logout" class="linkbutton">Logout</a>
+<br><br><br>
+
+
+
+
+
+<div class="image-grid">
+  {% for row in rows %}
+  <div class="image-item">
+    <div class="image-title">
+        <br>
+      {% if row["album"] == "True" %}
+        <a href="/viewalbum?id={{row['id']}}">
+      {% else %}
+        <a href="/viewpost?id={{row['id']}}">
+      {% endif %}
+
+        <img src="{{ url_for('static', filename='UploadedPhotos/' + row['filename']) }}" alt="Image" class="scaled-image">
+            <br>
+            <br>
+            {% if row['text']|length > 50 %}
+              {{ row['text'][:50] }}...</a>
+            {% else %}
+              {{ row['text'] }}</a>
+            {% endif %}
+          
+          
+
+
+      
+            
+
+             <div class="map-container">
+             {% if row["album"] != "True" %}
+              <body>
+                <gmp-map center="{{row['lat']}},{{row['lng']}}" zoom="2" map-id="map">
+                  <gmp-advanced-marker position="{{row['lat']}},{{row['lng']}}" title="Pin">
+                  </gmp-advanced-marker>
+                </gmp-map>
+              </body>
+             {% endif %}
+              </div>
+
+
+
+
+
+
+
+        
+        
+     
+  </div>
+</div>
+  {% endfor %}
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<form method="POST">
+
+{% for row in rows %}
+  <h3>Edit title</h3>
+  <p><textarea class="textareatitle" name="text" placeholder="Enter text here" maxlength="100">{{row["text"]}}</textarea></p>
+  <h3>Edit description</h3>
+  <p><textarea class="textareadescr" name="description" placeholder="Enter text here" maxlength="250">{{row["descr"]}}</textarea></p><br>
+  <p><input type="submit" value="Update"><input type="submit" name="cancel" value="Cancel"></p>
+{% endfor %}
+</form>
+{% endblock %}

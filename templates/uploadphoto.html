@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Upload a Photo</h1>
+
+
+<form method="POST" enctype="multipart/form-data">
+    <div style="text-align: center;">
+    <input class="linkbutton" type="file" name="photo" accept="image/*"><br><br>
+    </div>
+    <input type="submit" name="submit" value="Upload"><br>
+    <h3>{{msg}}</h3>
+    <a href="/drafts" class="linkbutton">Drafts</a>
+    {% if posted %}
+        <br>
+        <br>
+        <a href ='/viewpost?id={{prevpostid}}' class="linkbuttonsmall">View Post</a>
+        <br>
+    {% endif %}
+
+
+
+
+
+
+
+
+{% endblock %}

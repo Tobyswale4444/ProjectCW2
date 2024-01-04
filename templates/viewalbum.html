@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<style>
+  .namelink a {
+    text-decoration: none;
+    color: white;
+    font-family:Verdana;
+  }
+  .namelink a:hover {
+  color: #7752E7;
+  cursor: pointer;
+}
+</style>
+
+
+
+{% for row2 in rows2 %}
+  <div class="text-container">
+    <h2>Album: {{row2['text']}} </h2>
+
+    <h3>{{row2['descr']}}</h3>
+  </div>
+<form method="POST">
+  {% if checksaved == False %}
+    <p><input type="submit" value="Save" name="save"></p>
+  {% else %}
+    <p><input type="submit" value="Unsave" name="unsave"></p>
+  {% endif %}
+</form>
+<div class="namelink">
+  {% if row2["user"] != username %}
+    <h3>Created by<a href="/viewaccount?id={{row2['user']}}">{{row2['user']}}</a></h3>
+  {% else %}
+    <h3>Created by<a href="/account">{{row2['user']}}</a></h3>
+  {% endif %}
+
+  </div>
+  {% if row2["timeposted"][-5:] == "12:51" %}
+        <h4>Posted at: {{row2["timeposted"]}} ;)</h4><br><br>
+  {% else %}
+        <h4>Posted at: {{row2["timeposted"]}}</h4><br><br>
+  {% endif %}
+  
+  {% if row2["user"] == username %}
+    <a href="/editalbum?id={{row2['id']}}" class="linkbuttonsmall">Edit</a>
+    <a href="/deletealbum?id={{row2['id']}}" class="linkbuttonsmall">Delete</a>
+    <br>
+    <br>
+  {% endif %}
+  {% if not rows %}
+    <h3 style="color: red;">Empty. Is This It...?</h3>
+  {% endif %}
+
+
+<body>
+  <div id="map" style="height: 600px;" class="map-container-big"></div>
+  <script>
+        var map;
+        var filenames = {{ filenames | tojson | safe }};
+        var imagesize = {{ imagesize | tojson | safe }};
+
+        function calcheight(width, height) {
+          var aspectratio = width / height;
+          return (50 / aspectratio);
+        }
+
+
+        function initMap() {
+            var lnglatpoints = {{ lnglatpoints | tojson | safe }};
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: { lat: {{ row2['lat'] }}, lng: {{ row2['lng'] }} },
+                zoom: 2
+            });
+
+            var points = [];
+
+            for (var i = 0; i < lnglatpoints.length; i++) {
+                points.push({
+                    lat: parseFloat(lnglatpoints[i][0]),
+                    lng: parseFloat(lnglatpoints[i][1])
+                });
+
+                var width = imagesize[i][1]
+                var height = imagesize[i][0]
+                let postid = lnglatpoints[i][2]
+
+                var marker = new google.maps.Marker({
+                position: { lat: points[i].lat, lng: points[i].lng },
+                map: map,
+                icon: {
+                    url: "/static/UploadedPhotos/" + filenames[i],
+                    scaledSize: new google.maps.Size(50,calcheight(width,height))
+                }
+                });
+
+                marker.addListener('gmp-click', function () {
+                    window.location.href = "/viewpost?id=" + postid;
+                });
+            }
+
+            var line = new google.maps.Polyline({
+                path: points,
+                geodesic: true,
+                strokeColor: '#FF0000',
+                strokeOpacity: 1.0,
+                strokeWeight: 2
+            });
+
+            line.setMap(map);
+        }
+  </script>
+  <script async defer
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCrLn37j2Aln7yh58GPY2AuQIDU3poAgrg&libraries=maps,marker&v=beta&callback=initMap">
+  </script>
+</body>
+      
+
+<br>
+  <div class="image-grid">
+    {% if rows %}
+      {% for row in rows %}
+      <div class="image-item">
+        <div class="image-title">
+          {% if row["user"] != username %}
+            <a href="/viewaccount?id={{row['user']}}" style="display: flex; align-items: center;">
+                <img src="{{ url_for('static', filename='ProfilePictures/' + row['pfp']) }}" alt="Image" class="rounded-image-small">
+                <span>{{row["user"]}}</span>
+            </a>
+          {% else %}
+            <a href="/account" style="display: flex; align-items: center;">
+                <img src="{{ url_for('static', filename='ProfilePictures/' + row['pfp']) }}" alt="Image" class="rounded-image-small">
+                <span>{{row["user"]}}</span>
+            </a>
+          {% endif %}
+
+          <a href="/viewpost?id={{row['id']}}">
+          <img src="{{ url_for('static', filename='UploadedPhotos/' + row['filename']) }}" alt="Image" class="scaled-image">
+          <br>
+          <br>
+          {% if row['text']|length > 50 %}
+            {{ row['text'][:50] }}...</a>
+          {% else %}
+            {{ row['text'] }}</a>
+          {% endif %}
+
+
+           <div class="map-container">
+            <body>
+              <gmp-map center="{{row['lat']}},{{row['lng']}}" zoom="2" map-id="map">
+                <gmp-advanced-marker position="{{row['lat']}},{{row['lng']}}" title="Pin">
+                </gmp-advanced-marker>
+
+              </gmp-map>
+            </body>
+            </div>
+          {% if row2["user"] == username %}
+            {{row2['albumid']}}
+              <a href="/removefromalbum?postid={{row['id']}}&albumid={{row2['id']}}" class="linkbuttonsmall">Remove</a>
+          {% endif %}
+
+
+
+
+
+
+
+
+
+      </div>
+    </div>
+    {% endfor %}
+  {% endif %}
+{% endfor %}
+
+
+{% endblock %}

@@ -1,0 +1,87 @@
+<html>
+<head>
+<title>GeoSnaps</title>
+<link href="/static/style.css" rel="stylesheet">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+<script>
+        function searchposts(){
+          var search = $("#search").val();
+          $("#div1").load("ajaxsearchposts/"+search, function(responseTxt, statusTxt, xhr){
+
+        });
+        }
+
+        function searchusernames() {
+        var search = $("#username").val();
+        if (search == "") {
+            search = "empty";
+        }
+        $.ajax({
+            url: '/ajaxsearchusernames/' + search,
+            type: 'GET',
+            success: function (data) {
+                $('#unique').attr('src', '/static/ticks_crosses/' + data.unique);
+                $('#length').attr('src', '/static/ticks_crosses/' + data.length);
+            }
+        });
+        }
+
+        function searchpasswords() {
+        var search = $("#password").val();
+        if (search == "") {
+            search = "empty";
+        }
+        $.ajax({
+            url: '/ajaxpasswordsindex/' + search,
+            type: 'GET',
+            success: function (data) {
+                $('#plength').attr('src', '/static/ticks_crosses/' + data.length);
+                $('#upper').attr('src', '/static/ticks_crosses/' + data.upper);
+                $('#lower').attr('src', '/static/ticks_crosses/' + data.lower);
+                $('#digit').attr('src', '/static/ticks_crosses/' + data.digit);
+                $('#symb').attr('src', '/static/ticks_crosses/' + data.symb);
+            }
+        });
+        }
+
+        function matcholdpassword() {
+        var search = $("#oldpassword").val();
+        if (search == "") {
+            search = "empty";
+        }
+        $.ajax({
+            url: '/ajaxpasswords/' + search,
+            type: 'GET',
+            success: function (data) {
+                $('#matching').attr('src', '/static/ticks_crosses/' + data.matching);
+            }
+        });
+        }
+</script>
+</head>
+<body>
+<a href='/GeoSnaps' style="display: block; text-decoration: none; color: white; pointer-events: none;">
+  <h5 style="margin: 0px;">
+    <span style="pointer-events: auto;">GeoSnaps</span>
+  </h5>
+</a>
+<div class="buttonbox">
+  {% if session["username"] %}
+    <h2>Welcome back {{ session["username"] }}!</h2>
+    <a href ='/allposts' class="linkbutton">Posts</a>
+    <a href ='/friends' class="linkbutton">Friends</a>
+    <a href ='/recommended' class="linkbutton">Recommended</a>
+    <a href ='/search' class="linkbutton">Search</a>
+    <a href ='/account' class="linkbutton">My Account</a>
+  {% else %}
+    <h2>You are not logged in</h2>
+    <a href ='/Index' class="linkbutton">Register</a>
+    <a href ='/login' class="linkbutton">Login</a>
+  {% endif %}
+</div>
+
+  {% block content %}{% endblock %}
+  
+</body>
+
+</html>

@@ -1,0 +1,228 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<style>
+    #div1,
+    #div2 {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .criteria-image {
+      display: block;
+      margin-bottom: 5px;
+      width: 25px;
+      height: 25px;
+      margin-right: 10px;
+    }
+    input {
+      margin-bottom: -30px;
+    }
+     .criteria-group {
+       display: flex;
+       align-items: center;
+       margin-bottom: -30px; /*
+    }
+
+    .criteria-group h5 {
+       margin-left: 10px;
+    }
+
+    .input-group {
+       margin-left: 10px;
+       align-items: left;
+    }
+
+
+</style>
+
+<h1>Account Settings</h1>
+
+{% for row in rows %}
+<img src="{{ url_for('static', filename='ProfilePictures/' + row['pfp']) }}" alt="Image" class="rounded-image">
+<form method="POST" enctype="multipart/form-data">
+    <h4>Upload a Profile Picture</h4>
+    <br><input class="linkbutton" type="file" name="photo" accept="image/*"><br><br>
+    <br><br><h4>Reset Profile Picture to Default</h4><br><input type="checkbox" id="resetpfp" name="resetpfp"><br><br>
+  <br><h4>Description (Max 150 chars)</h4>
+    <p><textarea class="textareadescr" name="description" placeholder="Description" maxlength="150">{{row["description"]}}</textarea></p>
+  <br><h4>DOB</h4>
+    <p><input type="date" name="dob" value='{{row["dob"]}}'></p><br>
+  <br><h4>Gender</h4>
+    <br>
+   <select id="gender" name="gender">
+        {% for option in genders %}
+            {% if option == row["gender"] %}
+                <option value="{{ option }}" selected>{{ option }}</option>
+            {% else %}
+                <option value="{{ option }}">{{ option }}</option>
+            {% endif %}
+        {% endfor %}
+    </select>
+    <br><br>
+    <h4>Location</h4>
+        {% if row['lat'] == None and row['lng'] == None %}
+            <div id="map1" style="height: 300; width: 400;" class="map-container"></div>
+            <script>
+                var map;
+                var existingmarker;
+
+
+                function initMap() {
+                    map = new google.maps.Map(document.getElementById('map1'), {
+                        center: { lat: 32.6669, lng: -16.9241 },
+                        zoom: 1,
+
+                    });
+
+                    map.addListener('gmp-click', function(event) {
+                        if (existingmarker) {
+                            existingmarker.setMap(null);
+                        }
+
+                        existingmarker = new google.maps.Marker({
+                            position: event.latLng,
+                            map: map,
+                            title: 'Pin',
+                            draggable: true
+                        });
+
+                        var lat = event.latLng.lat();
+                        var lng = event.latLng.lng();
+
+
+                        var xmlhttp = new XMLHttpRequest();
+                        xmlhttp.open('POST', '/coords', true);
+                        xmlhttp.setRequestHeader('Content-Type', 'application/json');
+                        xmlhttp.send(JSON.stringify({ lat: lat, lng: lng }));
+                    });
+                }
+            </script>
+            <script async defer
+                src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCrLn37j2Aln7yh58GPY2AuQIDU3poAgrg&libraries=maps,marker&v=beta&callback=initMap">
+            </script>
+        {% else %}
+            <div id="map2" style="height: 300; width: 400;" class="map-container"></div>
+            <script>
+                var map;
+                var existingmarker;
+
+                var existinglat = {{row['lat']}};
+                var existinglng = {{row['lng']}};
+
+                function initMap() {
+                    map = new google.maps.Map(document.getElementById('map2'), {
+                        center: { lat: existinglat, lng: existinglng },
+                        zoom: 4,
+                        mapId: 'MAP'
+                    });
+
+
+                    existingmarker = new google.maps.Marker({
+                        position: { lat: existinglat, lng: existinglng },
+                        map: map,
+                        title: 'Pin',
+                    });
+
+                    function sendCoordinates(lat, lng) {
+                        var xmlhttp = new XMLHttpRequest();
+                        xmlhttp.open('POST', '/coords', true);
+                        xmlhttp.setRequestHeader('Content-Type', 'application/json');
+                        xmlhttp.send(JSON.stringify({ lat: lat, lng: lng }));
+                    }
+
+                    sendCoordinates(existinglat, existinglng);
+
+                    map.addListener('gmp-click', function (event) {
+                        if (existingmarker) {
+                            existingmarker.setMap(null);
+                        }
+
+                        existingmarker = new google.maps.Marker({
+                            position: event.latLng,
+                            map: map,
+                            title: 'Pin',
+                            draggable: true
+                        });
+
+                    var lat = event.latLng.lat();
+                    var lng = event.latLng.lng();
+
+                    sendCoordinates(lat, lng);
+                });
+            }
+            </script>
+            <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCrLn37j2Aln7yh58GPY2AuQIDU3poAgrg&libraries=maps,marker&v=beta&callback=initMap"></script>
+        {% endif %}
+
+    <br>
+  <h4>Private</h4>
+  {% if getprivacy == "public" %}
+    <p><input type="checkbox" id="privacy" name="privacy"></p>
+  {% elif getprivacy == "private" %}
+    <p><input type="checkbox" id="privacy2" name="privacy" value="1" checked></p>
+  {% endif %}
+        <br>
+      <h4>Username</h4>
+    <div id="div1">
+          <div class = "input-group">
+              <p><input type="text" name="Username" id="username" value='{{row["username"]}}' placeholder="Username" onkeyup="searchusernames()">
+              <div class="criteria-group">
+                <img id="unique" src="{{ url_for('static', filename='ticks_crosses/1024px-Cross_red_circle.svg.png') }}" alt="Image" class="criteria-image">
+                <h5>Unique</h5>
+              </div>
+              <div class="criteria-group">
+                <img id="length" src="{{ url_for('static', filename='ticks_crosses/1024px-Cross_red_circle.svg.png') }}" alt="Image" class="criteria-image">
+                <h5>Length is between 3 and 15 characters</h5>
+              </div>
+          </div>
+      </p></div>
+        <h4>Password</h4>
+        <p><input name="oldpassword" id="oldpassword" type="password" placeholder="Old Password" onkeyup="matcholdpassword()"></p>
+      <div id="div2">
+        <div class = "input-group">
+            <p><input name="newpassword" id="password" type="password" value="{{password}}" placeholder="New Password" onkeyup="searchpasswords()">
+            <div class="criteria-group">
+                <img id="matching" src="{{ url_for('static', filename='ticks_crosses/1024px-Cross_red_circle.svg.png') }}" alt="Image" class="criteria-image">
+                <h5>Old password</h5>
+            </div>
+
+            <div class="criteria-group">
+                <img id="plength" src="{{ url_for('static', filename='ticks_crosses/1024px-Cross_red_circle.svg.png') }}" alt="Image" class="criteria-image">
+                <h5>Length is greater than 8 characters</h5>
+            </div>
+
+
+             <div class="criteria-group">
+                 <img id="symb" src="{{ url_for('static', filename='ticks_crosses/1024px-Cross_red_circle.svg.png') }}" alt="Image" class="criteria-image">
+                 <h5>Symbol (!, *, %, @, $, &)</h5>
+             </div>
+
+             <div class="criteria-group">
+                <img id="digit" src="{{ url_for('static', filename='ticks_crosses/1024px-Cross_red_circle.svg.png') }}" alt="Image" class="criteria-image">
+                <h5>Digit</h5>
+             </div>
+
+            <div class="criteria-group">
+                <img id="lower" src="{{ url_for('static', filename='ticks_crosses/1024px-Cross_red_circle.svg.png') }}" alt="Image" class="criteria-image">
+                <h5>Lowercase letter</h5>
+            </div>
+
+            <div class="criteria-group">
+                <img id="upper" src="{{ url_for('static', filename='ticks_crosses/1024px-Cross_red_circle.svg.png') }}" alt="Image" class="criteria-image">
+                <h5>Uppercase letter</h5>
+            </div>
+        </div>
+     </p></div>
+
+
+
+    <a href ='/deleteaccount' class="linkbutton">Delete Account</a>
+  
+
+    <p><input type="submit" value="Save"> <input type="submit" name="cancel" value="Cancel"></p>
+    </form>
+<strong>{{msg}}</strong>
+    {% endfor %}
+{% endblock %}

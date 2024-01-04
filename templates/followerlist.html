@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Followers</h1>
+
+
+<style>
+  .namelink a {
+    text-decoration: none;
+    color: white;
+    font-family:Verdana;
+  }
+  .namelink a:hover {
+  color: #7752E7;
+  cursor: pointer;
+}
+</style>
+
+
+
+<div class="namelink">
+  <table border = "1" class="centered-table"> 
+    {% for row in rows %}
+    <tr>
+      {% if row["userreceive"] == username %}
+        <td><a href ='/removefollower?id={{row["usersend"]}}'>{{row["usersend"]}}</a></td>
+      {% else %}
+        {% if row["usersend"] == username %}
+          <td><a href ='/account'>{{row["usersend"]}}</a></td>
+        {% else %}
+          <td><a href ='/viewaccount?id={{row["usersend"]}}'>{{row["usersend"]}}</a></td>
+        {% endif %}
+      {% endif %}
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+
+{% endblock %}

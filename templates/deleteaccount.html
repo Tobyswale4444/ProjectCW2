@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h3>You must enter you password in order to delete your account</h3>
+
+<form method="POST">
+    <input name="password" type="password" placeholder="Password"><br>
+    <br>
+    <input type="submit" name="delete" value="Delete Account">
+</form>
+    <h4>{{msg}}</h4>
+
+{% endblock %}

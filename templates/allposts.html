@@ -1,0 +1,218 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>All Posts</h1>
+
+
+
+<head>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCrLn37j2Aln7yh58GPY2AuQIDU3poAgrg&callback=initMap&libraries=maps,marker&v=beta"></script>
+</head>
+
+
+<form method="POST">
+
+
+  <select name="selected_option">
+    <option value="Newest">Newest</option>
+    <option value="Oldest">Oldest</option>
+    <option value="Popularity">Popularity</option>
+  </select>
+  <br>
+  <br>
+    <input type="submit" name="sort" value="Sort">
+
+{% if filtered != True %}
+<div>
+  <br>
+  <input type="range" id="slider" name="slidervalue" min="0" max="6000000" step="1000" value="0" style="width: 400px;">
+  <h4>Radius: <span id="val"></span>m</h4>
+
+</div>
+
+<body>
+    <div id="map1"  style="width: 400px; height: 300px;" class="map-container"></div>
+
+    <script>
+        var map;
+        var existingmarker;
+        var circle;
+        var sliderval;
+        var sliderMoved = false;
+        var latlnglist = {{ latlnglist | tojson | safe }};
+
+
+
+        function initMap() {
+            map = new google.maps.Map(document.getElementById('map1'), {
+                center: { lat: 32.6669, lng: -16.9241 },
+                zoom: 1,
+
+            });
+
+
+             for (var i = 0; i < latlnglist.length; i++) {
+                 let lat = parseFloat(latlnglist[i][0]);
+                 let lng = parseFloat(latlnglist[i][1]);
+                 let postid = latlnglist[i][2]
+                 let state = latlnglist[i][3]
+
+                 var postmarker = new google.maps.Marker({
+                    position: { lat: lat, lng: lng },
+                    map: map,
+                    icon: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
+                 });
+
+                 postmarker.addListener('gmp-click', function () {
+                    if (state === 'False') {
+                        window.location.href = "/viewpost?id=" + postid;
+                    } else {
+                        window.location.href = "/viewalbum?id=" + postid;
+                    }
+                });
+            }
+            map.addListener('gmp-click', function(event) {
+                if (!sliderMoved) {
+                    alert("Set the radius!");
+                    return;
+                }
+
+                if (existingmarker) {
+                    existingmarker.setMap(null);
+                }
+
+                existingmarker = new google.maps.Marker({
+                    position: event.latLng,
+                    map: map,
+                    title: 'Pin',
+                });
+
+
+                if (circle) {
+                    circle.setMap(null);
+                }
+
+                circle = new google.maps.Circle({
+                    strokeColor: '#FF0000',
+                    strokeOpacity: 0.8,
+                    strokeWeight: 2,
+                    fillColor: '#FF0000',
+                    fillOpacity: 0.35,
+                    map: map,
+                    center: event.latLng,
+                    radius: sliderval,
+                });
+
+
+
+
+                var lat = event.latLng.lat();
+                var lng = event.latLng.lng();
+
+
+                var xmlhttp = new XMLHttpRequest();
+                xmlhttp.open('POST', '/filtercoords', true);
+                xmlhttp.setRequestHeader('Content-Type', 'application/json');
+                xmlhttp.send(JSON.stringify({ lat: lat, lng: lng, radius: sliderval }));
+            });
+        }
+
+        function updatecircler(value) {
+          if (circle) {
+              circle.setRadius(value);
+          }
+        }
+
+
+        var slider = document.getElementById("slider");
+        var output = document.getElementById("val");
+        output.innerHTML = slider.value;
+
+        slider.oninput = function() {
+            output.innerHTML = this.value;
+            sliderval = parseInt(this.value);
+            updatecircler(sliderval);
+            sliderMoved = true;
+        }
+
+
+
+    </script>
+</body>
+
+
+<h3>Filter Posts: <input type="checkbox" id="posts" name="posts"></h3>
+
+<h3>Filter Albums: <input type="checkbox" id="albums" name="albums"> </h3>
+{% endif %}
+
+
+{% if filtered == True %}
+    <br><br><input type="submit" name="unfilter" value="Remove Filter">
+{% else %}
+    <input type="submit" name="filter" value="Filter">
+{% endif %}
+    <h3>{{msg}}</h3>
+
+</form>
+
+
+
+<div class="image-grid">
+  {% for row in rows %}
+  <div class="image-item">
+    <div class="image-title">
+    {% if row["user"] != username %}
+        <a href="/viewaccount?id={{row['user']}}" style="display: flex; align-items: center;">
+            <img src="{{ url_for('static', filename='ProfilePictures/' + row['pfp']) }}" alt="Image" class="rounded-image-small">
+            <span>{{row["user"]}}</span>
+        </a>
+    {% else %}
+        <a href="/account" style="display: flex; align-items: center;">
+            <img src="{{ url_for('static', filename='ProfilePictures/' + row['pfp']) }}" alt="Image" class="rounded-image-small">
+            <span>{{row["user"]}}</span>
+        </a>
+    {% endif %}
+
+    {% if row["album"] == "True" %}
+      <a href="/viewalbum?id={{row['id']}}">
+      <br>
+    {% else %}
+      <a href="/viewpost?id={{row['id']}}">
+      <br>
+    {% endif %}
+
+
+      <img src="{{ url_for('static', filename='UploadedPhotos/' + row['filename']) }}" alt="Image" class="scaled-image">
+          <br>
+          <br>
+          {% if row['text']|length > 50 %}
+            {{ row['text'][:50] }}...</a>
+          {% else %}
+            {{ row['text'] }}</a>
+          {% endif %}
+
+
+
+
+
+              <div class="map-container">
+              {% if row["album"] != "True" %}
+                <body>
+                  <gmp-map center="{{row['lat']}},{{row['lng']}}" zoom="2" map-id="map">
+                    <gmp-advanced-marker position="{{row['lat']}},{{row['lng']}}" title="Pin">
+                    </gmp-advanced-marker>
+                  </gmp-map>
+                </body>
+
+              {% endif %}
+              </div>
+
+  </div>
+</div>
+
+  {% endfor %}
+
+
+
+
+{% endblock %}

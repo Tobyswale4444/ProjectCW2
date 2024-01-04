@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block content %}
+
+
+{% if not deleted %}
+      
+      
+  <h3>Are you sure you want to remove this post from your drafts?</h3>
+  <form method="POST">
+    <input type="submit" value="Yes" name="yes"> <input type="submit" value="No" name="no">
+    
+  </form>
+
+{% else %}
+  <h3>Post deleted</h3>
+  <a href="/drafts" class="linkbutton">Return to Drafts</a>
+
+{% endif %}
+
+
+
+
+{% endblock %}

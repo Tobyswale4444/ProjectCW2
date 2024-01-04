@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Search</h1>
+
+<head>
+  <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCrLn37j2Aln7yh58GPY2AuQIDU3poAgrg&callback=console.debug&libraries=maps,marker&v=beta">
+</script>
+</head>
+<form>
+    <input name="search" id="search" placeholder="Search.." onkeyup="searchposts()" type="text" style="width: 300;">
+    <br>
+    <br>
+    <div id="div1"></div>
+</form>
+
+{% endblock %}

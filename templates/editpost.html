@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<style>
+    .photoandmeta {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        margin-bottom: 20px;
+    }
+
+    .photo-container {
+        float: left;
+        margin-right: 20px;
+    }
+
+    .meta-container h3 {
+        width: 200px;
+        margin: 3;
+    }
+
+    .meta-container {
+        text-align: left;
+    }
+
+    .meta-container input {
+        margin-bottom: 10px;
+    }
+
+    .clear {
+        clear: both;
+    }
+    </style>
+
+<h1>Edit Post</h1>
+<td><a href ='/viewpost?id={{postid}}' class="linkbuttonsmall">View Post</a></td>
+<br><br>
+
+
+
+
+<form method="POST">
+    <div class = "photoandmeta">
+      <div class="photo-container">
+          {% for row in rows %}
+            <img src="{{ url_for('static', filename='UploadedPhotos/' + row['filename']) }}" alt="Image" class="scaled-image-big">
+      </div>
+        <div class="meta-container">
+            {% for row2 in rows2 %}
+                <h3>Date:</h3>
+                <input type="date" name="date" value='{{date}}'>
+                <input type="time" name="time" value='{{time}}'>
+                <h3>Aperture: <input type="text" name="fstop" value='{{row2["fstop"]}}' placeholder="fstop"></h3>
+                <h3>ISO: <input type="number" name="ISO" value='{{row2["ISO"]}}' placeholder="ISO"></h3>
+                <h3>Shutterspeed: 1/<input type="number" name="shutterspeed" value='{{row2["shutterspeed"]}}' placeholder="shutterspeed"></h3>
+                <h3>Make: <input type="text" name="make" value='{{row2["make"]}}' placeholder="make" maxlength="50"></h3>
+                <h3>Model: <input type="text" name="model" value='{{row2["model"]}}' placeholder="model" maxlength="50"></h3>
+                <h3>Lens Model: <input type="text" name="lensmodel" value='{{row2["lensmodel"]}}' placeholder="lens model" maxlength="50"></h3>
+            {% endfor %}
+        </div>
+    </div>
+
+        <h3>Add a title</h3>
+        <p><textarea class="textareatitle" name="text" placeholder="Enter text here" maxlength="100">{{row["text"]}}</textarea></p>
+        <h3>Add a description</h3>
+        <p><textarea class="textareadescr" name="description" placeholder="Enter text here" maxlength="250">{{row["descr"]}}</textarea></p>
+
+  
+<body>
+    <div id="map1" class="map-container-big"></div>
+    <script>
+        var map;
+            var existingmarker;
+
+            var existinglat = {{row['lat']}};
+            var existinglng = {{row['lng']}};
+
+            function initMap() {
+                map = new google.maps.Map(document.getElementById('map1'), {
+                    center: { lat: existinglat, lng: existinglng },
+                    zoom: 4,
+                    mapId: 'MAP'
+                });
+
+
+                existingmarker = new google.maps.Marker({
+                    position: { lat: existinglat, lng: existinglng },
+                    map: map,
+                    title: 'Pin',
+                });
+
+                function sendCoordinates(lat, lng) {
+                    var xmlhttp = new XMLHttpRequest();
+                    xmlhttp.open('POST', '/coords', true);
+                    xmlhttp.setRequestHeader('Content-Type', 'application/json');
+                    xmlhttp.send(JSON.stringify({ lat: lat, lng: lng }));
+                }
+
+                sendCoordinates(existinglat, existinglng);
+
+                map.addListener('gmp-click', function (event) {
+                    if (existingmarker) {
+                        existingmarker.setMap(null);
+                    }
+
+                    existingmarker = new google.maps.Marker({
+                        position: event.latLng,
+                        map: map,
+                        title: 'Pin',
+                        draggable: true
+                    });
+
+                var lat = event.latLng.lat();
+                var lng = event.latLng.lng();
+
+                sendCoordinates(lat, lng);
+            });
+        }
+    </script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCrLn37j2Aln7yh58GPY2AuQIDU3poAgrg&libraries=maps,marker&v=beta&callback=initMap"></script>
+</body>
+
+
+
+    
+
+
+
+
+
+
+  
+        <p><input type="submit" value="Update"> <input type="submit" name="cancel" value="Cancel"></p>
+        <h4>Posted at: {{row["timeposted"]}}</h4>  
+         
+      {% endfor %}
+
+  
+  
+</form>
+
+
+{% endblock %}

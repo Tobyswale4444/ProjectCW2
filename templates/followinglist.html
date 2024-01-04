@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Following</h1>
+
+
+<style>
+  .namelink a {
+    text-decoration: none;
+    color: white;
+    font-family:Verdana;
+  }
+  .namelink a:hover {
+  color: #7752E7;
+  cursor: pointer;
+}
+</style>
+
+
+
+<div class="namelink">
+  <table border = "1" class="centered-table"> 
+    {% for row in rows %}
+    <tr>
+      {% if row["usersend"] == username %}
+        <td><a href ='/removefollowing?id={{row["userreceive"]}}'>{{row["userreceive"]}}</a></td>
+      {% else %}
+        {% if row["userreceive"] == username %}
+          <td><a href ='/account'>{{row["userreceive"]}}</a></td>
+        {% else %}
+          <td><a href ='/viewaccount?id={{row["userreceive"]}}'>{{row["userreceive"]}}</a></td>
+        {% endif %}
+      {% endif %}
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+
+{% endblock %}

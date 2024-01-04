@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Activity</h1>
+
+
+<style>
+  .like-image {
+    height: 50px;
+    display: block;
+    margin: 0 auto;
+}
+  .namelink a {
+    text-decoration: none;
+    color: white;
+    font-family:Verdana;
+  }
+  .namelink a:hover {
+  color: #7752E7;
+  cursor: pointer;
+}
+</style>
+
+
+
+<div class="namelink">
+  <table class="centered-table">
+    {% for row in rows %}
+    <tr>
+      {% if row["type"] == "like" %}
+        {% if row["usersliked"] != username %}
+          <td><a href ='/viewaccount?id={{row["usersliked"]}}'>{{row["usersliked"]}}</a>liked your<a href ='/viewpost?id={{row["id"]}}'>post</a></td>
+          <td>{{row["timesent"]}}</td>
+        {% endif %}
+      {% else %}
+        {% if row["type"] == "follower" %}
+          <td><a href ='/viewaccount?id={{row["usersend"]}}'>{{row["usersend"]}}</a>is now following you</td>
+          <td>{{row["timesent"]}}</td>
+        {% elif row["type"] == "request" %}
+          <td><a href ='/acceptignore?id={{row["usersend"]}}'>{{row["usersend"]}}</a>as sent you a follow request</td>
+          <td>{{row["timesent"]}}</td>
+        {% elif row["type"] == "following" %}
+          <td>You are now following<a href='/viewaccount?id={{row["userreceive"]}}'>{{row["userreceive"]}}</a></td>
+          <td>{{row["timesent"]}}</td>
+        {% elif row["type"] == "requestfollowing" %}
+          <td>You sent a follow request to<a href='/viewaccount?id={{row["userreceive"]}}'>{{row["userreceive"]}}</a></td>
+          <td>{{row["timesent"]}}</td>
+        {% endif %}
+      {% endif %}
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+
+{% endblock %}

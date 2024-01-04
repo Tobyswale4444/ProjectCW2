@@ -1,0 +1,74 @@
+
+
+
+<div class="image-grid">
+  {% for row in rows %}
+  <div class="image-item">
+    <div class="image-title">
+        {% if row["type"] == "user" %}
+            {% if row["username"] != username %}
+                <a href ='/viewaccount?id={{row["username"]}}'>{{row["username"]}}
+            {% else %}
+                <a href ="/account">{{row["username"]}}
+            {% endif %}
+            <br>
+            <br>
+            <br>
+            <img src="{{ url_for('static', filename='ProfilePictures/' + row['pfp']) }}" alt="Image" class="rounded-image"></a>
+            <br>
+            <br>
+            <br>
+        {% else %}
+            {% if row["user"] != username %}
+                <a href="/viewaccount?id={{row['user']}}" style="display: flex; align-items: center;">
+                    <img src="{{ url_for('static', filename='ProfilePictures/' + row['pfp']) }}" alt="Image" class="rounded-image-small">
+                    <span>{{row["user"]}}</span>
+                </a>
+            {% else %}
+                <a href="/account" style="display: flex; align-items: center;">
+                    <img src="{{ url_for('static', filename='ProfilePictures/' + row['pfp']) }}" alt="Image" class="rounded-image-small">
+                    <span>{{row["user"]}}</span>
+                </a>
+            {% endif %}
+
+            {% if row["album"] == "True" %}
+              <a href="/viewalbum?id={{row['id']}}">
+              <br>
+            {% else %}
+              <a href="/viewpost?id={{row['id']}}">
+              <br>
+            {% endif %}
+
+
+
+
+              <img src="{{ url_for('static', filename='UploadedPhotos/' + row['filename']) }}" alt="Image" class="scaled-image">
+                  <br>
+                  <br>
+                  {% if row['text']|length > 50 %}
+                    {{ row['text'][:50] }}...</a>
+                  {% else %}
+                    {{ row['text'] }}</a>
+                  {% endif %}
+
+
+
+
+
+                  <div class="map-container">
+                  {% if row["album"] != "True" %}
+                    <body>
+                      <gmp-map center="{{row['lat']}},{{row['lng']}}" zoom="2" map-id="map">
+                        <gmp-advanced-marker position="{{row['lat']}},{{row['lng']}}" title="Pin">
+                        </gmp-advanced-marker>
+                      </gmp-map>
+                    </body>
+
+                  {% endif %}
+                  </div>
+        {% endif %}
+
+  </div>
+</div>
+
+  {% endfor %}

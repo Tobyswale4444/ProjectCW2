@@ -1,0 +1,207 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<style>
+    .photoandmeta {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        margin-bottom: 20px;
+    }
+
+    .photo-container {
+        float: left;
+        margin-right: 20px;
+    }
+
+    .meta-container h3 {
+        width: 200px;
+        margin: 3;
+    }
+
+    .meta-container {
+        text-align: left;
+    }
+
+    .meta-container input {
+        margin-bottom: 10px;
+    }
+
+    .clear {
+        clear: both;
+    }
+    </style>
+
+
+<h1>Add post</h1>
+<h2>Edit Metadata</h2>
+<div class = "photoandmeta">
+<div class="photo-container">
+    <img src="{{ url_for('static', filename='UploadedPhotos/' + filename) }}" alt="Image" class="scaled-image-big">
+</div>
+
+<form method="POST" enctype="multipart/form-data">
+  <div class="meta-container">
+  {% for row in rows2 %}
+
+    <h3 style="text-align: left; width: 400;">Date:
+        <input type="date" name="date" value='{{date}}'>
+        <input type="time" name="time" value='{{time}}'>
+    </h3>
+    <h3 style="text-align: left;">Aperture: </h3><input type="text" name="fstop" value='{{row["fstop"]}}' placeholder="fstop">
+    <h3 style="text-align: left;">ISO: </h3><input type="number" name="ISO" value='{{row["ISO"]}}' placeholder="ISO">
+    <h3 style="text-align: left;">Shutterspeed: 1/</h3><input type="number" name="shutterspeed" value='{{row["shutterspeed"]}}' placeholder="shutterspeed">
+    <h3 style="text-align: left;">Make: </h3><input name="make" type="text" value='{{row["make"]}}' placeholder="make" maxlength="50">
+    <h3 style="text-align: left;">Model: </h3><input name="model" type="text" value='{{row["model"]}}' placeholder="model" maxlength="50">
+    <h3 style="text-align: left;">Lens Model: </h3><input name="lensmodel" type="text" value='{{row["lensmodel"]}}' placeholder="lens model" maxlength="50">
+
+  </div>
+</div>
+
+
+
+
+    <h2>Post Details</h2>
+    <h3>Add a title</h3>
+    {% if row["text"] == None %}
+        {% set newtext = "" %}
+    {% else %}
+        {% set newtext = row["text"] %}
+    {% endif %}
+
+    {% if row["descr"] == None %}
+        {% set newdescr = "" %}
+    {% else %}
+        {% set newdescr = row["descr"] %}
+    {% endif %}
+    <textarea class="textareatitle" name="text" placeholder="Enter text here" maxlength="100">{{newtext}}</textarea><br>
+    <h3>Add a description</h3>
+<textarea class="textareadescr" name="descr" placeholder="Enter text here" maxlength="250">{{newdescr}}</textarea><br>
+    <br>
+    <h4 style="color: red;">{{msg}}</h4>
+    <br>
+    <h3>Add to album:</h3>
+    {% endfor %}
+    <select name="selected_option">
+        <option value="none">None</option>
+            {% for row in rows %}
+                <option value="{{row['text']}}">{{row['text']}}</option>
+            {% endfor %}
+
+        </select>
+    <br>
+
+
+
+
+
+  <br>
+
+
+
+
+{% for row in rows2 %}
+    {% if row['lat'] == None and row['lng'] == None %}
+            <div id="map1" class="map-container-big"></div>
+            <script>
+                var map;
+                var existingmarker;
+
+
+                function initMap() {
+                    map = new google.maps.Map(document.getElementById('map1'), {
+                        center: { lat: 32.6669, lng: -16.9241 },
+                        zoom: 3,
+
+                    });
+
+                    map.addListener('click', function(event) {
+                        if (existingmarker) {
+                            existingmarker.setMap(null);
+                        }
+
+                        existingmarker = new google.maps.Marker({
+                            position: event.latLng,
+                            map: map,
+                            title: 'Pin',
+                            draggable: true
+                        });
+
+                        var lat = event.latLng.lat();
+                        var lng = event.latLng.lng();
+
+
+                        var xmlhttp = new XMLHttpRequest();
+                        xmlhttp.open('POST', '/coords', true);
+                        xmlhttp.setRequestHeader('Content-Type', 'application/json');
+                        xmlhttp.send(JSON.stringify({ lat: lat, lng: lng }));
+                    });
+                }
+            </script>
+            <script async defer
+                src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCrLn37j2Aln7yh58GPY2AuQIDU3poAgrg&libraries=maps,marker&v=beta&callback=initMap">
+            </script>
+        {% else %}
+            <div id="map2" class="map-container-big"></div>
+            <script>
+                var map;
+                var existingmarker;
+
+                var existinglat = {{row['lat']}};
+                var existinglng = {{row['lng']}};
+
+                function initMap() {
+                    map = new google.maps.Map(document.getElementById('map2'), {
+                        center: { lat: existinglat, lng: existinglng },
+                        zoom: 4,
+                        mapId: 'MAP'
+                    });
+
+
+                    existingmarker = new google.maps.Marker({
+                        position: { lat: existinglat, lng: existinglng },
+                        map: map,
+                        title: 'Pin',
+                    });
+
+                    function sendCoordinates(lat, lng) {
+                        var xmlhttp = new XMLHttpRequest();
+                        xmlhttp.open('POST', '/coords', true);
+                        xmlhttp.setRequestHeader('Content-Type', 'application/json');
+                        xmlhttp.send(JSON.stringify({ lat: lat, lng: lng }));
+                    }
+
+                    sendCoordinates(existinglat, existinglng);
+
+                    map.addListener('click', function (event) {
+                        if (existingmarker) {
+                            existingmarker.setMap(null);
+                        }
+
+                        existingmarker = new google.maps.Marker({
+                            position: event.latLng,
+                            map: map,
+                            title: 'Pin',
+                            draggable: true
+                        });
+
+                    var lat = event.latLng.lat();
+                    var lng = event.latLng.lng();
+
+                    sendCoordinates(lat, lng);
+                });
+            }
+            </script>
+            <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCrLn37j2Aln7yh58GPY2AuQIDU3poAgrg&libraries=maps,marker&v=beta&callback=initMap"></script>
+        {% endif %}
+    <br>
+    <input type="submit" name="submit" value="Submit"><input type="submit" name="drafts" value="Save to Drafts"><input type="submit" name="cancel" value="Cancel (delete draft)">
+    <br>
+    <br>
+</form>
+{% endfor %}
+
+
+
+{% endblock %}
