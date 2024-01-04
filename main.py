@@ -986,7 +986,7 @@ def editalbum():
         cursor.execute(sql, (description, text, albumid,))
         con.commit()
         return redirect(url_for('viewalbum', id=albumid))
-    return render_template("editalbum.html", rows=rows)
+    return render_template("editalbum.html", rows=rows, albumid=albumid)
 
 
 def calcage(dob):
@@ -2247,11 +2247,14 @@ def viewaccount():
     cursor.execute(sql, (username,))
 
     row2 = cursor.fetchone()
-    desc = row2[0]
-    dobget = row2[1]
-    ageget = calcage(dobget)
-    gender = row2[2]
-    pfp = row2[3]
+    try:
+        desc = row2[0] #if this causes an error it means the user doesnt exist
+        dobget = row2[1]
+        ageget = calcage(dobget)
+        gender = row2[2]
+        pfp = row2[3]
+    except:
+        return render_template('404.html')
 
     sql = """SELECT COUNT(*) as frequency
     FROM Posts

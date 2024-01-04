@@ -62,6 +62,10 @@
                     icon: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
                  });
 
+                 if (state === "True") {
+                    postmarker.setIcon('http://maps.google.com/mapfiles/ms/icons/red-dot.png');
+                }
+
                  postmarker.addListener('click', function () {
                     if (state === 'False') {
                         window.location.href = "/viewpost?id=" + postid;
