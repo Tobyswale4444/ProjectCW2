@@ -79,7 +79,7 @@ def moderate(string):
 def GetNamedLocation(lat,lng, id):
     geolocator = Nominatim(user_agent="web_site")
     latlng = str(lat) + ", " + str(lng)
-    location = geolocator.reverse(latlng)
+    location = geolocator.reverse(latlng, language='en')
     try:
         country = location.raw['address']['country']
     except:
