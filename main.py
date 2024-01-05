@@ -3056,6 +3056,12 @@ def search():
 
     return render_template("search.html")
 
+
+@web_site.route('/create')
+def create():
+
+    return render_template("create.html")
+
 @web_site.route('/GeoSnaps')
 def GeoSnaps():
 
