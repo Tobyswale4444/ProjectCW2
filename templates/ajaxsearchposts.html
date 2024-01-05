@@ -6,6 +6,7 @@
   <div class="image-item">
     <div class="image-title">
         {% if row["type"] == "user" %}
+            <div style="width: 200; height: 50;"></div>
             {% if row["username"] != username %}
                 <a href ='/viewaccount?id={{row["username"]}}'>{{row["username"]}}
             {% else %}
@@ -13,10 +14,9 @@
             {% endif %}
             <br>
             <br>
-            <br>
             <img src="{{ url_for('static', filename='ProfilePictures/' + row['pfp']) }}" alt="Image" class="rounded-image"></a>
             <br>
-            <br>
+            <div style="width: 200; height: 320;"></div>
             <br>
         {% else %}
             {% if row["user"] != username %}
