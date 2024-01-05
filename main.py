@@ -1135,14 +1135,14 @@ def recommendation(username):
     sql = """
         SELECT id, lat, lng
         FROM Posts
-        WHERE user = ? AND (album = 'false' OR album IS NULL)
+        WHERE user = ?
     """
     cursor.execute(sql, (username,))
     lnglatlist = []
     for row in cursor.fetchall():
         lat = row['lat']
         lng = row['lng']
-        baseids.append(row['id'])#adds all the posts youve already seen so we can remove them later
+        baseids.append(row['id'])#adds all the posts youve Created so we can remove later
         if lat is not None and lng is not None:
             lnglatlist.append([lat,lng])#gets list of lists of longs and lats of each post you have posted
 
@@ -1152,7 +1152,7 @@ def recommendation(username):
     sql = """SELECT Posts.id, Posts.lat, Posts.lng
     FROM Posts
     JOIN savedposts ON Posts.id = savedposts.savedpostid
-    WHERE savedposts.username = ? AND (Posts.album = 'false' OR album IS NULL)"""
+    WHERE savedposts.username = ?"""
     # gets every postid that the user has saved BUT get it through the posts so i can ensure it doesnt select  an album
     cursor.execute(sql, (username,))
     for row in cursor.fetchall():
@@ -1188,6 +1188,27 @@ def recommendation(username):
     if lnglat4 is not None:
         if lnglat4[0] is not None and lnglat4[1] is not None:
             lnglatlist.append([lnglat4[0],lnglat4[1]])
+    geolocator = Nominatim(user_agent="web_site")
+    latlng = str(lnglat4[0]) + ", " + str(lnglat4[1])
+    location = geolocator.reverse(latlng, language='en')
+    try:
+        country = location.raw['address']['country']
+    except:
+        country = ""
+    try:
+        city = location.raw['address']['city']
+    except:
+        city = ""
+
+    con.row_factory = sqlite3.Row
+    cursor = con.cursor()
+    sql = """SELECT Posts.id
+    FROM Posts
+    WHERE (country = ? OR city = ?) AND user != ?"""  # gets every albumid (that is public)
+    cursor.execute(sql, (country,city,username ))
+    for row in cursor.fetchall():
+        inside.append(row[0])
+
     #end locaton
 
 
@@ -1259,12 +1280,6 @@ def recommendation(username):
     #inside is all the recommended posts
     #basids is all posts youve already seen
     #we obv want to remove ones youve already seen so we find them in "inside" and remove them
-    intersect = []
-    for i in inside:
-        if i in baseids:
-            intersect.append(i)
-    for i in intersect:
-        inside.remove(i)
 
     #list of ids inside
     # pop
@@ -1468,7 +1483,6 @@ def recommendation(username):
     #people loc end
 
 
-
     insidetemp = inside
     for i in insidetemp:
         sql = "SELECT albumid FROM albums WHERE postid = ?"  # go through every post and get lat lng of each
@@ -1478,6 +1492,14 @@ def recommendation(username):
             inside.append(albumids[0])#get any albums the good posts are in
         except:
             pass
+
+    intersect = []
+    for i in inside:
+        if i in baseids:
+            intersect.append(i)#removes posts that shouldnt be shown (your own or already liked/saved)
+    for i in intersect:
+        inside.remove(i)
+
 
 
     insidefreq = {}
@@ -1491,7 +1513,7 @@ def recommendation(username):
     inside = []
     for i in insidefreq:
         inside.append(i[0])  # adds all the post ids (removing the datetime)
-    inside = inside[::-1]#reverse to maintain order
+    inside = inside[::-1]#reverse to get the most pop first (append adds to the end)
     listofall = listofallpostids + listofallalbumids
     if len(listofall) >= 1:#deals with if no posts
         minnum = math.ceil((len(listofall)*0.2))#gets the value that is 20% of all posts, this is how many we recommend (the min)
@@ -1515,6 +1537,7 @@ def error404(error):
 
 @web_site.route('/recommended', methods=['GET', 'POST'])
 def recommended():
+    msg = ""
     username = session["username"]
     postids = recommendation(username)
     con = sqlite3.connect('database.db')
@@ -1531,8 +1554,9 @@ def recommended():
         if postresult:
             postinfo.append(postresult)  # add to a list of all posts
 
-
-    return render_template("recommended.html", rows = postinfo, username = username)
+    if postinfo == []:
+        msg = "This does not exist"
+    return render_template("recommended.html", rows = postinfo, username = username, msg = msg)
 
 
 
