@@ -2267,6 +2267,10 @@ def viewaccount():
     rows = cursor.fetchall()
     rows = rows[::-1]
 
+    if username == usernamesend:
+        return redirect(url_for('listmyposts'))
+
+
     sql = "SELECT description, dob,gender,pfp FROM Accounts WHERE username = ?"
     cursor = con.cursor()
     cursor.execute(sql, (username,))
