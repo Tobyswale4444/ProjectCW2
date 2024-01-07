@@ -2416,7 +2416,7 @@ def activity():
     con = sqlite3.connect('database.db')
     con.row_factory = sqlite3.Row
     cursor = con.cursor()
-    sql = """SELECT Likes.usersliked, Likes.id,Likes.timesent,Posts.filename
+    sql = """SELECT Likes.usersliked, Likes.id, Likes.timesent
        FROM Likes
        JOIN Posts ON Likes.id = Posts.id
        WHERE Posts.user = ?"""
@@ -2479,7 +2479,18 @@ def activity():
     newrows += newrows3
     newrows += newrows4
     newrows += newrows5
-    sortedrows = sorted(newrows, key=lambda x: x.get('timesent'))
+
+    rowsinsec = []
+    for row in newrows:
+        getdatetime = datetime.strptime(row["timesent"], "%d/%m/%y %H:%M:%S") #converts to known format
+        datetimenow = datetime.now() #Gets time now
+        datetimedif = datetimenow - getdatetime #finds dif
+        timedif = datetimedif.total_seconds() #converts dif to s
+        rowdict = dict(row) #sets var to old dict of row
+        rowdict['timedif'] = timedif #adds sec dif to dict
+        rowsinsec.append(rowdict) #appends to list
+
+    sortedrows = sorted(rowsinsec, key=lambda x: x.get('timedif'))
 
     if sortedrows == []:
         msg = "No recent activity"
