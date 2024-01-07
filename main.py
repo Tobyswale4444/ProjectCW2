@@ -3091,6 +3091,7 @@ def ajaxsearchposts(search):
     con = sqlite3.connect('database.db')
     con.row_factory = sqlite3.Row
     cursor = con.cursor()
+
     sql = '''
       SELECT DISTINCT Posts.*, photodetails.*,Accounts.pfp
       FROM Posts
