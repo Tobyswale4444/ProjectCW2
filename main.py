@@ -2622,7 +2622,7 @@ def followerlist():
         usernames.append(row['usersend'])
     usernames = mergesort(usernames)
 
-    # sorts it based of the index of x.lower() in list "usernames"
+    #sorts it based of the index of x.lower() in list "usernames"
     rows = sorted(rows, key=lambda x: usernames.index(x["usersend"].lower()))
 
     if rows == []:
