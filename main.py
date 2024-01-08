@@ -618,10 +618,16 @@ def drafts():
     rows = cursor.fetchall()
     for row in rows:
         text = row["text"]
+        descr = row["descr"]
         if text == None:
             newtext = "Untitled"
             sql = "UPDATE tempphotos SET text = ? WHERE id = ?"  # gets every postid that the user has posted to drafts
             cursor.execute(sql, (newtext,row["id"]))
+            con.commit()
+        if descr == None:
+            newdescr = "Untitled"
+            sql = "UPDATE tempphotos SET descr = ? WHERE id = ?"  # gets every postid that the user has posted to drafts
+            cursor.execute(sql, (newdescr,row["id"]))
             con.commit()
 
     con.row_factory = sqlite3.Row
