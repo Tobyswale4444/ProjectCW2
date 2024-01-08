@@ -1205,7 +1205,6 @@ def recommendation(username):
     else:
         country = ""
         city = ""
-
     con.row_factory = sqlite3.Row
     cursor = con.cursor()
     sql = """SELECT Posts.id
