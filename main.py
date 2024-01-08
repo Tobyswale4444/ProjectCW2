@@ -365,6 +365,8 @@ def uploadphoto():
 
 
     if request.method == 'POST':
+        datetimenow = datetime.now()
+        formattedtime = datetimenow.strftime("%d/%m/%y %H:%M")
         randfilename = randomfilename(os.path.join(web_site.root_path, 'static', 'UploadedPhotos'))
         username = session["username"]
         photo = request.files['photo']
@@ -413,9 +415,9 @@ def uploadphoto():
                 lng = None
 
 
-            sql = "UPDATE tempphotos SET make = ?, model = ?, datetime = ?, ISO = ?, lensmodel = ?, fstop = ?, shutterspeed = ?, lat = ?, lng = ? WHERE id = ?"
+            sql = "UPDATE tempphotos SET make = ?, model = ?, timeposted = ?, datetime = ?, ISO = ?, lensmodel = ?, fstop = ?, shutterspeed = ?, lat = ?, lng = ? WHERE id = ?"
             cursor = con.cursor()
-            cursor.execute(sql, (make, model, metadatadatetime, ISO, LensModel, FNumber, ExposureTime, lat, lng, getid,))
+            cursor.execute(sql, (make, model, formattedtime, metadatadatetime, ISO, LensModel, FNumber, ExposureTime, lat, lng, getid,))
             con.commit()
 
 
@@ -465,8 +467,7 @@ def addpost():
     time = datetimeup[11:]
 
 
-    datetimenow = datetime.now()
-    formattedtime = datetimenow.strftime("%d/%m/%y %H:%M")
+
     username = session["username"]
     msg = ""
 
@@ -483,6 +484,8 @@ def addpost():
     rows = cursor.fetchall()
 
     if request.method == 'POST':
+        datetimenow = datetime.now()
+        formattedtime = datetimenow.strftime("%d/%m/%y %H:%M")
         sessionlat = session.get('lat')
         sessionlng = session.get('lng')
 
@@ -544,9 +547,9 @@ def addpost():
             if descr == "":
                 descr = "Untitled"
             con = sqlite3.connect('database.db')  #
-            sql = "UPDATE tempphotos SET make = ?, model = ?, datetime = ?, ISO = ?, lensmodel = ?, fstop = ?, shutterspeed = ?, lng = ?, lat = ?, text = ?, descr = ? WHERE id = ?"
+            sql = "UPDATE tempphotos SET make = ?, model = ?, timeposted = ?, datetime = ?, ISO = ?, lensmodel = ?, fstop = ?, shutterspeed = ?, lng = ?, lat = ?, text = ?, descr = ? WHERE id = ?"
             cursor = con.cursor()
-            cursor.execute(sql, (make, model, metadatadatetime, ISO, LensModel, FNumber, ExposureTime, sessionlng, sessionlat, text, descr,photoid))
+            cursor.execute(sql, (make, model, formattedtime, metadatadatetime, ISO, LensModel, FNumber, ExposureTime, sessionlng, sessionlat, text, descr,photoid))
             con.commit()
             session['lat'] = 0
             session['lng'] = 0
@@ -626,7 +629,17 @@ def drafts():
     sql = "SELECT * FROM tempphotos WHERE user = ?"  # gets every postid that the user has posted to drafts
     cursor.execute(sql, (username,))
     rows = cursor.fetchall()
+    rowsinsec = []
+    for row in rows:
+        getdatetime = datetime.strptime(row["timeposted"], "%d/%m/%y %H:%M")  # converts to known format
+        datetimenow = datetime.now()  # Gets time now
+        datetimedif = datetimenow - getdatetime  # finds dif
+        timedif = datetimedif.total_seconds()  # converts dif to s
+        rowdict = dict(row)  # sets var to old dict of row
+        rowdict['timedif'] = timedif  # adds sec dif to dict
+        rowsinsec.append(rowdict)  # appends to list
 
+    rows = sorted(rowsinsec, key=lambda x: x.get('timedif'))
     if rows == []:
         msg = "No drafts"
 
@@ -1812,7 +1825,7 @@ def friends():
     rows = cursor.fetchall()
 
     if rows == []:
-        msg = "No friends' posts found"
+        msg = "No posts found"
     return render_template("friends.html", rows = rows, msg=msg)
 
 @web_site.route('/account_settings', methods=['GET', 'POST'])
