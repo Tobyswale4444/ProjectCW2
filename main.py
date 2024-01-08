@@ -1669,14 +1669,14 @@ def listallposts():
 
     if "sortedpostids" in session:
         if session['sortedpostids'] == []: #if filtered post is emptied than no filter is active so use all posts
-            sortedpostids = sortdatetimefunc(listofpostids)#sorting wrong thing?
+            sortedpostids = sortdatetimefunc(listofpostids) # filtered set to false as default so no need to set again
 
         else:
             sortedpostids = session['sortedpostids']  # if there is a filter active then set filtered to true
             filtered = True
 
     else:
-        sortedpostids = sortdatetimefunc(listofpostids)
+        sortedpostids = sortdatetimefunc(listofpostids) #else if it is there first time loggin on then use all posts
         session['sortedpostids'] = []
 
 
@@ -1687,7 +1687,7 @@ def listallposts():
         checkboxposts = request.form.get('posts')
         checkboxalbums = request.form.get('albums')
         if "unfilter" in request.form:
-            session['sortedpostids'] = []
+            session['sortedpostids'] = [] # so when the page is reloaded, it tells the bit above that no filter is set
             return redirect(url_for('listallposts'))
 
         if "filter" in request.form:
@@ -1695,7 +1695,7 @@ def listallposts():
             slidervalue = int(request.form['slidervalue'])
             insideposts = CheckWithinRadius(lnglatdict)
 
-            for i in getallalbumids: #makes sure we incl albums
+            for i in getallalbumids: #makes sure we incl albums (if a post is inside the circle and in an album, give the album too)
                 updatealbumlocation(i)
                 allpostsdict = {}
                 con = sqlite3.connect('database.db')
@@ -1720,9 +1720,9 @@ def listallposts():
 
 
 
-            if checkboxposts != None or checkboxalbums != None:
+            if checkboxposts != None or checkboxalbums != None: # if at least one is clicked (slider could be)
                 sortedpostids2 = []
-                if checkboxalbums != None and checkboxposts == None:
+                if checkboxalbums != None and checkboxposts == None: # if only albums is clicked (slider could be)
                     con = sqlite3.connect('database.db')
                     con.row_factory = sqlite3.Row
                     cursor = con.cursor()
@@ -1737,7 +1737,7 @@ def listallposts():
                     session['sortedpostids'] = sortedpostids
 
 
-                elif checkboxposts != None and checkboxalbums == None:
+                elif checkboxposts != None and checkboxalbums == None: # if only posts is clicked (slider could be)
                     con = sqlite3.connect('database.db')
                     con.row_factory = sqlite3.Row
                     cursor = con.cursor()
@@ -1757,15 +1757,15 @@ def listallposts():
                     sortedpostids = sortedpostids2
                     session['sortedpostids'] = sortedpostids
 
-            elif checkboxposts == None and checkboxalbums == None:
+            elif checkboxposts == None and checkboxalbums == None: # if neither are clicked (slider could be)
                 sortedpostids = insideposts
                 session['sortedpostids'] = sortedpostids
                 sortedpostids = sortdatetimefunc(sortedpostids)
-            elif checkboxposts != None and checkboxalbums != None:
+            elif checkboxposts != None and checkboxalbums != None: # if both are clicked (slider could be)
                 sortedpostids = insideposts
                 session['sortedpostids'] = sortedpostids
                 sortedpostids = sortdatetimefunc(sortedpostids)
-            if checkboxposts == None and checkboxalbums == None and slidervalue == 0:#nothing selected
+            if checkboxposts == None and checkboxalbums == None and slidervalue == 0:# absolutely nothing selected
                 session['sortedpostids'] = []
                 return redirect(url_for('listallposts'))
         if "sort" in request.form:
