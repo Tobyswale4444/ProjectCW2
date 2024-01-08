@@ -3153,7 +3153,7 @@ def ajaxsearchposts(search):
       JOIN Accounts ON Accounts.username = Posts.user
       LEFT JOIN friendrequests ON friendrequests.userreceive = Accounts.username
       WHERE (Posts.privacy = 'public' OR (friendrequests.usersend = ? AND status = 2))
-      AND (Posts.text LIKE ? OR Posts.descr LIKE ? OR Posts.user LIKE ? OR photodetails.model LIKE ? OR photodetails.make LIKE ? OR Posts.country LIKE ? OR Posts.country LIKE ? OR Posts.city LIKE ?)'''
+      AND (Posts.text LIKE ? OR Posts.descr LIKE ? OR Posts.user LIKE ? OR photodetails.model LIKE ? OR photodetails.make LIKE ? OR Posts.country LIKE ? OR Posts.town LIKE ? OR Posts.city LIKE ?)'''
     cursor.execute(sql, (username,'%'+search+'%', '%'+search+'%', '%'+search+'%', '%'+search+'%', '%'+search+'%','%'+search+'%','%'+search+'%','%'+search+'%',))
     con.commit()
     rows = cursor.fetchall()
