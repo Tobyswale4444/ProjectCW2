@@ -77,34 +77,36 @@ def moderate(string):
 
 
 def GetNamedLocation(lat,lng, id):
-    geolocator = Nominatim(user_agent="web_site")
-    latlng = str(lat) + ", " + str(lng)
-    location = geolocator.reverse(latlng, language='en')
     try:
-        country = location.raw['address']['country']
+        geolocator = Nominatim(user_agent="web_site")
+        latlng = str(lat) + ", " + str(lng)
+        location = geolocator.reverse(latlng, language='en')
+        try:
+            country = location.raw['address']['country']
+        except:
+            country = "N/A"
+
+
+        try:
+            city = location.raw['address']['city']
+        except:
+            city = "N/A"
+
+
+        if country == None:
+            country = "N/A"
+        if city == None:
+            city = "N/A"
+
+        con = sqlite3.connect('database.db')  #
+        sql = "UPDATE Posts SET country = ?, city = ? WHERE id = ?"
+        cursor = con.cursor()
+        cursor.execute(sql, (country, city,id,))
+        con.commit()
+
+        return
     except:
-        country = "N/A"
-
-
-    try:
-        city = location.raw['address']['city']
-    except:
-        city = "N/A"
-
-
-    if country == None:
-        country = "N/A"
-    if city == None:
-        city = "N/A"
-
-    con = sqlite3.connect('database.db')  #
-    sql = "UPDATE Posts SET country = ?, city = ? WHERE id = ?"
-    cursor = con.cursor()
-    cursor.execute(sql, (country, city,id,))
-    con.commit()
-
-
-    return
+        return
 
 
 def hash(password):
@@ -315,27 +317,29 @@ def get_metadata(photo_path):
 
 
 def convertGPS(gpsdata):  # converts DMS to lat and lng
+    try:
+        latdegrees = float((gpsdata[2][0]))
+        latmin = float((gpsdata[2][1]))
+        latsec = float((gpsdata[2][2]))
 
-    latdegrees = float((gpsdata[2][0]))
-    latmin = float((gpsdata[2][1]))
-    latsec = float((gpsdata[2][2]))
+        lngdegrees = float((gpsdata[4][0]))
+        lngmin = float((gpsdata[4][1]))
+        lngsec = float((gpsdata[4][2]))
 
-    lngdegrees = float((gpsdata[4][0]))
-    lngmin = float((gpsdata[4][1]))
-    lngsec = float((gpsdata[4][2]))
+        lat = latdegrees + (latmin / 60) + (latsec / 3600)
+        lng = lngdegrees + (lngmin / 60) + (lngsec / 3600)
 
-    lat = latdegrees + (latmin / 60) + (latsec / 3600)
-    lng = lngdegrees + (lngmin / 60) + (lngsec / 3600)
+        lat = round(lat, 8)
+        lng = round(lng, 8)
 
-    lat = round(lat, 8)
-    lng = round(lng, 8)
+        if gpsdata[1] == 'S':
+            lat = -lat
+        if gpsdata[3] == 'W':
+            lng = -lng
 
-    if gpsdata[1] == 'S':
-        lat = -lat
-    if gpsdata[3] == 'W':
-        lng = -lng
-
-    return lat, lng
+        return lat, lng
+    except:
+        return None, None
 
 
 def randomfilename(path):#calc the probability
