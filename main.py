@@ -92,16 +92,22 @@ def GetNamedLocation(lat,lng, id):
         except:
             city = "N/A"
 
+        try:
+            town = location.raw['address']['town']
+        except:
+            town = "N/A"
+
 
         if country == None:
             country = "N/A"
         if city == None:
             city = "N/A"
-
+        if town == None:
+            town = "N/A"
         con = sqlite3.connect('database.db')  #
-        sql = "UPDATE Posts SET country = ?, city = ? WHERE id = ?"
+        sql = "UPDATE Posts SET country = ?, city = ?, town = ? WHERE id = ?"
         cursor = con.cursor()
-        cursor.execute(sql, (country, city,id,))
+        cursor.execute(sql, (country, city, town,id,))
         con.commit()
 
         return
@@ -1229,18 +1235,24 @@ def recommendation(username):
                 city = location.raw['address']['city']
             except:
                 city = ""
+            try:
+                town = location.raw['address']['town']
+            except:
+                town = ""
         else:
             country = ""
             city = ""
+            town = ""
     else:
         country = ""
         city = ""
+        town = ""
     con.row_factory = sqlite3.Row
     cursor = con.cursor()
     sql = """SELECT Posts.id
     FROM Posts
-    WHERE (country = ? OR city = ?) AND user != ?"""  # gets every albumid (that is public)
-    cursor.execute(sql, (country,city,username ))
+    WHERE (country = ? OR city = ? OR town = ?) AND user != ?"""  # gets every albumid (that is public)
+    cursor.execute(sql, (country,city, town, username ))
     for row in cursor.fetchall():
         inside.append(row[0])
 
@@ -3141,8 +3153,8 @@ def ajaxsearchposts(search):
       JOIN Accounts ON Accounts.username = Posts.user
       LEFT JOIN friendrequests ON friendrequests.userreceive = Accounts.username
       WHERE (Posts.privacy = 'public' OR (friendrequests.usersend = ? AND status = 2))
-      AND (Posts.text LIKE ? OR Posts.descr LIKE ? OR Posts.user LIKE ? OR photodetails.model LIKE ? OR photodetails.make LIKE ? OR Posts.country LIKE ? OR Posts.city LIKE ?)'''
-    cursor.execute(sql, (username,'%'+search+'%', '%'+search+'%', '%'+search+'%', '%'+search+'%', '%'+search+'%','%'+search+'%','%'+search+'%',))
+      AND (Posts.text LIKE ? OR Posts.descr LIKE ? OR Posts.user LIKE ? OR photodetails.model LIKE ? OR photodetails.make LIKE ? OR Posts.country LIKE ? OR Posts.country LIKE ? OR Posts.city LIKE ?)'''
+    cursor.execute(sql, (username,'%'+search+'%', '%'+search+'%', '%'+search+'%', '%'+search+'%', '%'+search+'%','%'+search+'%','%'+search+'%','%'+search+'%',))
     con.commit()
     rows = cursor.fetchall()
     newrows = []
