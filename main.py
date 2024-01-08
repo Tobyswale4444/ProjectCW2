@@ -600,6 +600,8 @@ def addpost():
                 session['lng'] = 0
                 return redirect(url_for('uploadphoto', id=postid))
             else:
+                session['lat'] = 0
+                session['lng'] = 0
                 msg = "Do not leave blank"
     return render_template("addpost.html", msg=msg,rows=rows, filename = filename, rows2 =rows2, date = date, time = time)
 
@@ -2672,8 +2674,7 @@ def removefollower():
 @web_site.route('/editpost', methods=['GET', 'POST'])
 def editpost():
     username = session["username"]
-    lat = session.get('lat')
-    lng = session.get('lng')
+
     postid = request.args.get('id')
     con = sqlite3.connect('database.db')
 
@@ -2691,7 +2692,8 @@ def editpost():
         session['lat'] = 0
         session['lng'] = 0
         return render_template('404.html')
-
+    lat = session.get('lat')
+    lng = session.get('lng')
 
     con.row_factory = sqlite3.Row
     sql = "SELECT * FROM Posts WHERE id = ?"
