@@ -376,57 +376,62 @@ def uploadphoto():
         photo = request.files['photo']
         if photo.filename != "":
             filename = randfilename + "_" + photo.filename
-            photo.save(os.path.join(web_site.root_path, 'static', 'UploadedPhotos', filename))
+            try:
+                photo.save(os.path.join(web_site.root_path, 'static', 'UploadedPhotos', filename))
 
 
-            con = sqlite3.connect('database.db')
-            sql = "INSERT INTO tempphotos(filename, user) VALUES(?,?)"
-            cursor = con.cursor()
-            cursor.execute(sql, (filename,username))
-            con.commit()
+                con = sqlite3.connect('database.db')
+                sql = "INSERT INTO tempphotos(filename, user) VALUES(?,?)"
+                cursor = con.cursor()
+                cursor.execute(sql, (filename,username))
+                con.commit()
 
-            sql = "SELECT id FROM tempphotos WHERE filename = ? AND user = ?"
-            cursor = con.cursor()
-            cursor.execute(sql, (filename,username))
-            getid = cursor.fetchone()
-            getid = getid[0]
+                sql = "SELECT id FROM tempphotos WHERE filename = ? AND user = ?"
+                cursor = con.cursor()
+                cursor.execute(sql, (filename,username))
+                getid = cursor.fetchone()
+                getid = getid[0]
 
-            photo_path = os.path.join(web_site.root_path, 'static', 'UploadedPhotos', filename)
-            metadata = get_metadata(photo_path)
-            make = str(metadata.get('Make', 'N/A'))
-            model = str(metadata.get('Model', 'N/A'))
-            metadatadatetime = str(metadata.get('DateTime', 'N/A'))
-            ISO = str(metadata.get('ISOSpeedRatings', 'N/A'))
-            LensModel = str(metadata.get('LensModel', 'N/A'))
-            FNumber = str(metadata.get('FNumber', 'N/A'))
-            ExposureTime = str(metadata.get('ExposureTime', 'N/A'))
-            if ExposureTime != "N/A":
-                ExposureTime = str(round(1 / float(ExposureTime)))
-            if metadatadatetime == "N/A":
-                metadatadatetime = str(metadata.get('DateTimeOriginal', 'N/A'))  # try other tag if other is empty
+                photo_path = os.path.join(web_site.root_path, 'static', 'UploadedPhotos', filename)
 
-            if metadatadatetime != "N/A":
-                metadatadatetime = metadatadatetime[:-3]
-                metadatadatetime = metadatadatetime.replace(":", "-", 2)
+                metadata = get_metadata(photo_path)
+                make = str(metadata.get('Make', 'N/A'))
+                model = str(metadata.get('Model', 'N/A'))
+                metadatadatetime = str(metadata.get('DateTime', 'N/A'))
+                ISO = str(metadata.get('ISOSpeedRatings', 'N/A'))
+                LensModel = str(metadata.get('LensModel', 'N/A'))
+                FNumber = str(metadata.get('FNumber', 'N/A'))
+                ExposureTime = str(metadata.get('ExposureTime', 'N/A'))
+                if ExposureTime != "N/A":
+                    ExposureTime = str(round(1 / float(ExposureTime)))
+                if metadatadatetime == "N/A":
+                    metadatadatetime = str(metadata.get('DateTimeOriginal', 'N/A'))  # try other tag if other is empty
 
-            gps_string = metadata.get('GPSInfo', 'N/A')
-            if gps_string != "N/A":
-                output = convertGPS(gps_string)#converts it to lat lng
-                lat = output[0]
-                lng = output[1]
-            else:
-                lat = None
-                lng = None
+                if metadatadatetime != "N/A":
+                    metadatadatetime = metadatadatetime[:-3]
+                    metadatadatetime = metadatadatetime.replace(":", "-", 2)
 
-
-            sql = "UPDATE tempphotos SET make = ?, model = ?, timeposted = ?, datetime = ?, ISO = ?, lensmodel = ?, fstop = ?, shutterspeed = ?, lat = ?, lng = ? WHERE id = ?"
-            cursor = con.cursor()
-            cursor.execute(sql, (make, model, formattedtime, metadatadatetime, ISO, LensModel, FNumber, ExposureTime, lat, lng, getid,))
-            con.commit()
+                gps_string = metadata.get('GPSInfo', 'N/A')
+                if gps_string != "N/A":
+                    output = convertGPS(gps_string)#converts it to lat lng
+                    lat = output[0]
+                    lng = output[1]
+                else:
+                    lat = None
+                    lng = None
 
 
+                sql = "UPDATE tempphotos SET make = ?, model = ?, timeposted = ?, datetime = ?, ISO = ?, lensmodel = ?, fstop = ?, shutterspeed = ?, lat = ?, lng = ? WHERE id = ?"
+                cursor = con.cursor()
+                cursor.execute(sql, (make, model, formattedtime, metadatadatetime, ISO, LensModel, FNumber, ExposureTime, lat, lng, getid,))
+                con.commit()
 
-            return redirect(url_for('addpost', id=getid))
+
+
+                return redirect(url_for('addpost', id=getid))
+            except:
+                msg = "Image Error..."
+                os.remove(os.path.join(web_site.root_path, 'static', 'UploadedPhotos', filename))
         else:
             msg = "Please select an image"
     return render_template("uploadphoto.html",prevpostid = prevpostid, posted = posted, msg = msg)
@@ -1908,22 +1913,29 @@ def account_settings():
         photo = request.files['photo']
         if photo.filename != "":
             filename = randfilename + "_" + photo.filename
-            photo.save(os.path.join(web_site.root_path, 'static', 'ProfilePictures', filename))
+            try:
+                photo.save(os.path.join(web_site.root_path, 'static', 'ProfilePictures', filename))
+                photo_path = os.path.join(web_site.root_path, 'static', 'ProfilePictures', filename)
+                metadata = get_metadata(photo_path)#good way to test if it is acc a photo
 
-            con = sqlite3.connect('database.db')
-            sql = "SELECT pfp FROM Accounts WHERE username = ?"
-            cursor = con.cursor()
-            cursor.execute(sql, (username,))
-            getoldfilename = cursor.fetchone()
-            getoldfilename = getoldfilename[0]
-            if getoldfilename != "blank-profile-picture-973460_960_720.jpg":
-                os.remove(os.path.join(web_site.root_path, 'static', 'ProfilePictures', getoldfilename))  # deletes the file
+                con = sqlite3.connect('database.db')
+                sql = "SELECT pfp FROM Accounts WHERE username = ?"
+                cursor = con.cursor()
+                cursor.execute(sql, (username,))
+                getoldfilename = cursor.fetchone()
+                getoldfilename = getoldfilename[0]
+                if getoldfilename != "blank-profile-picture-973460_960_720.jpg":
+                    os.remove(os.path.join(web_site.root_path, 'static', 'ProfilePictures', getoldfilename))  # deletes the file
 
 
-            sql = "UPDATE Accounts SET pfp = ? WHERE username = ?"
-            cursor = con.cursor()
-            cursor.execute(sql, (filename, username))
-            con.commit()
+                sql = "UPDATE Accounts SET pfp = ? WHERE username = ?"
+                cursor = con.cursor()
+                cursor.execute(sql, (filename, username))
+                con.commit()
+
+            except:
+                os.remove(os.path.join(web_site.root_path, 'static', 'ProfilePictures', filename))
+
 
 
 
