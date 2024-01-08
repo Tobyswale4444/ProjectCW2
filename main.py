@@ -583,9 +583,9 @@ def addpost():
                 postid = postidtup[0]
 
 
-                sql = "INSERT INTO photodetails(make, model, datetime, ISO, lensmodel, fstop, shutterspeed,id, lng, lat) VALUES(?,?,?,?,?,?,?,?,?,?)"
+                sql = "INSERT INTO photodetails(make, model, datetime, ISO, lensmodel, fstop, shutterspeed,id) VALUES(?,?,?,?,?,?,?,?)"
                 cursor = con.cursor()
-                cursor.execute(sql, (make, model, metadatadatetime, ISO, LensModel, FNumber, ExposureTime, postid,sessionlng,sessionlat))
+                cursor.execute(sql, (make, model, metadatadatetime, ISO, LensModel, FNumber, ExposureTime, postid))
                 con.commit()
 
                 GetNamedLocation(sessionlat,sessionlng,postid)
