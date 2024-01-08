@@ -1188,16 +1188,22 @@ def recommendation(username):
     if lnglat4 is not None:
         if lnglat4[0] is not None and lnglat4[1] is not None:
             lnglatlist.append([lnglat4[0],lnglat4[1]])
-    geolocator = Nominatim(user_agent="web_site")
-    latlng = str(lnglat4[0]) + ", " + str(lnglat4[1])
-    location = geolocator.reverse(latlng, language='en')
-    try:
-        country = location.raw['address']['country']
-    except:
+            geolocator = Nominatim(user_agent="web_site")
+            latlng = str(lnglat4[0]) + ", " + str(lnglat4[1])
+            location = geolocator.reverse(latlng, language='en')
+            try:
+                country = location.raw['address']['country']
+            except:
+                country = ""
+            try:
+                city = location.raw['address']['city']
+            except:
+                city = ""
+        else:
+            country = ""
+            city = ""
+    else:
         country = ""
-    try:
-        city = location.raw['address']['city']
-    except:
         city = ""
 
     con.row_factory = sqlite3.Row
