@@ -1567,7 +1567,7 @@ def recommendation(username):
         while len(inside) < minnum: #if the number of recommendation posts is < 20% of allposts (the min) then we add some random ones to fill it
             for i in range(minnum - len(inside)):
                 randnumber = random.randint(0, len(listofall) - 1)
-                if listofall[randnumber] not in inside:#make sure we dont dupe the random ones
+                if listofall[randnumber] not in inside and listofall[randnumber] not in baseids:#make sure we dont dupe the random ones/add your ones
                     inside.append(listofall[randnumber])
             for i in inside:
                 if i in listofdisids:#removes disliked post
