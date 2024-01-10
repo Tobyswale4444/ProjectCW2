@@ -1191,7 +1191,7 @@ def recommendation(username):
     FROM Posts
     JOIN savedposts ON Posts.id = savedposts.savedpostid
     WHERE savedposts.username = ?"""
-    # gets every postid that the user has saved BUT get it through the posts so i can ensure it doesnt select  an album
+    # gets every postid that the user has saved
     cursor.execute(sql, (username,))
     for row in cursor.fetchall():
         lat = row['lat']
@@ -1228,7 +1228,7 @@ def recommendation(username):
             lnglatlist.append([lnglat4[0],lnglat4[1]])
             geolocator = Nominatim(user_agent="web_site")
             latlng = str(lnglat4[0]) + ", " + str(lnglat4[1])
-            location = geolocator.reverse(latlng, language='en')
+            location = geolocator.reverse(latlng, language='en') #gets the named location of your location from account settings
             try:
                 country = location.raw['address']['country']
             except:
@@ -1558,11 +1558,11 @@ def recommendation(username):
         else:
             insidefreq[i] = 1
     insidefreq = sortdatetime(insidefreq)#able to use this func as not acc specifc to func, sorts it based on freq
-    print(insidefreq)
+    print(insidefreq) #things which are in the list multiple times means they are more relevant
     inside = []
     for i in insidefreq:
         inside.append(i[0])  # adds all the post ids (removing the datetime)
-    inside = inside[::-1]#reverse to get the most pop first (append adds to the end)
+    inside = inside[::-1]#reverse to get the most relevant first (append adds to the end)
     listofall = listofallpostids + listofallalbumids
     if len(listofall) >= 1:#deals with if no posts
         minnum = math.ceil((len(listofall)*0.2))#gets the value that is 20% of all posts, this is how many we recommend (the min)
