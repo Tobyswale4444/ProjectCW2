@@ -884,7 +884,8 @@ def viewalbum():
             getdatetime = datetime.strptime(getdatetime[0], "%Y-%m-%d %H:%M")
             formatdattimetotal = formatdattime(getdatetime)  # gets how many seconds ago it was taken
             datetimedict[i] = formatdattimetotal  # adds the seconds value to a dictionary with the key being the post id (i)
-            sorteddatetime = sortdatetime(datetimedict)  # sorts it
+            sorteddatetime = sortdatetime(datetimedict)
+            sorteddatetime = sorteddatetime[::-1]# sorts it
         else:
             unformatposts.append(i) #posts without a time
     sortedpostids = []
