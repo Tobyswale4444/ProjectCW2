@@ -289,9 +289,11 @@ def coords():
     data = request.get_json()
     lat = data.get('lat')
     lng = data.get('lng')
+    clicked = data.get('clicked')
     session['lat'] = round(lat, 8)
     session['lng'] = round(lng, 8)
-
+    session['clicked'] = clicked
+    print(clicked)
 
     return "Success"
 
@@ -1881,11 +1883,11 @@ def account_settings():
     if request.method == "POST":
         lat = session.get('lat')
         lng = session.get('lng')
+        clicked = session.get('clicked')
         if "cancel" in request.form:
             session['lat'] = 0
             session['lng'] = 0
             return redirect('account')
-
 
         description = request.form["description"]
         description = moderate(description)
@@ -1916,7 +1918,7 @@ def account_settings():
         cursor.execute(sql, (gender, username))
         con.commit()
 
-        if lat != 0 and lng != 0:
+        if lat != 0 and lng != 0 and clicked:
             sql = "UPDATE Accounts SET lat = ?, lng = ? WHERE username = ?"
             cursor = con.cursor()
             cursor.execute(sql, (lat,lng, username,))
@@ -2703,7 +2705,7 @@ def removefollower():
 @web_site.route('/editpost', methods=['GET', 'POST'])
 def editpost():
     username = session["username"]
-
+    print(session.get('lat'))
     postid = request.args.get('id')
     con = sqlite3.connect('database.db')
 
@@ -2744,6 +2746,7 @@ def editpost():
     time = datetimeup[11:]
 
     if request.method == "POST":
+        print("hello")
         lat = session.get('lat')
         lng = session.get('lng')
         if "cancel" in request.form:

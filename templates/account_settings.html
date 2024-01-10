@@ -67,6 +67,7 @@
             <script>
                 var map;
                 var existingmarker;
+                var clicked = false;
 
 
                 function initMap() {
@@ -90,12 +91,12 @@
 
                         var lat = event.latLng.lat();
                         var lng = event.latLng.lng();
-
+                        clicked = true;
 
                         var xmlhttp = new XMLHttpRequest();
                         xmlhttp.open('POST', '/coords', true);
                         xmlhttp.setRequestHeader('Content-Type', 'application/json');
-                        xmlhttp.send(JSON.stringify({ lat: lat, lng: lng }));
+                        xmlhttp.send(JSON.stringify({ lat: lat, lng: lng, clicked: clicked }));
                     });
                 }
             </script>
@@ -107,6 +108,7 @@
             <script>
                 var map;
                 var existingmarker;
+                var clicked = true;
 
                 var existinglat = {{row['lat']}};
                 var existinglng = {{row['lng']}};
@@ -129,7 +131,7 @@
                         var xmlhttp = new XMLHttpRequest();
                         xmlhttp.open('POST', '/coords', true);
                         xmlhttp.setRequestHeader('Content-Type', 'application/json');
-                        xmlhttp.send(JSON.stringify({ lat: lat, lng: lng }));
+                        xmlhttp.send(JSON.stringify({ lat: lat, lng: lng, clicked: clicked }));
                     }
 
                     sendCoordinates(existinglat, existinglng);
