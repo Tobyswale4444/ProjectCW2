@@ -1861,8 +1861,7 @@ def friends():
 def account_settings():
     filename = "1024px-Cross_red_circle.svg.png"
     username = session["username"]
-    lat = session.get('lat')
-    lng = session.get('lng')
+
     con = sqlite3.connect('database.db')
     con.row_factory = sqlite3.Row
     sql = "SELECT * FROM Accounts WHERE username = ?"
@@ -1880,6 +1879,8 @@ def account_settings():
     genders = ["None","Male", "Female", "Other"]
 
     if request.method == "POST":
+        lat = session.get('lat')
+        lng = session.get('lng')
         if "cancel" in request.form:
             session['lat'] = 0
             session['lng'] = 0
@@ -2720,8 +2721,7 @@ def editpost():
         session['lat'] = 0
         session['lng'] = 0
         return render_template('404.html')
-    lat = session.get('lat')
-    lng = session.get('lng')
+
 
     con.row_factory = sqlite3.Row
     sql = "SELECT * FROM Posts WHERE id = ?"
@@ -2744,6 +2744,8 @@ def editpost():
     time = datetimeup[11:]
 
     if request.method == "POST":
+        lat = session.get('lat')
+        lng = session.get('lng')
         if "cancel" in request.form:
             session['lat'] = 0
             session['lng'] = 0
