@@ -1685,7 +1685,7 @@ def listallposts():
 
     lnglatdict = {}
     for i in listofpostids:
-        sql = "SELECT lat, lng FROM Posts WHERE id = ? AND album is NULL"  # go through every post and get lat lng of each
+        sql = "SELECT lat, lng FROM Posts WHERE id = ?"  # go through every post and get lat lng of each
         cursor.execute(sql, (i,))
         lnglat = cursor.fetchone()
         if lnglat is not None:
