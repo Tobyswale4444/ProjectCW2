@@ -55,7 +55,7 @@ def index():
 
 def moderate(string):
     badworddict = {
-        "shit": "shirt",
+        "shit": "shirt", #little reference to "the good place", probably remove for actual project...
         "fuck": "fork",
         "bitch": "bench",
         "ass": "ash",
