@@ -361,7 +361,7 @@ def randomfilename(path):#calc the probability
     filepath = os.path.join(path, filename)
 
     if os.path.exists(filepath):
-        return randomfilename(path)
+        return randomfilename(path)#recursive until you find a unique one, but probably unnecessary (guarantees unique anyway)
     else:
         return filename
 
