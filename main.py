@@ -1338,7 +1338,7 @@ def recommendation(username):
     sortedpopids = sortedpopids[:math.ceil(0.2 * len(sortedpopids))]  # gets top 20% most popular posts
     sucloop = 0
     totloop = 0
-    while sucloop < 10 and totloop < 100:#10 times we select a random post from the top 20% of pop posts, (try 50 times to avoid infite loop)
+    while sucloop < 10 and totloop < 100:#10 times we select a random post from the top 20% of pop posts, (try 100 times to avoid infite loop)
         randnumber = random.randint(0, len(sortedpopids) - 1)
         if sortedpopids[randnumber] not in inside:
             inside.append(sortedpopids[randnumber])
@@ -1571,7 +1571,7 @@ def recommendation(username):
     if len(listofall) >= 1:#deals with if no posts
         minnum = math.ceil((len(listofall)*0.2))#gets the value that is 20% of all posts, this is how many we recommend (the min)
         totloop2 = 0
-        while len(inside) < minnum and totloop2 < 100: #if the number of recommendation posts is < 20% of allposts (the min) then we add some random ones to fill it (#totloop < 50 to avoid infinte loop)
+        while len(inside) < minnum and totloop2 < 100: #if the number of recommendation posts is < 20% of allposts (the min) then we add some random ones to fill it (#totloop < 100 to avoid infinte loop)
             for i in range(minnum - len(inside)):
                 randnumber = random.randint(0, len(listofall) - 1)
                 if listofall[randnumber] not in inside and listofall[randnumber] not in baseids:#make sure we dont dupe the random ones/add your ones
