@@ -385,8 +385,6 @@ def uploadphoto():
             filename = randfilename + "_" + photo.filename
             try:
                 photo.save(os.path.join(web_site.root_path, 'static', 'UploadedPhotos', filename))
-
-
                 con = sqlite3.connect('database.db')
                 sql = "INSERT INTO tempphotos(filename, user) VALUES(?,?)"
                 cursor = con.cursor()
@@ -439,6 +437,11 @@ def uploadphoto():
             except:
                 msg = "Image Error..."
                 os.remove(os.path.join(web_site.root_path, 'static', 'UploadedPhotos', filename))
+                con = sqlite3.connect('database.db')
+                sql = "DELETE FROM tempphotos WHERE filename = ? and user = ?"
+                cursor = con.cursor()
+                cursor.execute(sql, (filename, username))
+                con.commit()
         else:
             msg = "Please select an image"
     return render_template("uploadphoto.html",prevpostid = prevpostid, posted = posted, msg = msg)

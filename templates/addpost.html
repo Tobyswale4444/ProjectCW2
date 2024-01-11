@@ -63,7 +63,7 @@
 
 
     <h2>Post Details</h2>
-    <h3>Add a title</h3>
+    <h3>Add a title*</h3>
     {% if row["text"] == None %}
         {% set newtext = "" %}
     {% else %}
@@ -76,7 +76,7 @@
         {% set newdescr = row["descr"] %}
     {% endif %}
     <textarea class="textareatitle" name="text" placeholder="Enter text here" maxlength="100">{{newtext}}</textarea><br>
-    <h3>Add a description</h3>
+    <h3>Add a description*</h3>
 <textarea class="textareadescr" name="descr" placeholder="Enter text here" maxlength="250">{{newdescr}}</textarea><br>
     <br>
     <h4 style="color: red;">{{msg}}</h4>
