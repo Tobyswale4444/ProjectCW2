@@ -293,7 +293,6 @@ def coords():
     session['lat'] = round(lat, 8)
     session['lng'] = round(lng, 8)
     session['clicked'] = clicked
-    print(clicked)
 
     return "Success"
 
@@ -1070,7 +1069,7 @@ def listmyposts():
 
     sql = """SELECT COUNT(*) as frequency
         FROM Posts
-        WHERE user = ? AND (album = 'false' OR album IS NULL)
+        WHERE user = ? AND album IS NULL
         GROUP BY user;
         """
     cursor = con.cursor()
@@ -1162,6 +1161,7 @@ def CheckWithinRadius(dict):
 
 
 def recommendation(username):
+
     inside = []
     listofallpostids = []
     baseids = []
@@ -1271,7 +1271,7 @@ def recommendation(username):
 
     con.row_factory = sqlite3.Row
     cursor = con.cursor()
-    sql = "SELECT id FROM Posts WHERE privacy = 'public' AND (album = 'false' OR album IS NULL)"  # gets every postid (that is public)
+    sql = "SELECT id FROM Posts WHERE privacy = 'public' AND album IS NULL"  # gets every postid (that is public)
     cursor.execute(sql)
     for row in cursor.fetchall():
         listofallpostids.append(row[0])
@@ -1336,15 +1336,18 @@ def recommendation(username):
     allids = listofallpostids + listofallalbumids
     sortedpopids = sortpopularity(allids)
     sortedpopids = sortedpopids[:math.ceil(0.2 * len(sortedpopids))]  # gets top 20% most popular posts
-    loop = 0
-    while loop < 10:#10 times we select a random post from the top 20% of pop posts
+    sucloop = 0
+    totloop = 0
+    while sucloop < 10 and totloop < 100:#10 times we select a random post from the top 20% of pop posts, (try 50 times to avoid infite loop)
         randnumber = random.randint(0, len(sortedpopids) - 1)
         if sortedpopids[randnumber] not in inside:
             inside.append(sortedpopids[randnumber])
-            loop +=1
+            sucloop +=1
         else:
+            totloop += 1
             pass
     # endpop
+
     #similar gender
     samegender = []
     con.row_factory = sqlite3.Row
@@ -1368,6 +1371,7 @@ def recommendation(username):
             randnumber = random.randint(0, len(samegender) - 1)
             inside.append(samegender[randnumber])
     #gender stop
+
     # similar camera
     #get a list of all camera makes, and a list of all camera models
     makes = []
@@ -1414,6 +1418,7 @@ def recommendation(username):
             if row[0] not in alluserpostids:
                 inside.append(row[0])
     #similar camera stop
+
     #mutuals
     following = []
     con.row_factory = sqlite3.Row
@@ -1532,7 +1537,6 @@ def recommendation(username):
         inside.append(closeaccountposts[randnumber])
     #people loc end
 
-
     insidetemp = inside
     for i in insidetemp:
         sql = "SELECT albumid FROM albums WHERE postid = ?"  # go through every post and get lat lng of each
@@ -1542,14 +1546,12 @@ def recommendation(username):
             inside.append(albumids[0])#get any albums the good posts are in
         except:
             pass
-
     intersect = []
     for i in inside:
         if i in baseids:
             intersect.append(i)#removes posts that shouldnt be shown (your own or already liked/saved)
     for i in intersect:
         inside.remove(i)
-
 
 
     insidefreq = {}
@@ -1561,13 +1563,15 @@ def recommendation(username):
     insidefreq = sortdatetime(insidefreq)#able to use this func as not acc specifc to func, sorts it based on freq
     print(insidefreq) #things which are in the list multiple times means they are more relevant
     inside = []
+
     for i in insidefreq:
         inside.append(i[0])  # adds all the post ids (removing the datetime)
     inside = inside[::-1]#reverse to get the most relevant first (append adds to the end)
     listofall = listofallpostids + listofallalbumids
     if len(listofall) >= 1:#deals with if no posts
         minnum = math.ceil((len(listofall)*0.2))#gets the value that is 20% of all posts, this is how many we recommend (the min)
-        while len(inside) < minnum: #if the number of recommendation posts is < 20% of allposts (the min) then we add some random ones to fill it
+        totloop2 = 0
+        while len(inside) < minnum and totloop2 < 100: #if the number of recommendation posts is < 20% of allposts (the min) then we add some random ones to fill it (#totloop < 50 to avoid infinte loop)
             for i in range(minnum - len(inside)):
                 randnumber = random.randint(0, len(listofall) - 1)
                 if listofall[randnumber] not in inside and listofall[randnumber] not in baseids:#make sure we dont dupe the random ones/add your ones
@@ -1575,6 +1579,7 @@ def recommendation(username):
             for i in inside:
                 if i in listofdisids:#removes disliked post
                     inside.remove(i)
+            totloop2 += 1
     else:
         inside = []
 
@@ -1680,7 +1685,7 @@ def listallposts():
 
     lnglatdict = {}
     for i in listofpostids:
-        sql = "SELECT lat, lng FROM Posts WHERE id = ? AND (album = 'false' OR album is NULL)"  # go through every post and get lat lng of each
+        sql = "SELECT lat, lng FROM Posts WHERE id = ? AND album is NULL"  # go through every post and get lat lng of each
         cursor.execute(sql, (i,))
         lnglat = cursor.fetchone()
         if lnglat is not None:
@@ -1765,7 +1770,7 @@ def listallposts():
                     con = sqlite3.connect('database.db')
                     con.row_factory = sqlite3.Row
                     cursor = con.cursor()
-                    sql = "SELECT id FROM Posts WHERE (album = 'false' OR album IS NULL) AND privacy = 'public'"
+                    sql = "SELECT id FROM Posts WHERE album IS NULL AND privacy = 'public'"
                     cursor.execute(sql)
                     con.commit()
                     rows = cursor.fetchall()
@@ -2345,7 +2350,7 @@ def viewaccount():
 
     sql = """SELECT COUNT(*) as frequency
     FROM Posts
-    WHERE user = ? AND (album = 'false' OR album IS NULL)
+    WHERE user = ? AND album IS NULL
     GROUP BY user;
     """
     cursor = con.cursor()
@@ -2706,7 +2711,6 @@ def removefollower():
 @web_site.route('/editpost', methods=['GET', 'POST'])
 def editpost():
     username = session["username"]
-    print(session.get('lat'))
     postid = request.args.get('id')
     con = sqlite3.connect('database.db')
 
@@ -2747,7 +2751,6 @@ def editpost():
     time = datetimeup[11:]
 
     if request.method == "POST":
-        print("hello")
         lat = session.get('lat')
         lng = session.get('lng')
         if "cancel" in request.form:
