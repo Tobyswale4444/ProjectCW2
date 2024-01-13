@@ -1159,7 +1159,7 @@ def CheckWithinRadius(dict):
         distance = c * r  # special eq
 
         if distance <= radius:  # if the distance is less than the radius, it must be inside it
-            inside.append(i)  # so add it to a list
+            inside.append(i)  # so add it to the final list
     return inside
 
 
