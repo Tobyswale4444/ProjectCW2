@@ -1372,7 +1372,8 @@ def recommendation(username):
     else:
         for i in range(math.ceil(0.2 * len(samegender))):  #loops (20% of posts by users of same gender) times and gets random post
             randnumber = random.randint(0, len(samegender) - 1)
-            inside.append(samegender[randnumber])
+            if samegender[randnumber] not in inside:
+                inside.append(samegender[randnumber])
     #gender stop
 
     # similar camera
@@ -1479,7 +1480,8 @@ def recommendation(username):
     else:
         for i in range(math.ceil(0.2 * len(intersectposts))):  #loops (20% of posts by users of same gender) times and gets random post
             randnumber = random.randint(0, len(intersectposts) - 1)
-            inside.append(intersectposts[randnumber])
+            if intersectposts[randnumber] not in inside:
+                inside.append(intersectposts[randnumber])
 
     #mutuals stop
     #people loc
@@ -1537,9 +1539,10 @@ def recommendation(username):
 
     for i in range(math.ceil(0.2 * len(closeaccountposts))):  #loops (20% of posts by users of same gender) times and gets random post
         randnumber = random.randint(0, len(closeaccountposts) - 1)
-        inside.append(closeaccountposts[randnumber])
+        if closeaccountposts[randnumber] not in inside:
+            inside.append(closeaccountposts[randnumber])
     #people loc end
-
+    print(inside)
     insidetemp = inside
     for i in insidetemp:
         sql = "SELECT albumid FROM albums WHERE postid = ?"  # go through every post and get lat lng of each
