@@ -1657,7 +1657,7 @@ def sortpopularity(listofpostids):
         getlikes = cursor.fetchone()
         likesdict[i] = getlikes[0]  # adds the seconds value to a dictionary with the key being the post id (i)
         sortlikes = sortdatetime(likesdict)  # sorts it (able to use other func as not actually specific to datetime)
-
+        #only sort likes as if you have many likes and many dislikes, its got lots of interaction so must be popular
 
     sortedpostids2 = []
     for i in sortlikes:
