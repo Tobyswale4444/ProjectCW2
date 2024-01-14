@@ -2463,7 +2463,7 @@ def viewaccount():
         elif "add" in request.form:
             con = sqlite3.connect('database.db')
             cursor = con.cursor()
-            sql = "UPDATE friendrequests SET status = 2,timesent = ?WHERE userreceive = ? AND usersend = ?"
+            sql = "UPDATE friendrequests SET status = 2,timesent = ? WHERE userreceive = ? AND usersend = ?"
             cursor.execute(sql, (formattedtime,username, usernamesend,))
             con.commit()
 
