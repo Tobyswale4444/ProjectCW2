@@ -355,7 +355,7 @@ def randomfilename(path):#calc the probability
     for i in range(20):
         randstr += random.choice(letters)
     datetimenow = datetime.now()
-    formattedtime = datetimenow.strftime("%d%m%y%H%M")
+    formattedtime = datetimenow.strftime("%d%m%y%H%M%S%f")[:-3]
     filename = (randstr + formattedtime)
 
     filepath = os.path.join(path, filename)
