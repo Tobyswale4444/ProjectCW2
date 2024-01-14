@@ -715,6 +715,7 @@ def removefromdrafts():
 @web_site.route('/addalbum', methods=['GET', 'POST'])
 def addalbum():
     msg = ""
+    msg2 = ""
     username = session["username"]
     filename = "7da6b012d99beac0c7eff0949b27b7e6.png"
     if request.method == "POST":
@@ -731,11 +732,10 @@ def addalbum():
             text = moderate(text)
             descr = request.form["descr"]
             descr = moderate(descr)
-            if text == "":
-                text = "Untitled"
-            if descr == "":
-                descr = "Untitled"
-            if text != "" and descr != "":
+
+            if text != "":
+                if descr == "":
+                    descr = "Untitled"
                 con = sqlite3.connect('database.db')
                 sql = "SELECT id FROM Posts WHERE user = ? AND text = ? AND album = 'True'"
                 cursor = con.cursor()
@@ -751,9 +751,9 @@ def addalbum():
                     return redirect(url_for('listmyposts'))
                 else:
                     msg = "Cannot have duplicate album names"
-
-
-    return render_template("addalbum.html", msg = msg)
+            else:
+                msg2 = "Do not leave title blank"
+    return render_template("addalbum.html", msg=msg, msg2=msg2)
 
 
 def sortdatetime(dict):
@@ -995,7 +995,8 @@ def editalbum():
     albumid = request.args.get('id')
     username = session["username"]
     con = sqlite3.connect('database.db')
-
+    msg = ""
+    msg2 = ""
     sql = "SELECT user FROM Posts WHERE id = ?"
     cursor = con.cursor()
     cursor.execute(sql, (albumid,))
@@ -1013,21 +1014,32 @@ def editalbum():
     if request.method == "POST":
         if "cancel" in request.form:
             return redirect(url_for('viewalbum', id=albumid))
-        con = sqlite3.connect('database.db')
+
         description = request.form["description"]
         description = moderate(description)
         text = request.form["text"]
         text = moderate(text)
-        if text == "":
-            text = "Untitled"
-        if description == "":
-            description = "Untitled"
-        sql = "UPDATE Posts SET descr = ?, text = ? WHERE id = ?"
-        cursor = con.cursor()
-        cursor.execute(sql, (description, text, albumid,))
-        con.commit()
-        return redirect(url_for('viewalbum', id=albumid))
-    return render_template("editalbum.html", rows=rows, albumid=albumid)
+        if text != "":
+            if description == "":
+                description = "Untitled"
+            con = sqlite3.connect('database.db')
+            sql = "SELECT id FROM Posts WHERE user = ? AND text = ? AND album = 'True'"
+            cursor = con.cursor()
+            cursor.execute(sql, (username, text,))
+            getunid = cursor.fetchone()
+
+            if getunid is None:
+                con = sqlite3.connect('database.db')
+                sql = "UPDATE Posts SET descr = ?, text = ? WHERE id = ?"
+                cursor = con.cursor()
+                cursor.execute(sql, (description, text, albumid,))
+                con.commit()
+                return redirect(url_for('viewalbum', id=albumid))
+            else:
+                msg = "Cannot have duplicate album names"
+        else:
+            msg2 = "Do not leave title blank"
+    return render_template("editalbum.html", rows=rows, albumid=albumid, msg=msg,msg2=msg2)
 
 
 def calcage(dob):
