@@ -2176,6 +2176,7 @@ def viewpost():
                     cursor.execute(sql, (getalbumid, postid, username,))
                     con.commit()
                     updatealbumlocation(getalbumid)
+                    return redirect(url_for('viewpost', id=postid))
 
         con = sqlite3.connect('database.db')
         sql = "SELECT usersliked FROM Likes WHERE usersliked = ? AND id = ?"
