@@ -17,13 +17,6 @@ web_site.config["SESSION_PERMANENT"] = False
 web_site.config["SESSION_TYPE"] = "filesystem"
 Session(web_site)
 
-@web_site.before_request
-def checksession():
-    permittedpages = ["/login", "/Index", "/GeoSnaps"]#pages youre allowed to be in without being logged in
-    if request.path not in permittedpages:
-      if not request.path.startswith("/static"): #ignore static stuff
-        if "username" not in session: #check if youre logged in
-          return redirect("/login") #if not logged in, redirect to login
 
 @web_site.route('/', methods=['GET', 'POST'])
 @web_site.route('/Index', methods=['GET', 'POST'])
@@ -261,6 +254,7 @@ def ajaxpasswordsindex(search):
     if not symbcheck or search == "empty":
         symb = "1024px-Cross_red_circle.svg.png"
 
+
     return jsonify({'upper': upper,'length': length,'lower': lower,'digit': digit,'symb': symb})
 
 @web_site.route('/login', methods=['GET', 'POST'])
@@ -375,6 +369,9 @@ def randomfilename(path):#calc the probability
 
 @web_site.route('/uploadphoto', methods=['GET', 'POST'])
 def uploadphoto():
+    if "username" not in session:
+        return redirect("/login")
+
     posted = False
     prevpostid = request.args.get('id')
     if prevpostid != None:
@@ -455,6 +452,9 @@ def uploadphoto():
 
 @web_site.route('/addpost', methods=['GET', 'POST'])
 def addpost():
+    if "username" not in session:
+        return redirect("/login")
+
     photoid = request.args.get('id')
     username = session["username"]
 
@@ -635,6 +635,9 @@ def addpost():
 
 @web_site.route('/drafts', methods=['GET', 'POST'])
 def drafts():
+    if "username" not in session:
+        return redirect("/login")
+
     msg = ""
     username = session["username"]
 
@@ -683,6 +686,9 @@ def drafts():
 
 @web_site.route('/removefromdrafts', methods=['GET', 'POST'])
 def removefromdrafts():
+    if "username" not in session:
+        return redirect("/login")
+
     username = session["username"]
     postid = request.args.get('id')
 
@@ -721,6 +727,9 @@ def removefromdrafts():
 
 @web_site.route('/addalbum', methods=['GET', 'POST'])
 def addalbum():
+    if "username" not in session:
+        return redirect("/login")
+
     msg = ""
     msg2 = ""
     username = session["username"]
@@ -848,6 +857,9 @@ def updatealbumlocation(albumid): #also updates the average likes
 
 @web_site.route('/viewalbum', methods=['GET', 'POST'])
 def viewalbum():
+    if "username" not in session:
+        return redirect("/login")
+
     listofpostids = []
     sorteddatetime = {}
     username = session["username"]
@@ -979,6 +991,9 @@ def viewalbum():
 
 @web_site.route('/removefromalbum', methods=['GET', 'POST'])
 def removefromalbum():
+    if "username" not in session:
+        return redirect("/login")
+
     albumid = request.args.get('albumid')
     postid = request.args.get('postid')
 
@@ -999,6 +1014,9 @@ def removefromalbum():
 
 @web_site.route('/editalbum', methods=['GET', 'POST'])
 def editalbum():
+    if "username" not in session:
+        return redirect("/login")
+
     albumid = request.args.get('id')
     username = session["username"]
     con = sqlite3.connect('database.db')
@@ -1068,6 +1086,10 @@ def calcage(dob):
 
 @web_site.route('/account', methods=['GET', 'POST'])
 def listmyposts():
+    if "username" not in session:
+        return redirect("/login")
+
+
     username = session["username"]
     con = sqlite3.connect('database.db')
     con.row_factory = sqlite3.Row
@@ -1617,6 +1639,9 @@ def error404(error):
 
 @web_site.route('/recommended', methods=['GET', 'POST'])
 def recommended():
+    if "username" not in session:
+        return redirect("/login")
+
     msg = ""
     username = session["username"]
     postids = recommendation(username)
@@ -1689,6 +1714,9 @@ def sortpopularity(listofpostids):
 
 @web_site.route('/allposts', methods=['GET', 'POST'])
 def listallposts():
+    if "username" not in session:
+        return redirect("/login")
+
     msg = ""
     username = session["username"]
     listofpostids = []
@@ -1869,6 +1897,9 @@ def listallposts():
 
 @web_site.route('/friends', methods=['GET', 'POST'])
 def friends():
+    if "username" not in session:
+        return redirect("/login")
+
     msg = ""
     username = session["username"]
     con = sqlite3.connect('database.db')
@@ -1892,6 +1923,9 @@ def friends():
 
 @web_site.route('/account_settings', methods=['GET', 'POST'])
 def account_settings():
+    if "username" not in session:
+        return redirect("/login")
+
     filename = "1024px-Cross_red_circle.svg.png"
     username = session["username"]
 
@@ -2069,6 +2103,9 @@ def logout():
 
 @web_site.route('/viewpost', methods=['GET', 'POST'])
 def viewpost():
+    if "username" not in session:
+        return redirect("/login")
+
     username = session["username"]
     postid = request.args.get('id')
     con = sqlite3.connect('database.db')
@@ -2342,6 +2379,9 @@ def viewpost():
 
 @web_site.route('/viewaccount', methods=['GET', 'POST'])
 def viewaccount():
+    if "username" not in session:
+        return redirect("/login")
+
     username = request.args.get('id')
     usernamesend = session["username"]
     con = sqlite3.connect('database.db')
@@ -2500,6 +2540,9 @@ def viewaccount():
 
 @web_site.route('/activity', methods=['GET', 'POST'])
 def activity():
+    if "username" not in session:
+        return redirect("/login")
+
     msg = ""
     username = session["username"]
     con = sqlite3.connect('database.db')
@@ -2589,6 +2632,9 @@ def activity():
 
 @web_site.route('/acceptignore', methods=['GET', 'POST'])
 def acceptignore():
+    if "username" not in session:
+        return redirect("/login")
+
     username = session["username"]
     usernamesend = request.args.get('id')
 
@@ -2614,6 +2660,9 @@ def acceptignore():
 
 @web_site.route('/followinglist')
 def followinglist():
+    if "username" not in session:
+        return redirect("/login")
+
     msg = ""
     username = session["username"]
     viewusername = request.args.get('id')
@@ -2681,6 +2730,9 @@ def mergesort(usernames):
 
 @web_site.route('/removefollowing', methods=['GET', 'POST'])
 def removefollowing():
+    if "username" not in session:
+        return redirect("/login")
+
     username = session["username"]
     follower = request.args.get('id')
     if "remove" in request.form:
@@ -2695,6 +2747,9 @@ def removefollowing():
 
 @web_site.route('/followerlist')
 def followerlist():
+    if "username" not in session:
+        return redirect("/login")
+
     msg = ""
     username = session["username"]
     viewusername = request.args.get('id')
@@ -2721,6 +2776,9 @@ def followerlist():
 
 @web_site.route('/removefollower', methods=['GET', 'POST'])
 def removefollower():
+    if "username" not in session:
+        return redirect("/login")
+
     username = session["username"]
     follower = request.args.get('id')
     if "remove" in request.form:
@@ -2736,6 +2794,9 @@ def removefollower():
 
 @web_site.route('/editpost', methods=['GET', 'POST'])
 def editpost():
+    if "username" not in session:
+        return redirect("/login")
+
     username = session["username"]
     postid = request.args.get('id')
     con = sqlite3.connect('database.db')
@@ -2855,6 +2916,9 @@ def editpost():
 
 @web_site.route('/deletealbum', methods=['GET', 'POST'])
 def deletealbum():
+    if "username" not in session:
+        return redirect("/login")
+
     username = session["username"]
     albumid = request.args.get('id')
 
@@ -2903,6 +2967,9 @@ def deletealbum():
 
 @web_site.route('/deleteaccount', methods=['GET', 'POST'])
 def deleteaccount():
+    if "username" not in session:
+        return redirect("/login")
+
     username = session["username"]
     msg = ""
     con = sqlite3.connect('database.db')
@@ -3051,6 +3118,9 @@ def deleteaccount():
 
 @web_site.route('/deletepost', methods=['GET', 'POST'])
 def deletepost():
+    if "username" not in session:
+        return redirect("/login")
+
     username = session["username"]
     postid = request.args.get('id')
 
@@ -3136,6 +3206,9 @@ def deletepost():
 
 @web_site.route('/savedposts')
 def savedposts():
+    if "username" not in session:
+        return redirect("/login")
+
     msg = ""
     username = session["username"]
     con = sqlite3.connect('database.db')
@@ -3157,12 +3230,16 @@ def savedposts():
 
 @web_site.route('/search')
 def search():
+    if "username" not in session:
+        return redirect("/login")
 
     return render_template("search.html")
 
 
 @web_site.route('/create')
 def create():
+    if "username" not in session:
+        return redirect("/login")
 
     return render_template("create.html")
 
