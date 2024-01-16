@@ -19,11 +19,11 @@ Session(web_site)
 
 @web_site.before_request
 def checksession():
-    permittedpages = ["/login", "/Index", "/GeoSnaps"]
+    permittedpages = ["/login", "/Index", "/GeoSnaps"]#pages youre allowed to be in without being logged in
     if request.path not in permittedpages:
-      if not request.path.startswith("/static"):
-        if "username" not in session:
-          return redirect("/login")
+      if not request.path.startswith("/static"): #ignore static stuff
+        if "username" not in session: #check if youre logged in
+          return redirect("/login") #if not logged in, redirect to login
 
 @web_site.route('/', methods=['GET', 'POST'])
 @web_site.route('/Index', methods=['GET', 'POST'])
