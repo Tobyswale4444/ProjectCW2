@@ -17,6 +17,13 @@ web_site.config["SESSION_PERMANENT"] = False
 web_site.config["SESSION_TYPE"] = "filesystem"
 Session(web_site)
 
+@web_site.before_request
+def checksession():
+    permittedpages = ["/login", "/Index", "/GeoSnaps"]
+    if request.path not in permittedpages:
+      if not request.path.startswith("/static"):
+        if "username" not in session:
+          return redirect("/login")
 
 @web_site.route('/', methods=['GET', 'POST'])
 @web_site.route('/Index', methods=['GET', 'POST'])
