@@ -13,7 +13,7 @@
         }
 
         function searchusernames() {
-        var search = $("#username").val();
+        var search = encodeURIComponent($("#username").val());
         if (search == "") {
             search = "empty";
         }
@@ -23,6 +23,7 @@
             success: function (data) {
                 $('#unique').attr('src', '/static/ticks_crosses/' + data.unique);
                 $('#length').attr('src', '/static/ticks_crosses/' + data.length);
+                $('#space').attr('src', '/static/ticks_crosses/' + data.space);
             }
         });
         }

@@ -160,11 +160,17 @@ def ajaxsearchusernames(search):
         length = "Check_green_circle.svg.png"
     else:
         length = "1024px-Cross_red_circle.svg.png"
+
+    if " " not in search and not search[0].isspace() and not search[-1].isspace():
+        space = "Check_green_circle.svg.png"
+    else:
+        space = "1024px-Cross_red_circle.svg.png"
+
     if search == "empty":
         unique = "1024px-Cross_red_circle.svg.png"
         length = "1024px-Cross_red_circle.svg.png"
 
-    return jsonify({'unique': unique,'length': length })
+    return jsonify({'unique': unique, 'space': space, 'length': length })
 
 @web_site.route('/ajaxpasswords/<search>')
 def ajaxpasswords(search):
