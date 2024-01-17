@@ -3,9 +3,10 @@
 
 <style>
   .userlink {
-      display: flex;
+      display: inline-block;
       justify-content: center;
       align-items: center;
+      text-align: center;
   }
 
   .userlink a {
@@ -13,6 +14,10 @@
       color: white;
       font-family:Verdana;
       font-size: 30;
+    }
+
+  .userlink:hover a {
+        color: #7752E7;
     }
 
   .userlink img {
@@ -24,7 +29,7 @@
   }
 
 </style>
-
+<br>
 <div class="userlink">
 {% for row in userrows %}
     {% if row[0] != username %}
