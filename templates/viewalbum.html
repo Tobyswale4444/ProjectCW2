@@ -2,22 +2,48 @@
 {% block content %}
 
 <style>
-  .namelink a {
-    text-decoration: underline;
-    color: white;
-    font-family:Verdana;
+  .userlink {
+      display: flex;
+      justify-content: center;
+      align-items: center;
   }
-  .namelink a:hover {
-  color: #7752E7;
-  cursor: pointer;
-}
+
+  .userlink a {
+      text-decoration: none;
+      color: white;
+      font-family:Verdana;
+      font-size: 30;
+    }
+
+  .userlink img {
+      width: 100px;
+      height: 100px;
+      border-radius: 20%;
+      object-fit: cover;
+      margin-right: 20;
+  }
+
 </style>
 
-
+<div class="userlink">
+{% for row in userrows %}
+    {% if row[0] != username %}
+        <a href="/viewaccount?id={{row[0]}}" style="display: flex; align-items: center;">
+            <img src="{{ url_for('static', filename='ProfilePictures/' + row[9]) }}" alt="Image">
+            <span>{{row[0]}}</span>
+        </a>
+    {% else %}
+        <a href="/account" style="display: flex; align-items: center;">
+            <img src="{{ url_for('static', filename='ProfilePictures/' + row[9]) }}" alt="Image">
+            <span>{{row[0]}}</span>
+        </a>
+    {% endif %}
+{% endfor %}
+</div>
 
 {% for row2 in rows2 %}
   <div class="text-container">
-    <h2>Album: {{row2['text']}} </h2>
+    <h2>{{row2['text']}} </h2>
 
     <h3>{{row2['descr']}}</h3>
   </div>
@@ -28,21 +54,13 @@
     <p><input type="submit" value="Unsave" name="unsave"></p>
   {% endif %}
 </form>
-<div class="namelink">
-  {% if row2["user"] != username %}
-    <h3>Created by<a href="/viewaccount?id={{row2['user']}}">{{row2['user']}}</a></h3>
-  {% else %}
-    <h3>Created by<a href="/account">{{row2['user']}}</a></h3>
-  {% endif %}
-
-  </div>
   {% if row2["timeposted"][-5:] == "12:51" %}
         <h4>Posted at: {{row2["timeposted"]}} ;)</h4><br><br>
   {% else %}
         <h4>Posted at: {{row2["timeposted"]}}</h4><br><br>
   {% endif %}
   
-  {% if row2["user"] == username %}
+  {% if getalbumuser == username %}
     <a href="/editalbum?id={{row2['id']}}" class="linkbuttonsmall">Edit</a>
     <a href="/deletealbum?id={{row2['id']}}" class="linkbuttonsmall">Delete</a>
     <br>

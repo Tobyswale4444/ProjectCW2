@@ -48,6 +48,28 @@
         background: none;
         cursor: pointer;
     }
+
+    .userlink {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .userlink a {
+        text-decoration: none;
+        color: white;
+        font-family:Verdana;
+        font-size: 30;
+      }
+
+    .userlink img {
+        width: 100px;
+        height: 100px;
+        border-radius: 20%;
+        object-fit: cover;
+        margin-right: 20;
+    }
+
 </style>
 
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
@@ -56,13 +78,25 @@
 
 <br>
 <br>
-{% if postuser != username %}
-  <a href ='/viewaccount?id={{postuser}}' class="linkbuttonsmall">View {{postuser}}'s account</a>
-{% endif %}
 
+<div class="userlink">
+{% for row in userrows %}
+    {% if row[0] != username %}
+        <a href="/viewaccount?id={{row[0]}}" style="display: flex; align-items: center;">
+            <img src="{{ url_for('static', filename='ProfilePictures/' + row[9]) }}" alt="Image">
+            <span>{{row[0]}}</span>
+        </a>
+    {% else %}
+        <a href="/account" style="display: flex; align-items: center;">
+            <img src="{{ url_for('static', filename='ProfilePictures/' + row[9]) }}" alt="Image">
+            <span>{{row[0]}}</span>
+        </a>
+    {% endif %}
+{% endfor %}
+</div>
 
     {% for row in rows %}
-      {% if postuser == username %}
+      {% if getpostuser == username %}
         <a href ='/editpost?id={{row["id"]}}' class="linkbuttonsmall">Edit Post</a>
         <a href ='/deletepost?id={{row["id"]}}' class="linkbuttonsmall">Delete Post</a>
         <h3>Add to album:</h3>

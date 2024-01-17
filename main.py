@@ -895,6 +895,17 @@ def viewalbum():
     if getprivacy == "private" and getstatus != 2 and getuser != username:
         return redirect(url_for('viewaccount', id=getuser))
 
+    sql = "SELECT * FROM Accounts WHERE username = (SELECT user FROM Posts WHERE id = ?)"
+    cursor = con.cursor()
+    con.row_factory = sqlite3.Row
+    cursor.execute(sql, (albumid,))
+    userrows = cursor.fetchall()
+
+    sql = "SELECT user FROM Posts WHERE id = ?"
+    cursor = con.cursor()
+    cursor.execute(sql, (albumid,))
+    getalbumuser = cursor.fetchone()
+    getalbumuser = getalbumuser[0]
 
     con.row_factory = sqlite3.Row
     cursor = con.cursor()
@@ -994,7 +1005,7 @@ def viewalbum():
             cursor.execute(sql, (albumid, username))
             con.commit()
             return redirect(url_for('viewalbum', id=albumid))
-    return render_template("viewalbum.html", rows=postinfo, rows2=rows2,username=username, checksaved = checksaved, lnglatpoints = lnglatpoints, filenames = filenames,imagesize =imagesize)
+    return render_template("viewalbum.html", rows=postinfo, rows2=rows2,username=username,userrows=userrows, getalbumuser=getalbumuser,checksaved = checksaved, lnglatpoints = lnglatpoints, filenames = filenames,imagesize =imagesize)
 
 
 @web_site.route('/removefromalbum', methods=['GET', 'POST'])
@@ -1898,7 +1909,6 @@ def listallposts():
     if not postinfo:
         msg = "No results found. It's Hard to Explain..."
 
-
     return render_template("allposts.html", rows=postinfo, username=username,filtered = filtered, latlnglist=latlnglist, msg= msg)
 
 
@@ -2137,8 +2147,11 @@ def viewpost():
     if getprivacy == "private" and getstatus != 2 and getuser != username:
         return redirect(url_for('viewaccount', id=getuser))
 
-
-
+    sql = "SELECT user FROM Posts WHERE id = ?"
+    cursor = con.cursor()
+    cursor.execute(sql, (postid,))
+    getpostuser = cursor.fetchone()
+    getpostuser = getpostuser[0]
 
     con.row_factory = sqlite3.Row
     sql = "SELECT * FROM Posts WHERE id = ?"
@@ -2196,11 +2209,11 @@ def viewpost():
         checksaved = False
 
     con = sqlite3.connect('database.db')
-    sql = "SELECT user FROM Posts WHERE id = ?"
+    sql = "SELECT * FROM Accounts WHERE username = (SELECT user FROM Posts WHERE id = ?)"
     cursor = con.cursor()
+    con.row_factory = sqlite3.Row
     cursor.execute(sql, (postid,))
-    postgetuser = cursor.fetchone()
-    postuser = postgetuser[0]
+    userrows = cursor.fetchall()
 
     if request.method == "POST":
         if "add" in request.form:
@@ -2383,7 +2396,7 @@ def viewpost():
             con.commit()
             return redirect(url_for('viewpost', id=postid))
 
-    return render_template("viewpost.html", postuser=postuser, rows=rows, username=username, checksaved=checksaved,rows2=rows2, rows3=rows3, albumtitles = albumtitles, date = date, time = time)
+    return render_template("viewpost.html", userrows=userrows, rows=rows,getpostuser=getpostuser, username=username, checksaved=checksaved,rows2=rows2, rows3=rows3, albumtitles = albumtitles, date = date, time = time)
 
 
 @web_site.route('/viewaccount', methods=['GET', 'POST'])
