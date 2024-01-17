@@ -44,15 +44,15 @@
       <div id="div1">
           <div class = "input-group">
               <p><input type="text" name="username" id="username" value="{{username}}" placeholder="Username" onkeyup="searchusernames()">
-              <div class="criteria-group">
+              <div class="criteria-group" style="padding-left: 28px;">
                 <img id="unique" src="{{ url_for('static', filename='ticks_crosses/1024px-Cross_red_circle.svg.png') }}" alt="Image" class="criteria-image">
                 <h5>Unique</h5>
               </div>
-              <div class="criteria-group">
+              <div class="criteria-group" style="padding-left: 28px;">
                 <img id="length" src="{{ url_for('static', filename='ticks_crosses/1024px-Cross_red_circle.svg.png') }}" alt="Image" class="criteria-image">
                 <h5>Length is between 3 and 15 characters</h5>
               </div>
-              <div class="criteria-group">
+              <div class="criteria-group" style="padding-left: 28px;">
                 <img id="space" src="{{ url_for('static', filename='ticks_crosses/1024px-Cross_red_circle.svg.png') }}" alt="Image" class="criteria-image">
                 <h5>No Spaces</h5>
               </div>

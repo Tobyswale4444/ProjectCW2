@@ -170,15 +170,15 @@
     <div id="div1">
           <div class = "input-group">
               <p><input type="text" name="Username" id="username" value='{{row["username"]}}' placeholder="Username" onkeyup="searchusernames()">
-              <div class="criteria-group">
+              <div class="criteria-group" style="padding-left: 27px;">
                 <img id="unique" src="{{ url_for('static', filename='ticks_crosses/1024px-Cross_red_circle.svg.png') }}" alt="Image" class="criteria-image">
                 <h5>Unique</h5>
               </div>
-              <div class="criteria-group">
+              <div class="criteria-group" style="padding-left: 27px;">
                 <img id="length" src="{{ url_for('static', filename='ticks_crosses/Check_green_circle.svg.png') }}" alt="Image" class="criteria-image">
                 <h5>Length is between 3 and 15 characters</h5>
               </div>
-              <div class="criteria-group">
+              <div class="criteria-group" style="padding-left: 27px;">
                 <img id="space" src="{{ url_for('static', filename='ticks_crosses/Check_green_circle.svg.png') }}" alt="Image" class="criteria-image">
                 <h5>No Spaces</h5>
               </div>
