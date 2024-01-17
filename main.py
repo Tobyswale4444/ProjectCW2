@@ -3264,7 +3264,7 @@ def ajaxsearchposts(search):
     cursor = con.cursor()
 
     sql = '''
-      SELECT DISTINCT Posts.*, photodetails.*,Accounts.pfp
+      SELECT DISTINCT Posts.*, Accounts.pfp
       FROM Posts
       LEFT JOIN photodetails ON Posts.id = photodetails.id
       JOIN Accounts ON Accounts.username = Posts.user
