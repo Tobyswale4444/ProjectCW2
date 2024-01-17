@@ -34,7 +34,7 @@
             <br>
         {% endif %}
 
-        <img src="{{ url_for('static', filename='UploadedPhotos/' + row['filename']) }}" alt="Image" class="scaled-image">
+        <img src="{{ url_for('static', filename='UploadedPhotos/' + row['filename']) }}" alt="Image" loading="lazy" class="scaled-image">
             <br>
             <br>
             {% if row['text']|length > 50 %}

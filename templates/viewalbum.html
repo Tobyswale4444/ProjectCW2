@@ -135,7 +135,7 @@
           {% endif %}
 
           <a href="/viewpost?id={{row['id']}}">
-          <img src="{{ url_for('static', filename='UploadedPhotos/' + row['filename']) }}" alt="Image" class="scaled-image">
+          <img src="{{ url_for('static', filename='UploadedPhotos/' + row['filename']) }}" loading="lazy" alt="Image" class="scaled-image">
           <br>
           <br>
           {% if row['text']|length > 50 %}
