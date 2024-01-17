@@ -149,8 +149,11 @@
       {% endif %}
 
 </form>
-        {% if getalbumid != "" and gettitle != "" %}
-            <td><a href ='/viewalbum?id={{getalbumid}}' class="linkbuttonsmall">View album: "{{gettitle}}"</a></td>
+        {% if albumtitles != "" %}
+            {% for album in albumtitles %}
+                <td><a href ='/viewalbum?id={{album["id"]}}' class="linkbuttonsmall">View album: "{{album['title']}}"</a></td>
+                <br>
+            {% endfor %}
         {% endif %}
 
     {% if row["timeposted"][-5:] == "12:51" %}

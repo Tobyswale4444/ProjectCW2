@@ -2145,22 +2145,24 @@ def viewpost():
     cursor = con.cursor()
     cursor.execute(sql, (postid,))
     rows = cursor.fetchall()
+    albumtitles = []
     try:
         con = sqlite3.connect('database.db') #get the album id if its in one
-        sql = "SELECT albumid FROM albums WHERE postid = ?"
+        con.row_factory = sqlite3.Row
+        sql = """SELECT Posts.text, Posts.id
+                FROM Posts
+                JOIN albums ON Posts.id = albums.albumid
+                WHERE albums.postid = ?"""
         cursor = con.cursor()
         cursor.execute(sql, (postid,))
-        getalbumid = cursor.fetchone()
-        getalbumid = getalbumid[0]
-
-        sql = "SELECT text FROM Posts WHERE id = ?" # get the album name if its in one
-        cursor = con.cursor()
-        cursor.execute(sql, (getalbumid,))
-        gettitle = cursor.fetchone()
-        gettitle = gettitle[0]
+        allalbums = cursor.fetchall()
+        for album in allalbums:
+            dict = {}
+            dict["title"] = album[0]
+            dict["id"] = album[1]
+            albumtitles.append(dict)
     except:
-        gettitle = ""
-        getalbumid = ""
+        albumtitles = ""
         pass
 
     con = sqlite3.connect('database.db')
@@ -2381,7 +2383,7 @@ def viewpost():
             con.commit()
             return redirect(url_for('viewpost', id=postid))
 
-    return render_template("viewpost.html", postuser=postuser, rows=rows, username=username, checksaved=checksaved,rows2=rows2, rows3=rows3, gettitle = gettitle, getalbumid = getalbumid, date = date, time = time)
+    return render_template("viewpost.html", postuser=postuser, rows=rows, username=username, checksaved=checksaved,rows2=rows2, rows3=rows3, albumtitles = albumtitles, date = date, time = time)
 
 
 @web_site.route('/viewaccount', methods=['GET', 'POST'])
