@@ -809,7 +809,6 @@ def updatealbumlocation(albumid): #also updates the average likes
         listofpostids.append(row[0])
 
 
-
     for i in listofpostids:
         sql = "SELECT lat, lng FROM Posts WHERE id = ?"  # go through every post and get lat lng of each
         cursor.execute(sql, (i,))
@@ -819,16 +818,19 @@ def updatealbumlocation(albumid): #also updates the average likes
                 latavg += float(lnglat[0])
                 lngavg += float(lnglat[1])
 
+
     if latavg != 0 and lngavg != 0:
         latavg = latavg / len(listofpostids)
         lngavg = lngavg / len(listofpostids)
-        con = sqlite3.connect('database.db')
-        sql = "UPDATE Posts SET lat = ?, lng = ? WHERE id = ?"
-        cursor = con.cursor()
-        cursor.execute(sql, (latavg, lngavg, albumid,))  #
-        con.commit()
     else:
-        pass
+        latavg = None
+        lngavg = None
+    con = sqlite3.connect('database.db')
+    sql = "UPDATE Posts SET lat = ?, lng = ? WHERE id = ?"
+    cursor = con.cursor()
+    cursor.execute(sql, (latavg, lngavg, albumid,))  #
+    con.commit()
+
 
     listofpostids = []
     con = sqlite3.connect('database.db')
