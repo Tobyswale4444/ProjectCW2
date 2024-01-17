@@ -26,6 +26,11 @@
     width: 80px;
 }
 
+    .hover:hover h4 {
+        color: #7752E7;
+    }
+
+
 h4 {
     margin: 0;
 
@@ -49,14 +54,18 @@ p {
             <p><h4>Albums</h4></p>
         </div>
         <div class="stattitle">
-            <a href="/followerlist?id={{username}}">
-            <h4>{{followercount}}</h4>
-            <p><h4>Followers</h4></p></a>
+            <div class="hover">
+                <a href="/followerlist?id={{username}}">
+                <h4>{{followercount}}</h4>
+                <p><h4>Followers</h4></p></a>
+            </div>
         </div>
         <div class="stattitle">
-            <a href="/followinglist?id={{username}}">
-            <h4>{{followingcount}}</h4>
-            <p><h4>Following</h4></p></a>
+            <div class="hover">
+                <a href="/followinglist?id={{username}}">
+                <h4>{{followingcount}}</h4>
+                <p><h4>Following</h4></p></a>
+            </div>
         </div>
     </div>
 </div>
