@@ -101,6 +101,7 @@
 <br>
     {% for row in rows %}
       {% if getpostuser == username %}
+        <br>
         <a href ='/editpost?id={{row["id"]}}' class="linkbuttonsmall">Edit Post</a>
         <a href ='/deletepost?id={{row["id"]}}' class="linkbuttonsmall">Delete Post</a>
         <h3>Add to album:</h3>
