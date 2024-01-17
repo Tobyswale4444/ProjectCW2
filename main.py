@@ -1619,7 +1619,6 @@ def recommendation(username):
     for i in insidefreq:
         inside.append(i[0])  # adds all the post ids (removing the datetime)
     inside = inside[::-1]#reverse to get the most relevant first (append adds to the end)
-    print(inside)
     listofall = listofallpostids + listofallalbumids
     if len(listofall) >= 1:#deals with if no posts
         minnum = math.ceil((len(listofall)*0.2))#gets the value that is 20% of all posts, this is how many we recommend (the min)
