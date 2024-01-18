@@ -2203,6 +2203,7 @@ def viewpost():
     cursor = con.cursor()
     cursor.execute(sql, (postid, username))
     getsavedid = cursor.fetchone()
+    print(getsavedid)
     if getsavedid is not None:
         checksaved = True
     else:
@@ -2216,37 +2217,36 @@ def viewpost():
     userrows = cursor.fetchall()
 
     if request.method == "POST":
-      if "add" in request.form:
-        selected_option = request.form['selected_option']
-        if selected_option != "none":
-          con = sqlite3.connect('database.db')
-          sql = "SELECT id FROM Posts WHERE text = ? AND user = ? AND album = 'True'"
-          cursor = con.cursor()
-          cursor.execute(sql, (selected_option, username,))
-          con.commit()
-          getalbumid = cursor.fetchone()
-          getalbumid = getalbumid[0]
+        if "add" in request.form:
+            selected_option = request.form['selected_option']
+            if selected_option != "none":
+                con = sqlite3.connect('database.db')
+                sql = "SELECT id FROM Posts WHERE text = ? AND user = ? AND album = 'True'"
+                cursor = con.cursor()
+                cursor.execute(sql, (selected_option, username,))
+                con.commit()
+                getalbumid = cursor.fetchone()
+                getalbumid = getalbumid[0]
 
-          
-          sql = "SELECT albumid FROM albums WHERE postid = ?"
-          cursor = con.cursor()
-          con.row_factory = sqlite3.Row
-          cursor.execute(sql, (postid,))
-          con.commit()
-          postinalbumid = cursor.fetchall()
-          listofpostalbumids = []
-          if postinalbumid != None: #if the post is already in other albums
-              for i in postinalbumid:
-                  listofpostalbumids.append(i[0]) #get all the album ids that the post is in
-          if getalbumid not in listofpostalbumids or postinalbumid == None: #if the post isnt already in the album, or if the post isnt in any albums then add it
-            con = sqlite3.connect('database.db')
 
-            sql = "INSERT INTO albums(albumid, postid, user) VALUES(?,?,?)"
-            cursor = con.cursor()
-            cursor.execute(sql, (getalbumid, postid, username,))
-            con.commit()
-            updatealbumlocation(getalbumid)
-            return redirect(url_for('viewpost', id=postid))
+                sql = "SELECT albumid FROM albums WHERE postid = ?"
+                cursor = con.cursor()
+                con.row_factory = sqlite3.Row
+                cursor.execute(sql, (postid,))
+                con.commit()
+                postinalbumid = cursor.fetchall()
+                listofpostalbumids = []
+                if postinalbumid != None: #if the post is already in other albums
+                  for i in postinalbumid:
+                    listofpostalbumids.append(i[0]) #get all the album ids that the post is in
+                if getalbumid not in listofpostalbumids or postinalbumid == None: #if the post isnt already in the album, or if the post isnt in any albums then add it
+                    con = sqlite3.connect('database.db')
+                    sql = "INSERT INTO albums(albumid, postid, user) VALUES(?,?,?)"
+                    cursor = con.cursor()
+                    cursor.execute(sql, (getalbumid, postid, username,))
+                    con.commit()
+                    updatealbumlocation(getalbumid)
+                    return redirect(url_for('viewpost', id=postid))
 
         con = sqlite3.connect('database.db')
         sql = "SELECT usersliked FROM Likes WHERE usersliked = ? AND id = ?"
@@ -2386,6 +2386,7 @@ def viewpost():
                 return redirect(url_for('viewpost', id=postid))
         if "save" in request.form:
             if checksaved == False:
+                print("hllo")
                 con = sqlite3.connect('database.db')
                 sql = "INSERT INTO savedposts(savedpostid, username) VALUES(?, ?)"
                 cursor = con.cursor()
@@ -2393,6 +2394,7 @@ def viewpost():
                 con.commit()
                 return redirect(url_for('viewpost', id=postid))
         elif "unsave" in request.form:
+            print("hllo")
             con = sqlite3.connect('database.db')
             sql = "DELETE FROM savedposts WHERE savedpostid = ? AND username = ?"
             cursor = con.cursor()
@@ -2796,7 +2798,7 @@ def followerlist():
     rows = sorted(rows, key=lambda x: usernames.index(x["usersend"].lower()))
 
     if rows == []:
-        msg = "No followers...yet?"
+        msg = "No followers...yet? :("
     return render_template("followerlist.html", rows=rows,username=username, msg = msg)
 
 
