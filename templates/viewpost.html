@@ -145,8 +145,12 @@
             {% endfor %}
             <h3>Coordinates: {{row['lat']}}, {{row['lng']}}</h3>
             <h3>Country: {{row['country']}}</h3>
-            <h3>City: {{row['city']}}</h3>
-            <h3>Town: {{row['town']}}</h3>
+              {% if row['city'] != "N/A" %}
+                <h3>City: {{row['city']}}</h3>
+              {% endif %}
+              {% if row['town'] != "N/A" %}
+                <h3>Town: {{row['town']}}</h3>
+              {% endif %}
           </div>
       </div>
 
