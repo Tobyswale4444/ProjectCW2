@@ -2881,11 +2881,9 @@ def editpost():
             text = "Untitled"
         if description == "":
             description = "Untitled"
-        datetimenow = datetime.now()
-        formattedtime = datetimenow.strftime("%d/%m/%y %H:%M")
-        sql = "UPDATE Posts SET descr = ?, text = ?, timeposted = ?, lat = ?, lng = ? WHERE id = ?"
+        sql = "UPDATE Posts SET descr = ?, text = ?, lat = ?, lng = ? WHERE id = ?"
         cursor = con.cursor()
-        cursor.execute(sql, (description, text, formattedtime, lat, lng, postid))
+        cursor.execute(sql, (description, text, lat, lng, postid))
         con.commit()
 
         GetNamedLocation(lat, lng, postid)
