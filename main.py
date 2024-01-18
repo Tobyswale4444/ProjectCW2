@@ -2216,33 +2216,37 @@ def viewpost():
     userrows = cursor.fetchall()
 
     if request.method == "POST":
-        if "add" in request.form:
-            selected_option = request.form['selected_option']
-            if selected_option != "none":
-                con = sqlite3.connect('database.db')
-                sql = "SELECT id FROM Posts WHERE text = ? AND user = ? AND album = 'True'"
-                cursor = con.cursor()
-                cursor.execute(sql, (selected_option, username,))
-                con.commit()
-                getalbumid = cursor.fetchone()
-                getalbumid = getalbumid[0]
+      if "add" in request.form:
+        selected_option = request.form['selected_option']
+        if selected_option != "none":
+          con = sqlite3.connect('database.db')
+          sql = "SELECT id FROM Posts WHERE text = ? AND user = ? AND album = 'True'"
+          cursor = con.cursor()
+          cursor.execute(sql, (selected_option, username,))
+          con.commit()
+          getalbumid = cursor.fetchone()
+          getalbumid = getalbumid[0]
 
-                sql = "SELECT albumid FROM albums WHERE postid = ?"
-                cursor = con.cursor()
-                cursor.execute(sql, (postid,))
-                con.commit()
-                postinalbumid = cursor.fetchone()
-                if postinalbumid != None:
-                    postinalbumid = postinalbumid[0]
-                if postinalbumid != getalbumid or postinalbumid == None:
-                    con = sqlite3.connect('database.db')
+          
+          sql = "SELECT albumid FROM albums WHERE postid = ?"
+          cursor = con.cursor()
+          con.row_factory = sqlite3.Row
+          cursor.execute(sql, (postid,))
+          con.commit()
+          postinalbumid = cursor.fetchall()
+          listofpostalbumids = []
+          if postinalbumid != None: #if the post is already in other albums
+              for i in postinalbumid:
+                  listofpostalbumids.append(i[0]) #get all the album ids that the post is in
+          if getalbumid not in listofpostalbumids or postinalbumid == None: #if the post isnt already in the album, or if the post isnt in any albums then add it
+            con = sqlite3.connect('database.db')
 
-                    sql = "INSERT INTO albums(albumid, postid, user) VALUES(?,?,?)"
-                    cursor = con.cursor()
-                    cursor.execute(sql, (getalbumid, postid, username,))
-                    con.commit()
-                    updatealbumlocation(getalbumid)
-                    return redirect(url_for('viewpost', id=postid))
+            sql = "INSERT INTO albums(albumid, postid, user) VALUES(?,?,?)"
+            cursor = con.cursor()
+            cursor.execute(sql, (getalbumid, postid, username,))
+            con.commit()
+            updatealbumlocation(getalbumid)
+            return redirect(url_for('viewpost', id=postid))
 
         con = sqlite3.connect('database.db')
         sql = "SELECT usersliked FROM Likes WHERE usersliked = ? AND id = ?"
