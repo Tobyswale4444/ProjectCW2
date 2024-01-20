@@ -10,7 +10,6 @@ from math import *
 import re
 from geopy.geocoders import Nominatim
 
-
 web_site = Flask(__name__)
 
 web_site.config["SESSION_PERMANENT"] = False
@@ -50,12 +49,12 @@ def index():
                     usermsg = "Username does not meet criteria"
         else:
             msg = "Do not leave blank"
-    return render_template("Index.html", filename = filename, msg = msg, usermsg = usermsg)
+    return render_template("Index.html", filename=filename, msg=msg, usermsg=usermsg)
 
 
 def moderate(string):
     badworddict = {
-        "shit": "shirt", #little reference to "the good place", probably remove for actual project...
+        "shit": "shirt",  # little reference to "the good place", probably remove for actual project...
         "fuck": "fork",
         "bitch": "bench",
         "ass": "ash",
@@ -76,7 +75,7 @@ def moderate(string):
     return string
 
 
-def GetNamedLocation(lat,lng, id):
+def GetNamedLocation(lat, lng, id):
     try:
         geolocator = Nominatim(user_agent="web_site")
         latlng = str(lat) + ", " + str(lng)
@@ -85,7 +84,6 @@ def GetNamedLocation(lat,lng, id):
             country = location.raw['address']['country']
         except:
             country = "N/A"
-
 
         try:
             city = location.raw['address']['city']
@@ -97,7 +95,6 @@ def GetNamedLocation(lat,lng, id):
         except:
             town = "N/A"
 
-
         if country == None:
             country = "N/A"
         if city == None:
@@ -107,7 +104,7 @@ def GetNamedLocation(lat,lng, id):
         con = sqlite3.connect('database.db')  #
         sql = "UPDATE Posts SET country = ?, city = ?, town = ? WHERE id = ?"
         cursor = con.cursor()
-        cursor.execute(sql, (country, city, town,id,))
+        cursor.execute(sql, (country, city, town, id,))
         con.commit()
 
         return
@@ -144,9 +141,10 @@ def hash(password):
     return str(nextbyte)
 
 
-
 @web_site.route('/ajaxsearchusernames/<search>')
 def ajaxsearchusernames(search):
+    search = search.replace("%20", " ")
+
     con = sqlite3.connect('database.db')
     sql = "SELECT password FROM Accounts WHERE username = ?"
     cursor = con.cursor()
@@ -170,10 +168,12 @@ def ajaxsearchusernames(search):
         unique = "1024px-Cross_red_circle.svg.png"
         length = "1024px-Cross_red_circle.svg.png"
 
-    return jsonify({'unique': unique, 'space': space, 'length': length })
+    return jsonify({'unique': unique, 'space': space, 'length': length})
+
 
 @web_site.route('/ajaxpasswords/<search>')
 def ajaxpasswords(search):
+    search = search.replace("%20", " ")
     username = session["username"]
     con = sqlite3.connect('database.db')
     sql = "SELECT password FROM Accounts WHERE username = ?"
@@ -221,10 +221,13 @@ def ajaxpasswords(search):
     else:
         matching = "1024px-Cross_red_circle.svg.png"
 
-    return jsonify({'upper': upper,'length': length,'lower': lower,'digit': digit,'symb': symb,'matching': matching })
+    return jsonify(
+        {'upper': upper, 'length': length, 'lower': lower, 'digit': digit, 'symb': symb, 'matching': matching})
+
 
 @web_site.route('/ajaxpasswordsindex/<search>')
 def ajaxpasswordsindex(search):
+    search = search.replace("%20", " ")
     uppercheck = False
     lowercheck = False
     digitcheck = False
@@ -260,8 +263,8 @@ def ajaxpasswordsindex(search):
     if not symbcheck or search == "empty":
         symb = "1024px-Cross_red_circle.svg.png"
 
+    return jsonify({'upper': upper, 'length': length, 'lower': lower, 'digit': digit, 'symb': symb})
 
-    return jsonify({'upper': upper,'length': length,'lower': lower,'digit': digit,'symb': symb})
 
 @web_site.route('/login', methods=['GET', 'POST'])
 def login():
@@ -323,9 +326,9 @@ def get_metadata(photo_path):
     image = Image.open(photo_path)
     exifdata = image._getexif()
 
-    if exifdata is not None:#explain!
+    if exifdata is not None:  # explain!
         for tag, value in exifdata.items():
-            tagname = TAGS.get(tag, tag)#forgot what this line does
+            tagname = TAGS.get(tag, tag)  # forgot what this line does
             metadata[tagname] = value
     return metadata
 
@@ -356,7 +359,7 @@ def convertGPS(gpsdata):  # converts DMS to lat and lng
         return None, None
 
 
-def randomfilename(path):#calc the probability
+def randomfilename(path):  # calc the probability
     randstr = ""
     letters = string.ascii_letters
     for i in range(20):
@@ -368,7 +371,8 @@ def randomfilename(path):#calc the probability
     filepath = os.path.join(path, filename)
 
     if os.path.exists(filepath):
-        return randomfilename(path)#recursive until you find a unique one, but probably unnecessary (guarantees unique anyway)
+        return randomfilename(
+            path)  # recursive until you find a unique one, but probably unnecessary (guarantees unique anyway)
     else:
         return filename
 
@@ -384,7 +388,6 @@ def uploadphoto():
         posted = True
     msg = ""
 
-
     if request.method == 'POST':
         datetimenow = datetime.now()
         formattedtime = datetimenow.strftime("%d/%m/%y %H:%M")
@@ -398,12 +401,12 @@ def uploadphoto():
                 con = sqlite3.connect('database.db')
                 sql = "INSERT INTO tempphotos(filename, user) VALUES(?,?)"
                 cursor = con.cursor()
-                cursor.execute(sql, (filename,username))
+                cursor.execute(sql, (filename, username))
                 con.commit()
 
                 sql = "SELECT id FROM tempphotos WHERE filename = ? AND user = ?"
                 cursor = con.cursor()
-                cursor.execute(sql, (filename,username))
+                cursor.execute(sql, (filename, username))
                 getid = cursor.fetchone()
                 getid = getid[0]
 
@@ -428,20 +431,18 @@ def uploadphoto():
 
                 gps_string = metadata.get('GPSInfo', 'N/A')
                 if gps_string != "N/A":
-                    output = convertGPS(gps_string)#converts it to lat lng
+                    output = convertGPS(gps_string)  # converts it to lat lng
                     lat = output[0]
                     lng = output[1]
                 else:
                     lat = None
                     lng = None
 
-
                 sql = "UPDATE tempphotos SET make = ?, model = ?, timeposted = ?, datetime = ?, ISO = ?, lensmodel = ?, fstop = ?, shutterspeed = ?, lat = ?, lng = ? WHERE id = ?"
                 cursor = con.cursor()
-                cursor.execute(sql, (make, model, formattedtime, metadatadatetime, ISO, LensModel, FNumber, ExposureTime, lat, lng, getid,))
+                cursor.execute(sql, (
+                make, model, formattedtime, metadatadatetime, ISO, LensModel, FNumber, ExposureTime, lat, lng, getid,))
                 con.commit()
-
-
 
                 return redirect(url_for('addpost', id=getid))
             except:
@@ -454,7 +455,8 @@ def uploadphoto():
                 con.commit()
         else:
             msg = "Please select an image"
-    return render_template("uploadphoto.html",prevpostid = prevpostid, posted = posted, msg = msg)
+    return render_template("uploadphoto.html", prevpostid=prevpostid, posted=posted, msg=msg)
+
 
 @web_site.route('/addpost', methods=['GET', 'POST'])
 def addpost():
@@ -498,8 +500,6 @@ def addpost():
     date = datetimeup[:10]
     time = datetimeup[11:]
 
-
-
     username = session["username"]
     msg = ""
 
@@ -520,7 +520,6 @@ def addpost():
         formattedtime = datetimenow.strftime("%d/%m/%y %H:%M")
         sessionlat = session.get('lat')
         sessionlng = session.get('lng')
-
 
         text = request.form["text"]
         text = moderate(text)
@@ -565,7 +564,6 @@ def addpost():
             filename = getfilename[0]
             os.remove(os.path.join(web_site.root_path, 'static', 'UploadedPhotos', filename))
 
-
             sql = "DELETE FROM tempphotos WHERE id = ? AND user = ?"
             cursor = con.cursor()
             cursor.execute(sql, (photoid, username))
@@ -574,6 +572,9 @@ def addpost():
             session['lng'] = 0
             return redirect(url_for('uploadphoto'))
         if "drafts" in request.form:
+            if sessionlng == None or sessionlat == None:
+                sessionlng = 0
+                sessionlat = 0
             if text == "":
                 text = "Untitled"
             if descr == "":
@@ -581,31 +582,35 @@ def addpost():
             con = sqlite3.connect('database.db')  #
             sql = "UPDATE tempphotos SET make = ?, model = ?, timeposted = ?, datetime = ?, ISO = ?, lensmodel = ?, fstop = ?, shutterspeed = ?, lng = ?, lat = ?, text = ?, descr = ? WHERE id = ?"
             cursor = con.cursor()
-            cursor.execute(sql, (make, model, formattedtime, metadatadatetime, ISO, LensModel, FNumber, ExposureTime, sessionlng, sessionlat, text, descr,photoid))
+            cursor.execute(sql, (
+            make, model, formattedtime, metadatadatetime, ISO, LensModel, FNumber, ExposureTime, sessionlng, sessionlat,
+            text, descr, photoid))
             con.commit()
             session['lat'] = 0
             session['lng'] = 0
             return redirect(url_for('uploadphoto'))
         elif "submit" in request.form:
             if text != "" and descr != "":
+                if sessionlng == None or sessionlat == None:
+                    sessionlng = 0
+                    sessionlat = 0
                 timeposted = formattedtime
                 con = sqlite3.connect('database.db')
                 sql = "INSERT INTO Posts(text,timeposted,user,filename, descr, privacy, lng, lat) VALUES(?,?,?,?,?,?,?,?)"
                 cursor = con.cursor()
                 cursor.execute(sql, (text, timeposted, username, filename, descr, getprivacy, sessionlng, sessionlat,))
                 con.commit()
-                sql = "SELECT id FROM Posts WHERE text = ? AND filename = ? AND user = ? AND timeposted = ? AND descr = ?" #THIS THIS filename is unique?
+                sql = "SELECT id FROM Posts WHERE text = ? AND filename = ? AND user = ? AND timeposted = ? AND descr = ?"  # THIS THIS filename is unique?
                 cursor.execute(sql, (text, filename, username, timeposted, descr))
                 postidtup = cursor.fetchone()
                 postid = postidtup[0]
-
 
                 sql = "INSERT INTO photodetails(make, model, datetime, ISO, lensmodel, fstop, shutterspeed,id) VALUES(?,?,?,?,?,?,?,?)"
                 cursor = con.cursor()
                 cursor.execute(sql, (make, model, metadatadatetime, ISO, LensModel, FNumber, ExposureTime, postid))
                 con.commit()
 
-                GetNamedLocation(sessionlat,sessionlng,postid)
+                GetNamedLocation(sessionlat, sessionlng, postid)
 
                 if selected_option != "none":
                     con = sqlite3.connect('database.db')
@@ -617,11 +622,11 @@ def addpost():
 
                     sql = "INSERT INTO albums(albumid, postid, user) VALUES(?,?,?)"
                     cursor = con.cursor()
-                    cursor.execute(sql, (getalbumid, postid, username,))#
+                    cursor.execute(sql, (getalbumid, postid, username,))  #
                     con.commit()
                     updatealbumlocation(getalbumid)
 
-                    #update the metadata
+                    # update the metadata
 
                 con = sqlite3.connect('database.db')
                 sql = "DELETE FROM tempphotos WHERE id = ? AND user = ?"
@@ -635,8 +640,7 @@ def addpost():
                 session['lat'] = 0
                 session['lng'] = 0
                 msg = "Do not leave blank"
-    return render_template("addpost.html", msg=msg,rows=rows, filename = filename, rows2 =rows2, date = date, time = time)
-
+    return render_template("addpost.html", msg=msg, rows=rows, filename=filename, rows2=rows2, date=date, time=time)
 
 
 @web_site.route('/drafts', methods=['GET', 'POST'])
@@ -659,12 +663,12 @@ def drafts():
         if text == None:
             newtext = "Untitled"
             sql = "UPDATE tempphotos SET text = ? WHERE id = ?"  # gets every postid that the user has posted to drafts
-            cursor.execute(sql, (newtext,row["id"]))
+            cursor.execute(sql, (newtext, row["id"]))
             con.commit()
         if descr == None:
             newdescr = "Untitled"
             sql = "UPDATE tempphotos SET descr = ? WHERE id = ?"  # gets every postid that the user has posted to drafts
-            cursor.execute(sql, (newdescr,row["id"]))
+            cursor.execute(sql, (newdescr, row["id"]))
             con.commit()
 
     con.row_factory = sqlite3.Row
@@ -686,8 +690,7 @@ def drafts():
     if rows == []:
         msg = "No drafts"
 
-
-    return render_template("drafts.html", rows = rows, msg = msg)
+    return render_template("drafts.html", rows=rows, msg=msg)
 
 
 @web_site.route('/removefromdrafts', methods=['GET', 'POST'])
@@ -719,7 +722,6 @@ def removefromdrafts():
             filename = getfilename[0]
             os.remove(os.path.join(web_site.root_path, 'static', 'UploadedPhotos', filename))  # deletes the file
 
-
             con.row_factory = sqlite3.Row
             sql = "DELETE FROM tempphotos WHERE id = ?"
             cursor = con.cursor()
@@ -730,6 +732,7 @@ def removefromdrafts():
         elif "no" in request.form:
             return redirect(url_for('drafts'))
     return render_template("removefromdrafts.html", deleted=deleted)
+
 
 @web_site.route('/addalbum', methods=['GET', 'POST'])
 def addalbum():
@@ -761,14 +764,14 @@ def addalbum():
                 con = sqlite3.connect('database.db')
                 sql = "SELECT id FROM Posts WHERE user = ? AND text = ? AND album = 'True'"
                 cursor = con.cursor()
-                cursor.execute(sql, (username,text,))
+                cursor.execute(sql, (username, text,))
                 getunid = cursor.fetchone()
 
                 if getunid is None:
                     con = sqlite3.connect('database.db')
                     sql = "INSERT INTO Posts(text,user, descr, filename, privacy,album, timeposted) VALUES(?,?,?,?,?,?,?)"
                     cursor = con.cursor()
-                    cursor.execute(sql, (text, username, descr, filename, getprivacy, "True",formattedtime,))
+                    cursor.execute(sql, (text, username, descr, filename, getprivacy, "True", formattedtime,))
                     con.commit()
                     return redirect(url_for('listmyposts'))
                 else:
@@ -783,7 +786,6 @@ def sortdatetime(dict):
     return sorteddict
 
 
-
 def formatdattime(datetimeprovided):
     if datetimeprovided != "N/A":
         datetimenow = datetime.now()
@@ -795,7 +797,7 @@ def formatdattime(datetimeprovided):
         return total
 
 
-def updatealbumlocation(albumid): #also updates the average likes
+def updatealbumlocation(albumid):  # also updates the average likes
     listofpostids = []
     latavg = 0
     lngavg = 0
@@ -808,7 +810,6 @@ def updatealbumlocation(albumid): #also updates the average likes
     for row in cursor.fetchall():
         listofpostids.append(row[0])
 
-
     for i in listofpostids:
         sql = "SELECT lat, lng FROM Posts WHERE id = ?"  # go through every post and get lat lng of each
         cursor.execute(sql, (i,))
@@ -817,7 +818,6 @@ def updatealbumlocation(albumid): #also updates the average likes
             if lnglat[0] is not None and lnglat[1] is not None:
                 latavg += float(lnglat[0])
                 lngavg += float(lnglat[1])
-
 
     if latavg != 0 and lngavg != 0:
         latavg = latavg / len(listofpostids)
@@ -831,7 +831,6 @@ def updatealbumlocation(albumid): #also updates the average likes
     cursor.execute(sql, (latavg, lngavg, albumid,))  #
     con.commit()
 
-
     listofpostids = []
     con = sqlite3.connect('database.db')
     con.row_factory = sqlite3.Row
@@ -842,7 +841,7 @@ def updatealbumlocation(albumid): #also updates the average likes
     for row in allids:
         listofpostids.append(row[0])
     for x in listofpostids:
-        sql = "SELECT likes FROM Posts WHERE id = ?"  #avg likes of all posts (rounded up)
+        sql = "SELECT likes FROM Posts WHERE id = ?"  # avg likes of all posts (rounded up)
         cursor.execute(sql, (x,))
         likes = cursor.fetchone()
         if likes is not None:
@@ -883,7 +882,7 @@ def viewalbum():
         return render_template('404.html')
     getprivacy = postinfo[0]['privacy']
     getuser = postinfo[0]['user']
-      # get the album id if its in one
+    # get the album id if its in one
 
     sql = "SELECT status FROM friendrequests WHERE usersend = ? AND userreceive = ? "
     cursor = con.cursor()
@@ -923,14 +922,16 @@ def viewalbum():
         if getdatetime[0] != "N/A":
             getdatetime = datetime.strptime(getdatetime[0], "%Y-%m-%d %H:%M")
             formatdattimetotal = formatdattime(getdatetime)  # gets how many seconds ago it was taken
-            datetimedict[i] = formatdattimetotal  # adds the seconds value to a dictionary with the key being the post id (i)
+            datetimedict[
+                i] = formatdattimetotal  # adds the seconds value to a dictionary with the key being the post id (i)
             sorteddatetime = sortdatetime(datetimedict)
-            sorteddatetime = sorteddatetime[::-1]# sorts it
+            sorteddatetime = sorteddatetime[::-1]  # sorts it
         else:
-            unformatposts.append(i) #posts without a time
+            unformatposts.append(i)  # posts without a time
     sortedpostids = []
     for i in sorteddatetime:
-        sortedpostids.append(i[0])  # once the dictinary is sorted in seconds ago then remove the seconds so just a list of postids in chronological order
+        sortedpostids.append(i[
+                                 0])  # once the dictinary is sorted in seconds ago then remove the seconds so just a list of postids in chronological order
     sortedpostids += unformatposts
     lnglatpoints = []
     filenames = []
@@ -961,12 +962,11 @@ def viewalbum():
             lnglatpoints.append(lnglattemp)
             filenames.append(postresult[2])
 
-
     con.row_factory = sqlite3.Row
     sql = "Select * FROM Posts WHERE id = ?"
     cursor = con.cursor()
     cursor.execute(sql, (albumid,))
-    rows2 = cursor.fetchall() # rows 2 is for album info
+    rows2 = cursor.fetchall()  # rows 2 is for album info
 
     con = sqlite3.connect('database.db')
     sql = "SELECT savedpostid FROM savedposts WHERE savedpostid = ? and username = ?"
@@ -978,15 +978,13 @@ def viewalbum():
     else:
         checksaved = False
 
-
-
     imagesize = []
     for i in filenames:
         path = "static/UploadedPhotos/" + i
         with Image.open(path) as img:
             heightwidth = []
             heightwidth.append(img.size[1])
-            heightwidth.append(img.size[0])# get the width and height of the image
+            heightwidth.append(img.size[0])  # get the width and height of the image
             imagesize.append(heightwidth)
 
     if request.method == "POST":
@@ -1005,7 +1003,9 @@ def viewalbum():
             cursor.execute(sql, (albumid, username))
             con.commit()
             return redirect(url_for('viewalbum', id=albumid))
-    return render_template("viewalbum.html", rows=postinfo, rows2=rows2,username=username,userrows=userrows, getalbumuser=getalbumuser,checksaved = checksaved, lnglatpoints = lnglatpoints, filenames = filenames,imagesize =imagesize)
+    return render_template("viewalbum.html", rows=postinfo, rows2=rows2, username=username, userrows=userrows,
+                           getalbumuser=getalbumuser, checksaved=checksaved, lnglatpoints=lnglatpoints,
+                           filenames=filenames, imagesize=imagesize)
 
 
 @web_site.route('/removefromalbum', methods=['GET', 'POST'])
@@ -1022,9 +1022,6 @@ def removefromalbum():
     sql = "DELETE FROM albums WHERE albumid = ? AND postid = ?"
     cursor.execute(sql, (albumid, postid))
     con.commit()
-
-
-
 
     updatealbumlocation(albumid)
     msg = "Post was removed"
@@ -1083,17 +1080,17 @@ def editalbum():
                 msg = "Cannot have duplicate album names"
         else:
             msg2 = "Do not leave title blank"
-    return render_template("editalbum.html", rows=rows, albumid=albumid, msg=msg,msg2=msg2)
+    return render_template("editalbum.html", rows=rows, albumid=albumid, msg=msg, msg2=msg2)
 
 
 def calcage(dob):
     try:
         dobtime = datetime.strptime(dob, "%Y-%m-%d")
         currentdate = datetime.now()
-        age = currentdate.year - dobtime.year #find year dif
-        if currentdate.month < dobtime.month: #if the month has not been then we take off a year
+        age = currentdate.year - dobtime.year  # find year dif
+        if currentdate.month < dobtime.month:  # if the month has not been then we take off a year
             age -= 1
-        elif currentdate.month == dobtime.month and currentdate.day < dobtime.day: #if we are in the month, then if the day has not been we take away one
+        elif currentdate.month == dobtime.month and currentdate.day < dobtime.day:  # if we are in the month, then if the day has not been we take away one
             age -= 1
 
 
@@ -1102,12 +1099,10 @@ def calcage(dob):
     return age
 
 
-
 @web_site.route('/account', methods=['GET', 'POST'])
 def listmyposts():
     if "username" not in session:
         return redirect("/login")
-
 
     username = session["username"]
     con = sqlite3.connect('database.db')
@@ -1182,12 +1177,15 @@ def listmyposts():
     else:
         followercount = 0
 
-    return render_template("account.html", rows=rows, desc=desc, age=ageget,gender = genderget,pfp = pfp,
-                           postcount=postcount, albumcount=albumcount,followercount=followercount,followingcount=followingcount, username=username)
+    return render_template("account.html", rows=rows, desc=desc, age=ageget, gender=genderget, pfp=pfp,
+                           postcount=postcount, albumcount=albumcount, followercount=followercount,
+                           followingcount=followingcount, username=username)
+
 
 def convertorads(coord):
     radcoord = math.radians(coord)
     return radcoord
+
 
 def CheckWithinRadius(dict):
     inside = []
@@ -1205,10 +1203,9 @@ def CheckWithinRadius(dict):
         postlng = float(dict[i][1])  # lng of each post
 
         postlng = convertorads(postlng)
-        postlat = convertorads(postlat)#convert to rads
+        postlat = convertorads(postlat)  # convert to rads
         chosenlng2 = convertorads(chosenlng)
         chosenlat2 = convertorads(chosenlat)
-
 
         # haversine formula
         lngdifference = chosenlng2 - postlng  # finds difference
@@ -1224,7 +1221,6 @@ def CheckWithinRadius(dict):
 
 
 def recommendation(username):
-
     inside = []
     listofallpostids = []
     baseids = []
@@ -1244,11 +1240,11 @@ def recommendation(username):
     for row in cursor.fetchall():
         lat = row['lat']
         lng = row['lng']
-        baseids.append(row['id'])#adds all the posts youve Created so we can remove later
+        baseids.append(row['id'])  # adds all the posts youve Created so we can remove later
         if lat is not None and lng is not None:
-            lnglatlist.append([lat,lng])#gets list of lists of longs and lats of each post you have posted
+            lnglatlist.append([lat, lng])  # gets list of lists of longs and lats of each post you have posted
 
-    #saved posts
+    # saved posts
     con.row_factory = sqlite3.Row
     cursor = con.cursor()
     sql = """SELECT Posts.id, Posts.lat, Posts.lng
@@ -1265,7 +1261,6 @@ def recommendation(username):
             lnglatlist.append([lat, lng])
     # end of saved posts
 
-
     # liked posts
     con.row_factory = sqlite3.Row
     cursor = con.cursor()
@@ -1280,19 +1275,20 @@ def recommendation(username):
         baseids.append(row['id'])
         if lat is not None and lng is not None:
             lnglatlist.append([lat, lng])
-    #liked posts end
+    # liked posts end
 
-    #location
+    # location
     cursor = con.cursor()
     sql = "SELECT lat, lng FROM Accounts WHERE username = ?"  # go through every post and get lat lng of each
     cursor.execute(sql, (username,))
     lnglat4 = cursor.fetchone()
     if lnglat4 is not None:
         if lnglat4[0] is not None and lnglat4[1] is not None:
-            lnglatlist.append([lnglat4[0],lnglat4[1]])
+            lnglatlist.append([lnglat4[0], lnglat4[1]])
             geolocator = Nominatim(user_agent="web_site")
             latlng = str(lnglat4[0]) + ", " + str(lnglat4[1])
-            location = geolocator.reverse(latlng, language='en') #gets the named location of your location from account settings
+            location = geolocator.reverse(latlng,
+                                          language='en')  # gets the named location of your location from account settings
             try:
                 country = location.raw['address']['country']
             except:
@@ -1318,12 +1314,11 @@ def recommendation(username):
     sql = """SELECT Posts.id
     FROM Posts
     WHERE (country = ? OR city = ? OR town = ?) AND user != ?"""  # gets every albumid (that is public)
-    cursor.execute(sql, (country,city, town, username ))
+    cursor.execute(sql, (country, city, town, username))
     for row in cursor.fetchall():
         inside.append(row[0])
 
-    #end locaton
-
+    # end locaton
 
     con.row_factory = sqlite3.Row
     cursor = con.cursor()
@@ -1339,9 +1334,7 @@ def recommendation(username):
     for row in cursor.fetchall():
         listofallpostids.append(row[0])
 
-
-
-    #haversine formula to find posts close to ones we have positively interacted with
+    # haversine formula to find posts close to ones we have positively interacted with
     allpostsdict = {}
     for i in listofallpostids:
         sql = "SELECT lat, lng FROM Posts WHERE id = ?"  # go through every post and get lat lng of each
@@ -1357,7 +1350,7 @@ def recommendation(username):
     for i in lnglatlist:
         postlat = float(i[0])  # lat of each post
         postlng = float(i[1])
-        for x in allpostsdict: # getting the lng lat of each post through a for loop
+        for x in allpostsdict:  # getting the lng lat of each post through a for loop
             complat = float(allpostsdict[x][0])
             complng = float(allpostsdict[x][1])
 
@@ -1365,7 +1358,6 @@ def recommendation(username):
             postlat2 = convertorads(postlat)  # convert to rads
             complng2 = convertorads(complng)
             complat2 = convertorads(complat)
-
 
             # haversine formula
             lngdifference = complng2 - postlng2  # finds difference
@@ -1376,8 +1368,7 @@ def recommendation(username):
             distance = c * r  # special eq
             if distance <= radius and x not in inside:  # if the distance is less than the radius, it must be inside it
                 inside.append(x)  # so add it to a list
-    #haversine end
-
+    # haversine end
 
     listofdisids = []
     con.row_factory = sqlite3.Row
@@ -1390,28 +1381,28 @@ def recommendation(username):
     for row in cursor.fetchall():
         listofdisids.append(row[0])
 
-    #inside is all the recommended posts
-    #basids is all posts youve already seen
-    #we obv want to remove ones youve already seen so we find them in "inside" and remove them
+    # inside is all the recommended posts
+    # basids is all posts youve already seen
+    # we obv want to remove ones youve already seen so we find them in "inside" and remove them
 
-    #list of ids inside
+    # list of ids inside
     # pop
     allids = listofallpostids + listofallalbumids
     sortedpopids = sortpopularity(allids)
     sortedpopids = sortedpopids[:math.ceil(0.2 * len(sortedpopids))]  # gets top 20% most popular posts
     sucloop = 0
     totloop = 0
-    while sucloop < 10 and totloop < 100:#10 times we select a random post from the top 20% of pop posts, (try 100 times to avoid infite loop)
+    while sucloop < 10 and totloop < 100:  # 10 times we select a random post from the top 20% of pop posts, (try 100 times to avoid infite loop)
         randnumber = random.randint(0, len(sortedpopids) - 1)
         if sortedpopids[randnumber] not in inside:
             inside.append(sortedpopids[randnumber])
-            sucloop +=1
+            sucloop += 1
         else:
             totloop += 1
             pass
     # endpop
 
-    #similar gender
+    # similar gender
     samegender = []
     con.row_factory = sqlite3.Row
     cursor = con.cursor()
@@ -1423,21 +1414,22 @@ def recommendation(username):
             AND Posts.privacy = 'public'
             AND CAST(strftime('%Y', (Accounts.dob)) AS INTEGER) BETWEEN CAST(strftime('%Y',(SELECT dob FROM Accounts WHERE username = ?)) AS INTEGER) -3
             AND CAST(strftime('%Y',(SELECT dob FROM Accounts WHERE username = ?)) AS INTEGER) +3"""
-    #finds accounts with similar age and gender
-    cursor.execute(sql, (username,username,username,username))
+    # finds accounts with similar age and gender
+    cursor.execute(sql, (username, username, username, username))
     for row in cursor.fetchall():
         samegender.append(row[0])
     if len(samegender) < 5:
         inside += samegender
     else:
-        for i in range(math.ceil(0.2 * len(samegender))):  #loops (20% of posts by users of same gender) times and gets random post
+        for i in range(math.ceil(
+                0.2 * len(samegender))):  # loops (20% of posts by users of same gender) times and gets random post
             randnumber = random.randint(0, len(samegender) - 1)
             if samegender[randnumber] not in inside:
                 inside.append(samegender[randnumber])
-    #gender stop
+    # gender stop
 
     # similar camera
-    #get a list of all camera makes, and a list of all camera models
+    # get a list of all camera makes, and a list of all camera models
     makes = []
     models = []
     for i in alluserpostids:
@@ -1467,7 +1459,7 @@ def recommendation(username):
         AND Posts.privacy = 'public'"""
         cursor.execute(sql, (i,))
         for row in cursor.fetchall():
-            if row[0] not in alluserpostids:#makes sure it isnt your post OBV hehe
+            if row[0] not in alluserpostids:  # makes sure it isnt your post OBV hehe
                 inside.append(row[0])
     for i in models:
         con.row_factory = sqlite3.Row
@@ -1481,16 +1473,16 @@ def recommendation(username):
         for row in cursor.fetchall():
             if row[0] not in alluserpostids:
                 inside.append(row[0])
-    #similar camera stop
+    # similar camera stop
 
-    #mutuals
+    # mutuals
     following = []
     con.row_factory = sqlite3.Row
     cursor = con.cursor()
-    sql = "SELECT userreceive from friendrequests WHERE usersend = ? AND status = 2"#getting the people you follow
+    sql = "SELECT userreceive from friendrequests WHERE usersend = ? AND status = 2"  # getting the people you follow
     cursor.execute(sql, (username,))
     for row in cursor.fetchall():
-            following.append(row[0])
+        following.append(row[0])
     followingplus = []
     for i in following:
         con.row_factory = sqlite3.Row
@@ -1501,8 +1493,8 @@ def recommendation(username):
         WHERE friendrequests.usersend = ? 
         AND friendrequests.status = 2
         AND Accounts.username != ?
-        AND Accounts.privacy = 'public'"""#getting the people they then follow privacy = 'public'
-        cursor.execute(sql, (i,username))
+        AND Accounts.privacy = 'public'"""  # getting the people they then follow privacy = 'public'
+        cursor.execute(sql, (i, username))
         for row in cursor.fetchall():
             followingplus.append(row[0])
     # we remove the ones you do follow, then sort by freq and add the top few
@@ -1518,7 +1510,8 @@ def recommendation(username):
             insidefreqmut[i] += 1
         else:
             insidefreqmut[i] = 1
-    intersectfreq = sortdatetime(insidefreqmut)# able to use this func as not acc specifc to func, sorts it based on freq
+    intersectfreq = sortdatetime(
+        insidefreqmut)  # able to use this func as not acc specifc to func, sorts it based on freq
     for i in intersectfreq:
         intersect.append(i[0])
     if len(intersect) > 5:
@@ -1528,7 +1521,7 @@ def recommendation(username):
     for i in intersect:
         con.row_factory = sqlite3.Row
         cursor = con.cursor()
-        sql = "SELECT id from posts WHERE user = ?"#get a few of their posts
+        sql = "SELECT id from posts WHERE user = ?"  # get a few of their posts
         cursor.execute(sql, (i,))
         for row in cursor.fetchall():
             intersectposts.append(row[0])
@@ -1538,13 +1531,14 @@ def recommendation(username):
     if len(intersectposts) < 5:
         inside += intersectposts
     else:
-        for i in range(math.ceil(0.2 * len(intersectposts))):  #loops (20% of posts by users of same gender) times and gets random post
+        for i in range(math.ceil(
+                0.2 * len(intersectposts))):  # loops (20% of posts by users of same gender) times and gets random post
             randnumber = random.randint(0, len(intersectposts) - 1)
             if intersectposts[randnumber] not in inside:
                 inside.append(intersectposts[randnumber])
 
-    #mutuals stop
-    #people loc
+    # mutuals stop
+    # people loc
     cursor = con.cursor()
     sql = "SELECT lat, lng FROM Accounts WHERE username = ?"  # go through every post and get lat lng of each
     cursor.execute(sql, (username,))
@@ -1555,7 +1549,7 @@ def recommendation(username):
             latlngtup4.append(lnglat4[0])  # add it to a tuple so its in the format (51.2323, -2.121)
             latlngtup4.append(lnglat4[1])
             lnglatlist.append(latlngtup4)
-    #get your latlng ^
+    # get your latlng ^
     allpostsdict = {}
     closeaccounts = []
     sql = "SELECT lat, lng, username FROM Accounts WHERE privacy = 'public'"  # go through every post and get lat lng of each
@@ -1597,58 +1591,62 @@ def recommendation(username):
         for row in cursor.fetchall():
             closeaccountposts.append(row[0])
 
-    for i in range(math.ceil(0.2 * len(closeaccountposts))):  #loops (20% of posts by users of same gender) times and gets random post
+    for i in range(math.ceil(
+            0.2 * len(closeaccountposts))):  # loops (20% of posts by users of same gender) times and gets random post
         randnumber = random.randint(0, len(closeaccountposts) - 1)
         if closeaccountposts[randnumber] not in inside:
             inside.append(closeaccountposts[randnumber])
-    #people loc end
+    # people loc end
     insidetemp = inside
     for i in insidetemp:
         sql = "SELECT albumid FROM albums WHERE postid = ?"  # go through every post and get lat lng of each
         cursor.execute(sql, (i,))
         albumids = cursor.fetchone()
-        try: #if it is not NULL
-            inside.append(albumids[0])#get any albums the good posts are in
+        try:  # if it is not NULL
+            inside.append(albumids[0])  # get any albums the good posts are in
         except:
             pass
     intersect = []
     for i in inside:
         if i in baseids:
-            intersect.append(i)#removes posts that shouldnt be shown (your own or already liked/saved)
+            intersect.append(i)  # removes posts that shouldnt be shown (your own or already liked/saved)
     for i in intersect:
         inside.remove(i)
 
-
     insidefreq = {}
-    for i in inside:#gets frequency of each post
+    for i in inside:  # gets frequency of each post
         if i in insidefreq:
             insidefreq[i] += 1
         else:
             insidefreq[i] = 1
-    insidefreq = sortdatetime(insidefreq)#able to use this func as not acc specifc to func, sorts it based on freq
-    print(insidefreq) #things which are in the list multiple times means they are more relevant
+    insidefreq = sortdatetime(insidefreq)  # able to use this func as not acc specifc to func, sorts it based on freq
+    # #things which are in the list multiple times means they are more relevant
     inside = []
 
     for i in insidefreq:
         inside.append(i[0])  # adds all the post ids (removing the datetime)
-    inside = inside[::-1]#reverse to get the most relevant first (append adds to the end)
+    inside = inside[::-1]  # reverse to get the most relevant first (append adds to the end)
     listofall = listofallpostids + listofallalbumids
-    if len(listofall) >= 1:#deals with if no posts
-        minnum = math.ceil((len(listofall)*0.2))#gets the value that is 20% of all posts, this is how many we recommend (the min)
+    if len(listofall) >= 1:  # deals with if no posts
+        minnum = math.ceil(
+            (len(listofall) * 0.2))  # gets the value that is 20% of all posts, this is how many we recommend (the min)
         totloop2 = 0
-        while len(inside) < minnum and totloop2 < 100: #if the number of recommendation posts is < 20% of allposts (the min) then we add some random ones to fill it (#totloop < 100 to avoid infinte loop)
+        while len(
+                inside) < minnum and totloop2 < 100:  # if the number of recommendation posts is < 20% of allposts (the min) then we add some random ones to fill it (#totloop < 100 to avoid infinte loop)
             for i in range(minnum - len(inside)):
                 randnumber = random.randint(0, len(listofall) - 1)
-                if listofall[randnumber] not in inside and listofall[randnumber] not in baseids:#make sure we dont dupe the random ones/add your ones
+                if listofall[randnumber] not in inside and listofall[
+                    randnumber] not in baseids:  # make sure we dont dupe the random ones/add your ones
                     inside.append(listofall[randnumber])
             for i in inside:
-                if i in listofdisids:#removes disliked post
+                if i in listofdisids:  # removes disliked post
                     inside.remove(i)
             totloop2 += 1
     else:
         inside = []
 
-    return inside # a list of all post ids that are recommended, in order of how relevant they are
+    return inside  # a list of all post ids that are recommended, in order of how relevant they are
+
 
 @web_site.errorhandler(404)
 def error404(error):
@@ -1679,8 +1677,7 @@ def recommended():
 
     if postinfo == []:
         msg = "This does not exist"
-    return render_template("recommended.html", rows = postinfo, username = username, msg = msg)
-
+    return render_template("recommended.html", rows=postinfo, username=username, msg=msg)
 
 
 def sortdatetimefunc(listofpostids):
@@ -1697,7 +1694,8 @@ def sortdatetimefunc(listofpostids):
             if getdatetime[0] != "N/A":
                 getdatetime = datetime.strptime(getdatetime[0], "%d/%m/%y %H:%M")
                 formatdattimetotal = formatdattime(getdatetime)  # gets how many seconds ago it was taken
-                datetimedict[i] = formatdattimetotal  # adds the seconds value to a dictionary with the key being the post id (i)
+                datetimedict[
+                    i] = formatdattimetotal  # adds the seconds value to a dictionary with the key being the post id (i)
                 sorteddatetime = sortdatetime(datetimedict)  # sorts it
             else:
                 unsortedpostids.append(i)  # adds posts with no date and time to a seperate list
@@ -1708,7 +1706,6 @@ def sortdatetimefunc(listofpostids):
         sortedpostids2.append(i[0])  # adds all the post ids (removing the datetime)
     sortedpostids2 += unsortedpostids
     return sortedpostids2
-
 
 
 def sortpopularity(listofpostids):
@@ -1722,7 +1719,7 @@ def sortpopularity(listofpostids):
         getlikes = cursor.fetchone()
         likesdict[i] = getlikes[0]  # adds the seconds value to a dictionary with the key being the post id (i)
         sortlikes = sortdatetime(likesdict)  # sorts it (able to use other func as not actually specific to datetime)
-        #only sort likes as if you have many likes and many dislikes, its got lots of interaction so must be popular
+        # only sort likes as if you have many likes and many dislikes, its got lots of interaction so must be popular
 
     sortedpostids2 = []
     for i in sortlikes:
@@ -1766,28 +1763,24 @@ def listallposts():
                 latlngtup.append(lnglat[1])
                 lnglatdict[i] = latlngtup  # add this tuple to a dictionary with the key as the post id
 
-
     if "sortedpostids" in session:
-        if session['sortedpostids'] == []: #if filtered post is emptied than no filter is active so use all posts
-            sortedpostids = sortdatetimefunc(listofpostids) # filtered set to false as default so no need to set again
+        if session['sortedpostids'] == []:  # if filtered post is emptied than no filter is active so use all posts
+            sortedpostids = sortdatetimefunc(listofpostids)  # filtered set to false as default so no need to set again
 
         else:
             sortedpostids = session['sortedpostids']  # if there is a filter active then set filtered to true
             filtered = True
 
     else:
-        sortedpostids = sortdatetimefunc(listofpostids) #else if it is there first time loggin on then use all posts
+        sortedpostids = sortdatetimefunc(listofpostids)  # else if it is there first time loggin on then use all posts
         session['sortedpostids'] = []
-
-
-
 
     if request.method == "POST":
         selected_option = request.form['selected_option']
         checkboxposts = request.form.get('posts')
         checkboxalbums = request.form.get('albums')
         if "unfilter" in request.form:
-            session['sortedpostids'] = [] # so when the page is reloaded, it tells the bit above that no filter is set
+            session['sortedpostids'] = []  # so when the page is reloaded, it tells the bit above that no filter is set
             return redirect(url_for('listallposts'))
 
         if "filter" in request.form:
@@ -1795,7 +1788,7 @@ def listallposts():
             slidervalue = int(request.form['slidervalue'])
             insideposts = CheckWithinRadius(lnglatdict)
 
-            for i in getallalbumids: #makes sure we incl albums (if a post is inside the circle and in an album, give the album too)
+            for i in getallalbumids:  # makes sure we incl albums (if a post is inside the circle and in an album, give the album too)
                 updatealbumlocation(i)
                 allpostsdict = {}
                 con = sqlite3.connect('database.db')
@@ -1818,11 +1811,9 @@ def listallposts():
                 if postalbuminside != []:
                     insideposts.append(i)
 
-
-
-            if checkboxposts != None or checkboxalbums != None: # if at least one is clicked (slider could be)
+            if checkboxposts != None or checkboxalbums != None:  # if at least one is clicked (slider could be)
                 sortedpostids2 = []
-                if checkboxalbums != None and checkboxposts == None: # if only albums is clicked (slider could be)
+                if checkboxalbums != None and checkboxposts == None:  # if only albums is clicked (slider could be)
                     con = sqlite3.connect('database.db')
                     con.row_factory = sqlite3.Row
                     cursor = con.cursor()
@@ -1837,7 +1828,7 @@ def listallposts():
                     session['sortedpostids'] = sortedpostids
 
 
-                elif checkboxposts != None and checkboxalbums == None: # if only posts is clicked (slider could be)
+                elif checkboxposts != None and checkboxalbums == None:  # if only posts is clicked (slider could be)
                     con = sqlite3.connect('database.db')
                     con.row_factory = sqlite3.Row
                     cursor = con.cursor()
@@ -1857,15 +1848,15 @@ def listallposts():
                     sortedpostids = sortedpostids2
                     session['sortedpostids'] = sortedpostids
 
-            elif checkboxposts == None and checkboxalbums == None: # if neither are clicked (slider could be)
+            elif checkboxposts == None and checkboxalbums == None:  # if neither are clicked (slider could be)
                 sortedpostids = insideposts
                 session['sortedpostids'] = sortedpostids
                 sortedpostids = sortdatetimefunc(sortedpostids)
-            elif checkboxposts != None and checkboxalbums != None: # if both are clicked (slider could be)
+            elif checkboxposts != None and checkboxalbums != None:  # if both are clicked (slider could be)
                 sortedpostids = insideposts
                 session['sortedpostids'] = sortedpostids
                 sortedpostids = sortdatetimefunc(sortedpostids)
-            if checkboxposts == None and checkboxalbums == None and slidervalue == 0:# absolutely nothing selected
+            if checkboxposts == None and checkboxalbums == None and slidervalue == 0:  # absolutely nothing selected
                 session['sortedpostids'] = []
                 return redirect(url_for('listallposts'))
         if "sort" in request.form:
@@ -1909,7 +1900,8 @@ def listallposts():
     if not postinfo:
         msg = "No results found. It's Hard to Explain..."
 
-    return render_template("allposts.html", rows=postinfo, username=username,filtered = filtered, latlnglist=latlnglist, msg= msg)
+    return render_template("allposts.html", rows=postinfo, username=username, filtered=filtered, latlnglist=latlnglist,
+                           msg=msg)
 
 
 @web_site.route('/friends', methods=['GET', 'POST'])
@@ -1936,7 +1928,8 @@ def friends():
 
     if rows == []:
         msg = "No posts found"
-    return render_template("friends.html", rows = rows, msg=msg)
+    return render_template("friends.html", rows=rows, msg=msg)
+
 
 @web_site.route('/account_settings', methods=['GET', 'POST'])
 def account_settings():
@@ -1960,7 +1953,7 @@ def account_settings():
     getprivacy = cursor.fetchone()
     getprivacy = getprivacy[0]
 
-    genders = ["None","Male", "Female", "Other"]
+    genders = ["None", "Male", "Female", "Other"]
 
     if request.method == "POST":
         lat = session.get('lat')
@@ -2003,7 +1996,7 @@ def account_settings():
         if lat != 0 and lng != 0 and clicked:
             sql = "UPDATE Accounts SET lat = ?, lng = ? WHERE username = ?"
             cursor = con.cursor()
-            cursor.execute(sql, (lat,lng, username,))
+            cursor.execute(sql, (lat, lng, username,))
             con.commit()
 
         randfilename = randomfilename(os.path.join(web_site.root_path, 'static', 'ProfilePictures'))
@@ -2013,7 +2006,7 @@ def account_settings():
             try:
                 photo.save(os.path.join(web_site.root_path, 'static', 'ProfilePictures', filename))
                 photo_path = os.path.join(web_site.root_path, 'static', 'ProfilePictures', filename)
-                metadata = get_metadata(photo_path)#good way to test if it is acc a photo
+                metadata = get_metadata(photo_path)  # good way to test if it is acc a photo
 
                 con = sqlite3.connect('database.db')
                 sql = "SELECT pfp FROM Accounts WHERE username = ?"
@@ -2022,8 +2015,8 @@ def account_settings():
                 getoldfilename = cursor.fetchone()
                 getoldfilename = getoldfilename[0]
                 if getoldfilename != "blank-profile-picture-973460_960_720.jpg":
-                    os.remove(os.path.join(web_site.root_path, 'static', 'ProfilePictures', getoldfilename))  # deletes the file
-
+                    os.remove(os.path.join(web_site.root_path, 'static', 'ProfilePictures',
+                                           getoldfilename))  # deletes the file
 
                 sql = "UPDATE Accounts SET pfp = ? WHERE username = ?"
                 cursor = con.cursor()
@@ -2032,10 +2025,6 @@ def account_settings():
 
             except:
                 os.remove(os.path.join(web_site.root_path, 'static', 'ProfilePictures', filename))
-
-
-
-
 
         if username_update != username:
             if getusername is None:  # checks if the username is unique
@@ -2089,9 +2078,7 @@ def account_settings():
         getpassword = getpassword[0]
         critera = re.compile(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!?*%@$&]).{8,}$")
 
-
-
-        if bool(critera.match(newpassword)):#fits critera add ticks if they match
+        if bool(critera.match(newpassword)):  # fits critera add ticks if they match
             newpassword = hash(newpassword)
             oldpassword = hash(oldpassword)
             if oldpassword != "" and getpassword != "":
@@ -2099,13 +2086,14 @@ def account_settings():
                     con = sqlite3.connect('database.db')
                     sql = "UPDATE Accounts SET password = ? WHERE username = ?"
                     cursor = con.cursor()
-                    cursor.execute(sql, (newpassword,username))
+                    cursor.execute(sql, (newpassword, username))
                     con.commit()
         session['lat'] = 0
         session['lng'] = 0
         return redirect("account")
 
-    return render_template("account_settings.html", rows=rows, getprivacy=getprivacy,filename = filename, genders=genders)
+    return render_template("account_settings.html", rows=rows, getprivacy=getprivacy, filename=filename,
+                           genders=genders)
 
 
 @web_site.route('/logout')
@@ -2122,7 +2110,8 @@ def logout():
 def viewpost():
     if "username" not in session:
         return redirect("/login")
-
+    liked = False
+    disliked = False
     username = session["username"]
     postid = request.args.get('id')
     con = sqlite3.connect('database.db')
@@ -2160,7 +2149,7 @@ def viewpost():
     rows = cursor.fetchall()
     albumtitles = []
     try:
-        con = sqlite3.connect('database.db') #get the album id if its in one
+        con = sqlite3.connect('database.db')  # get the album id if its in one
         con.row_factory = sqlite3.Row
         sql = """SELECT Posts.text, Posts.id
                 FROM Posts
@@ -2193,6 +2182,22 @@ def viewpost():
     date = datetimeup[:10]
     time = datetimeup[11:]
 
+    con = sqlite3.connect('database.db')
+    sql = "SELECT usersliked FROM Likes WHERE usersliked = ? AND id = ?"
+    cursor = con.cursor()
+    cursor.execute(sql, (username, postid))
+    getusersliked = cursor.fetchone()
+    if getusersliked != None:
+        liked = True
+
+    sql = "SELECT usersdisliked FROM Dislikes WHERE usersdisliked = ? AND id = ?"
+    cursor = con.cursor()
+    cursor.execute(sql, (username, postid))
+    getusersdisliked = cursor.fetchone()
+    if getusersdisliked != None:
+        disliked = True
+
+
     con.row_factory = sqlite3.Row
     cursor3 = con.cursor()
     sql3 = "SELECT * FROM Posts WHERE album = 'True' AND user = ?"
@@ -2203,7 +2208,6 @@ def viewpost():
     cursor = con.cursor()
     cursor.execute(sql, (postid, username))
     getsavedid = cursor.fetchone()
-    print(getsavedid)
     if getsavedid is not None:
         checksaved = True
     else:
@@ -2228,7 +2232,6 @@ def viewpost():
                 getalbumid = cursor.fetchone()
                 getalbumid = getalbumid[0]
 
-
                 sql = "SELECT albumid FROM albums WHERE postid = ?"
                 cursor = con.cursor()
                 con.row_factory = sqlite3.Row
@@ -2236,10 +2239,10 @@ def viewpost():
                 con.commit()
                 postinalbumid = cursor.fetchall()
                 listofpostalbumids = []
-                if postinalbumid != None: #if the post is already in other albums
-                  for i in postinalbumid:
-                    listofpostalbumids.append(i[0]) #get all the album ids that the post is in
-                if getalbumid not in listofpostalbumids or postinalbumid == None: #if the post isnt already in the album, or if the post isnt in any albums then add it
+                if postinalbumid != None:  # if the post is already in other albums
+                    for i in postinalbumid:
+                        listofpostalbumids.append(i[0])  # get all the album ids that the post is in
+                if getalbumid not in listofpostalbumids or postinalbumid == None:  # if the post isnt already in the album, or if the post isnt in any albums then add it
                     con = sqlite3.connect('database.db')
                     sql = "INSERT INTO albums(albumid, postid, user) VALUES(?,?,?)"
                     cursor = con.cursor()
@@ -2288,7 +2291,7 @@ def viewpost():
                     con = sqlite3.connect('database.db')
                     sql = "INSERT INTO Likes(usersliked, id,timesent) VALUES(?,?,?)"
                     cursor = con.cursor()
-                    cursor.execute(sql, (username, postid,formattedtime))
+                    cursor.execute(sql, (username, postid, formattedtime))
                     con.commit()
                     return redirect(url_for('viewpost', id=postid))
                 elif getusersdisliked is not None:
@@ -2312,7 +2315,7 @@ def viewpost():
 
                     sql = "INSERT INTO Likes(usersliked, id,timesent) VALUES(?,?,?)"
                     cursor = con.cursor()
-                    cursor.execute(sql, (username, postid,formattedtime))
+                    cursor.execute(sql, (username, postid, formattedtime))
                     con.commit()
                     return redirect(url_for('viewpost', id=postid))
 
@@ -2354,7 +2357,6 @@ def viewpost():
                     cursor.execute(sql, (dislikecount, postid,))
                     con.commit()
 
-
                     sql = "DELETE FROM Dislikes WHERE usersdisliked = ? and id = ?"
                     cursor = con.cursor()
                     cursor.execute(sql, (username, postid))
@@ -2386,7 +2388,6 @@ def viewpost():
                 return redirect(url_for('viewpost', id=postid))
         if "save" in request.form:
             if checksaved == False:
-                print("hllo")
                 con = sqlite3.connect('database.db')
                 sql = "INSERT INTO savedposts(savedpostid, username) VALUES(?, ?)"
                 cursor = con.cursor()
@@ -2394,7 +2395,6 @@ def viewpost():
                 con.commit()
                 return redirect(url_for('viewpost', id=postid))
         elif "unsave" in request.form:
-            print("hllo")
             con = sqlite3.connect('database.db')
             sql = "DELETE FROM savedposts WHERE savedpostid = ? AND username = ?"
             cursor = con.cursor()
@@ -2402,7 +2402,9 @@ def viewpost():
             con.commit()
             return redirect(url_for('viewpost', id=postid))
 
-    return render_template("viewpost.html", userrows=userrows, rows=rows,getpostuser=getpostuser, username=username, checksaved=checksaved,rows2=rows2, rows3=rows3, albumtitles = albumtitles, date = date, time = time)
+    return render_template("viewpost.html", userrows=userrows, rows=rows, getpostuser=getpostuser, username=username,
+                           checksaved=checksaved, rows2=rows2, rows3=rows3, albumtitles=albumtitles, date=date,
+                           time=time, disliked =disliked, liked=liked)
 
 
 @web_site.route('/viewaccount', methods=['GET', 'POST'])
@@ -2427,14 +2429,13 @@ def viewaccount():
     if username == usernamesend:
         return redirect(url_for('listmyposts'))
 
-
     sql = "SELECT description, dob,gender,pfp FROM Accounts WHERE username = ?"
     cursor = con.cursor()
     cursor.execute(sql, (username,))
 
     row2 = cursor.fetchone()
     try:
-        desc = row2[0] #if this causes an error it means the user doesnt exist
+        desc = row2[0]  # if this causes an error it means the user doesnt exist
         dobget = row2[1]
         ageget = calcage(dobget)
         gender = row2[2]
@@ -2494,8 +2495,6 @@ def viewaccount():
     else:
         followercount = 0
 
-
-
     sql = "SELECT privacy FROM Accounts WHERE username = ?"
     cursor = con.cursor()
     cursor.execute(sql, (username,))
@@ -2517,7 +2516,6 @@ def viewaccount():
         cursor.execute(sql, (usernamesend, username))
         con.commit()
 
-
     if request.method == "POST":
         datetimenow = datetime.now()
         formattedtime = datetimenow.strftime("%d/%m/%y %H:%M:%S")
@@ -2526,14 +2524,14 @@ def viewaccount():
                 con = sqlite3.connect('database.db')
                 cursor = con.cursor()
                 sql = "INSERT INTO friendrequests(usersend, userreceive, status,timesent) VALUES(?,?,1,?)"
-                cursor.execute(sql, (usernamesend, username,formattedtime))
+                cursor.execute(sql, (usernamesend, username, formattedtime))
                 con.commit()
                 return redirect(url_for('viewaccount', id=username))
             else:
                 con = sqlite3.connect('database.db')
                 cursor = con.cursor()
-                sql = "UPDATE friendrequests SET usersend = ?, userreceive = ?, status = 1, timesent = ? WHERE usersend = ? AND userreceive = ?"#update where
-                cursor.execute(sql, (usernamesend, username,formattedtime,usernamesend, username))
+                sql = "UPDATE friendrequests SET usersend = ?, userreceive = ?, status = 1, timesent = ? WHERE usersend = ? AND userreceive = ?"  # update where
+                cursor.execute(sql, (usernamesend, username, formattedtime, usernamesend, username))
                 con.commit()
                 return redirect(url_for('viewaccount', id=username))
 
@@ -2555,15 +2553,15 @@ def viewaccount():
             con = sqlite3.connect('database.db')
             cursor = con.cursor()
             sql = "UPDATE friendrequests SET status = 2,timesent = ? WHERE userreceive = ? AND usersend = ?"
-            cursor.execute(sql, (formattedtime,username, usernamesend,))
+            cursor.execute(sql, (formattedtime, username, usernamesend,))
             con.commit()
 
             return redirect(url_for('viewaccount', id=username))
 
     return render_template("viewaccount.html", rows=rows, username=username, desc=desc, age=ageget,
-                           getstatusclean=getstatusclean, getprivacy=getprivacy,gender = gender, pfp = pfp,
-                           postcount=postcount, albumcount=albumcount,followercount=followercount,followingcount=followingcount)
-
+                           getstatusclean=getstatusclean, getprivacy=getprivacy, gender=gender, pfp=pfp,
+                           postcount=postcount, albumcount=albumcount, followercount=followercount,
+                           followingcount=followingcount)
 
 
 @web_site.route('/activity', methods=['GET', 'POST'])
@@ -2634,7 +2632,6 @@ def activity():
         rowdict['type'] = 'requestfollowing'
         newrows5.append(rowdict)
 
-
     newrows += newrows2
     newrows += newrows3
     newrows += newrows4
@@ -2642,20 +2639,19 @@ def activity():
 
     rowsinsec = []
     for row in newrows:
-        getdatetime = datetime.strptime(row["timesent"], "%d/%m/%y %H:%M:%S") #converts to known format
-        datetimenow = datetime.now() #Gets time now
-        datetimedif = datetimenow - getdatetime #finds dif
-        timedif = datetimedif.total_seconds() #converts dif to s
-        rowdict = dict(row) #sets var to old dict of row
-        rowdict['timedif'] = timedif #adds sec dif to dict
-        rowsinsec.append(rowdict) #appends to list
+        getdatetime = datetime.strptime(row["timesent"], "%d/%m/%y %H:%M:%S")  # converts to known format
+        datetimenow = datetime.now()  # Gets time now
+        datetimedif = datetimenow - getdatetime  # finds dif
+        timedif = datetimedif.total_seconds()  # converts dif to s
+        rowdict = dict(row)  # sets var to old dict of row
+        rowdict['timedif'] = timedif  # adds sec dif to dict
+        rowsinsec.append(rowdict)  # appends to list
 
     sortedrows = sorted(rowsinsec, key=lambda x: x.get('timedif'))
 
     if sortedrows == []:
         msg = "No recent activity"
-    return render_template("activity.html", rows=sortedrows, username=username,msg=msg)
-
+    return render_template("activity.html", rows=sortedrows, username=username, msg=msg)
 
 
 @web_site.route('/acceptignore', methods=['GET', 'POST'])
@@ -2672,8 +2668,8 @@ def acceptignore():
             formattedtime = datetimenow.strftime("%d/%m/%y %H:%M:%S")
             con = sqlite3.connect('database.db')
             cursor = con.cursor()
-            sql = "UPDATE friendrequests SET status = 2,timesent = ? WHERE userreceive = ? AND usersend = ?"#set time here
-            cursor.execute(sql, (formattedtime,username, usernamesend))
+            sql = "UPDATE friendrequests SET status = 2,timesent = ? WHERE userreceive = ? AND usersend = ?"  # set time here
+            cursor.execute(sql, (formattedtime, username, usernamesend))
             con.commit()
             return redirect('/activity')
         elif "ignore" in request.form:
@@ -2706,13 +2702,13 @@ def followinglist():
         usernames.append(row['userreceive'])
     usernames = mergesort(usernames)
 
-    #sorts it based of the index of x.lower() in list "usernames"
+    # sorts it based of the index of x.lower() in list "usernames"
     rows = sorted(rows, key=lambda x: usernames.index(x["userreceive"].lower()))
 
     if rows == []:
         msg = "No followers found"
 
-    return render_template("followinglist.html", rows=rows,username=username, msg= msg)
+    return render_template("followinglist.html", rows=rows, username=username, msg=msg)
 
 
 def mergesort(usernames):
@@ -2721,35 +2717,35 @@ def mergesort(usernames):
     for i in usernames:
         newitem = ""
         for x in i:
-            newitem += x.lower()#we need to convert to lower as it uses ascii so capitals can mess it up (s > T)
+            newitem += x.lower()  # we need to convert to lower as it uses ascii so capitals can mess it up (s > T)
         username2.append(newitem)
     usernames = username2
 
-    #if less than one then obv we cant sort
+    # if less than one then obv we cant sort
     if len(usernames) <= 1:
         return usernames
-    #if greater than 1, all good so we split in two and sort each half
+    # if greater than 1, all good so we split in two and sort each half
     middle = len(usernames) // 2
     halfone = usernames[:middle]
     halftwo = usernames[middle:]
 
-    halfone = mergesort(halfone)#recursion
-    halftwo = mergesort(halftwo)#recursion
+    halfone = mergesort(halfone)  # recursion
+    halftwo = mergesort(halftwo)  # recursion
 
-    #merge the two halves together
+    # merge the two halves together
 
     index1 = 0
     index2 = 0
     output = []
-    while index1 < len(halfone) and index2 < len(halftwo):#while the end of each half has not been reached
-        if halfone[index1] <= halftwo[index2]:#if half one is less than half two, half one gets added first
+    while index1 < len(halfone) and index2 < len(halftwo):  # while the end of each half has not been reached
+        if halfone[index1] <= halftwo[index2]:  # if half one is less than half two, half one gets added first
             output.append(halfone[index1])
-            index1 += 1#halfone at that index has been added, so we move to the next one
-        else:# else half two must be smaller, so half to gets added before
+            index1 += 1  # halfone at that index has been added, so we move to the next one
+        else:  # else half two must be smaller, so half to gets added before
             output.append(halftwo[index2])
-            index2 += 1#halftwo at that index has been added, so we move to the next one
+            index2 += 1  # halftwo at that index has been added, so we move to the next one
 
-    #add remaining stuff
+    # add remaining stuff
     output += halfone[index1:]
     output += halftwo[index2:]
 
@@ -2794,12 +2790,12 @@ def followerlist():
         usernames.append(row['usersend'])
     usernames = mergesort(usernames)
 
-    #sorts it based of the index of x.lower() in list "usernames"
+    # sorts it based of the index of x.lower() in list "usernames"
     rows = sorted(rows, key=lambda x: usernames.index(x["usersend"].lower()))
 
     if rows == []:
         msg = "No followers...yet? :("
-    return render_template("followerlist.html", rows=rows,username=username, msg = msg)
+    return render_template("followerlist.html", rows=rows, username=username, msg=msg)
 
 
 @web_site.route('/removefollower', methods=['GET', 'POST'])
@@ -2817,7 +2813,6 @@ def removefollower():
         con.commit()
         return redirect('/followerlist')
     return render_template("removefollower.html", follower=follower)
-
 
 
 @web_site.route('/editpost', methods=['GET', 'POST'])
@@ -2843,7 +2838,6 @@ def editpost():
         session['lat'] = 0
         session['lng'] = 0
         return render_template('404.html')
-
 
     con.row_factory = sqlite3.Row
     sql = "SELECT * FROM Posts WHERE id = ?"
@@ -2936,8 +2930,7 @@ def editpost():
         session['lat'] = 0
         session['lng'] = 0
         return redirect(url_for('viewpost', id=postid))
-    return render_template("editpost.html", rows=rows, postid=postid, rows2=rows2, date = date, time = time)
-
+    return render_template("editpost.html", rows=rows, postid=postid, rows2=rows2, date=date, time=time)
 
 
 @web_site.route('/deletealbum', methods=['GET', 'POST'])
@@ -2954,15 +2947,12 @@ def deletealbum():
     cursor.execute(sql, (albumid,))
     getuser = cursor.fetchone()
 
-
     if not getuser:
         return render_template('404.html')
     if getuser[0] != username:
         return render_template('404.html')
 
     deleted = False
-
-
 
     if request.method == "POST":
         if "yes" in request.form:
@@ -3013,7 +3003,8 @@ def deleteaccount():
             getfilename = cursor.fetchone()
             getfilename = getfilename[0]
             if getfilename != "blank-profile-picture-973460_960_720.jpg":
-                os.remove(os.path.join(web_site.root_path, 'static', 'ProfilePictures', getfilename))  # deletes the file
+                os.remove(
+                    os.path.join(web_site.root_path, 'static', 'ProfilePictures', getfilename))  # deletes the file
 
             con.row_factory = sqlite3.Row
             sql = "SELECT * FROM Posts WHERE user = ?"
@@ -3025,7 +3016,6 @@ def deleteaccount():
                 if filename != "7da6b012d99beac0c7eff0949b27b7e6.png":
                     os.remove(os.path.join(web_site.root_path, 'static', 'UploadedPhotos', filename))
 
-
             sql = "DELETE FROM tempphotos WHERE user = ?"
             cursor = con.cursor()
             cursor.execute(sql, (username,))
@@ -3036,7 +3026,7 @@ def deleteaccount():
             cursor.execute(sql, (username,))
             con.commit()
 
-            #update like and dislike counts of the stuff we have liked/disliked
+            # update like and dislike counts of the stuff we have liked/disliked
             con.row_factory = sqlite3.Row
             sql = "Select id FROM Likes WHERE usersliked = ?"
             cursor = con.cursor()
@@ -3078,19 +3068,18 @@ def deleteaccount():
             cursor = con.cursor()
             cursor.execute(sql, (username,))
             con.commit()
-            #Leaves the like count of a post but i like it since it a post keeps its interaction and is further recommended (if it deserves)
-            #just cuz you delete your account doesnt mean your opinion wasnt valid...
-            #however it means you could create, like, delete
+            # Leaves the like count of a post but i like it since it a post keeps its interaction and is further recommended (if it deserves)
+            # just cuz you delete your account doesnt mean your opinion wasnt valid...
+            # however it means you could create, like, delete
 
             sql = "DELETE FROM Dislikes WHERE usersdisliked = ?"
             cursor = con.cursor()
             cursor.execute(sql, (username,))
             con.commit()
 
-
             sql = "DELETE FROM friendrequests WHERE usersend = ? OR userreceive = ?"
             cursor = con.cursor()
-            cursor.execute(sql, (username,username,))
+            cursor.execute(sql, (username, username,))
             con.commit()
 
             sql = """DELETE FROM Likes
@@ -3139,8 +3128,8 @@ def deleteaccount():
         else:
             msg = "Incorrect Password"
 
-
     return render_template("deleteaccount.html", msg=msg)
+
 
 @web_site.route('/deletepost', methods=['GET', 'POST'])
 def deletepost():
@@ -3180,8 +3169,6 @@ def deletepost():
             for row in allids:
                 listofalbumids.append(row[0])
 
-
-
             con = sqlite3.connect('database.db')
             con.row_factory = sqlite3.Row
             sql = "DELETE FROM Posts WHERE id = ?"
@@ -3218,8 +3205,6 @@ def deletepost():
             cursor = con.cursor()
             cursor.execute(sql, (postid,))
             con.commit()
-
-
 
             for i in listofalbumids:
                 updatealbumlocation(i)
@@ -3269,15 +3254,15 @@ def create():
 
     return render_template("create.html")
 
+
 @web_site.route('/GeoSnaps')
 def GeoSnaps():
-
     return render_template("GeoSnaps.html")
-
 
 
 @web_site.route('/ajaxsearchposts/<search>')
 def ajaxsearchposts(search):
+    search = search.replace("%20", " ")
     msg = ""
     username = session["username"]
     con = sqlite3.connect('database.db')
@@ -3292,7 +3277,9 @@ def ajaxsearchposts(search):
       LEFT JOIN friendrequests ON friendrequests.userreceive = Accounts.username
       WHERE (Posts.privacy = 'public' OR (friendrequests.usersend = ? AND status = 2))
       AND (Posts.text LIKE ? OR Posts.descr LIKE ? OR Posts.user LIKE ? OR photodetails.model LIKE ? OR photodetails.make LIKE ? OR Posts.country LIKE ? OR Posts.town LIKE ? OR Posts.city LIKE ?)'''
-    cursor.execute(sql, (username,'%'+search+'%', '%'+search+'%', '%'+search+'%', '%'+search+'%', '%'+search+'%','%'+search+'%','%'+search+'%','%'+search+'%',))
+    cursor.execute(sql, (
+    username, '%' + search + '%', '%' + search + '%', '%' + search + '%', '%' + search + '%', '%' + search + '%',
+    '%' + search + '%', '%' + search + '%', '%' + search + '%',))
     con.commit()
     rows = cursor.fetchall()
     newrows = []
@@ -3304,7 +3291,7 @@ def ajaxsearchposts(search):
        SELECT username, pfp
        FROM Accounts
        WHERE username LIKE ?'''
-    cursor.execute(sql,('%'+search+'%',))
+    cursor.execute(sql, ('%' + search + '%',))
     con.commit()
     rows2 = cursor.fetchall()
     newrows2 = []
@@ -3318,6 +3305,10 @@ def ajaxsearchposts(search):
     if newrows == []:
         msg = "No results found"
 
-    return render_template('ajaxsearchposts.html', rows = newrows, username=username,msg=msg )
+    return render_template('ajaxsearchposts.html', rows=newrows, username=username, msg=msg)
+
 
 web_site.run(host='0.0.0.0', port=8080)
+
+#if __name__ == "__main__":
+#    web_site.run()

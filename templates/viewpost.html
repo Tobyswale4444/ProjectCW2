@@ -173,13 +173,21 @@
         <div class="like">
             <input type="hidden" name="action" value="Like">
             <button name="Like" type="submit" class="likebutton">
-                <img src="static/Thumbs/thumbs-up.png" width="50" height="50">
+                {% if liked == True %}
+                    <img src="static/Thumbs/thumbs-up.png" width="50" height="50" style="filter: invert(60%) sepia(45%) saturate(1569%) hue-rotate(91deg) brightness(102%) contrast(92%);">
+                {% else %}
+                    <img src="static/Thumbs/thumbs-up.png" width="50" height="50">
+                {% endif %}
             </button>
             <h4>{{row["likes"]}}</h4>
         </div>
         <div class="dislike">
             <button name="Dislike" type="submit" class="likebutton">
-                <img src="static/Thumbs/thumbs-down.png" width="50" height="50">
+                {% if disliked == True %}
+                    <img src="static/Thumbs/thumbs-down.png" width="50" height="50" style="filter: invert(39%) sepia(80%) saturate(4422%) hue-rotate(344deg) brightness(105%) contrast(100%);">
+                {% else %}
+                    <img src="static/Thumbs/thumbs-down.png" width="50" height="50">
+                {% endif %}
             </button>
             <h4>{{row["dislikes"]}}</h4>
         </div>
