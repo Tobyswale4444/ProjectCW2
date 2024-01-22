@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Help</h1>
+
+<style>
+  .container {
+      width: 50%;
+      margin: 0 auto;
+      padding: 20px;
+      text-align: left;
+    }
+</style>
+
+
+<div class="container">
+
+<h2>Creating an Account:</h2>
+<blockquote><h3>• When creating an account, several criteria must be met for both the username and password.
+    These are indicated by the green ticks and red crosses underneath each field</h3></blockquote>
+<blockquote><h3>• Do NOT use any of your regular passwords, although they are hashed (encrypted) it is using an algorithm I wrote, so I can't guarantee security</h3></blockquote>
+<blockquote><h3>• On successful account creation, you will be redirected to the "Login" page where you should
+    enter your new details in order to access the rest of the site</h3></blockquote>
+
+<h2>Setting up your profile:</h2>
+<blockquote><h3>• Once you have logged in, you will be redirected to the "Account" page where you are able to complete actions such as:
+<blockquote><h3>• Viewing your friends<br>• Viewing your posts / albums<br>• Creating new posts / albums<br>
+• Managing your account settings<br>• Viewing your saved Posts<br>• Viewing your recent activity<br>• Logging out</h3></blockquote></h3></blockquote>
+<blockquote><h3>• In order to view the users that follow you / you follow, click the number located below your profile picture with the label "Followers" or "Following". On each respective page,
+clicking on a user will allow you to remove them as a friend, or you can view their account</h3></blockquote>
+<blockquote><h3>• To accept / ignore friend requests, navigate to "Activity" on the "Account" page. Here you will also be able to see when users have followed you, when users like your posts and
+when you follow users</h3></blockquote>
+<h2>Account Settings:</h2>
+<blockquote><h3>• On the "Account" page, the far-left button labelled "Account Settings" will allow you to edit information about your account such as:
+<blockquote><h3>• Editing / resetting your profile picture<br>• Setting your date of birth<br>• Setting your gender<br>
+• Adding your location<br>• Setting your account to private / public<br>• Changing your username<br>• Changing your password<br>• Deleting your account</h3></blockquote></h3></blockquote>
+<blockquote><h3>• <span style="text-decoration: underline;">IMPORTANT</span> You must press the "Save" button at the very bottom to apply any changes</h3></blockquote>
+<blockquote><h3>• You can also press "Cancel" next to the "Save" button which will discard any changes made</h3></blockquote>
+<blockquote><h3>• A private account means people have to request to follow you in order to see your posts / albums</h3></blockquote>
+
+<h2>Creating a Post:</h2>
+<blockquote><h3>• Navigate to "Account", Choose "Create", followed by "Post". Here you will be instructed to upload a photo (this allows you to see and edit any metadata). Select a photo and click "Upload"</h3></blockquote>
+<blockquote><h3>• In order to access the location metadata, your camera app must have access to your location. On IOS, you can turn this on by navigating to "Settings" > "Privacy and Security"
+> "Location Services" > scroll to find the camera app and check the "While Using the App" option. For extra precision toggle the "Precise Location" option on</h3></blockquote>
+<blockquote><h3>• Once the photo has been uploaded, you will be redirected and presented with a preview of the photo along with any extracted metadata, which is editable. You must
+then add a title and a description, both of which are mandatory, indicated by the "*"</h3></blockquote>
+<blockquote><h3>• Next, you will have the option to add this photo to an existing album, simply use the dropdown and select the album you would like to add it too</h3></blockquote>
+<blockquote><h3>• At the bottom is the map, if there is any location metadata, it will be shown with a marker, otherwise you must select the location yourself. No selection
+defaults to 0, 0</h3></blockquote>
+<blockquote><h3>• You then have the option to "Submit" which posts the photo, "Save to Drafts" and "Cancel"<br>• <span style="text-decoration: underline;">IMPORTANT</span> "Cancel" will delete the draft</h3></blockquote>
+
+<h2>Creating an Album:</h2>
+<blockquote><h3>• Navigate to "Account", Choose "Create", followed by "Album". Here you will be instructed to add a title and a description. A title is mandatory and each of your album titles must be unique (this only applies to your albums)</h3></blockquote>
+
+<h2>Adding to an Album:</h2>
+<blockquote><h3>• You can add a post to an album from the "View Post" page and when creating a post, in both cases, using the dropdown</h3></blockquote>
+<blockquote><h3>• You can add a post to multiple albums</h3></blockquote>
+
+<h2>View Post:</h2>
+<blockquote><h3>• If you created the post, you are able to:</h3>
+<blockquote><h3>• Edit the post<br>• Delete the post<br>• Add it to an album </h3></blockquote>
+</blockquote>
+<blockquote><h3>• On all posts you are able to:</h3>
+<blockquote><h3>• Like / dislike the post<br>• View any albums it is in<br>• Save the post<br>• View the creator</h3></blockquote>
+</blockquote>
+
+<h2>View Album:</h2>
+<blockquote><h3>• If you created the album, you are able to:</h3>
+<blockquote><h3>• Edit the album<br>• Delete the album<br>• Remove individual posts<br></h3></blockquote>
+</blockquote>
+<blockquote><h3>• On all albums you are able to:</h3>
+<blockquote><h3>• Save the album<br>• View the creator</h3></blockquote>
+</blockquote>
+<blockquote><h3>• Each album has a map, posts featured in the album are joined together chronologically using a red line. Posts are displayed by their picture which, when clicked,
+redirect you to the individual post's page</h3></blockquote>
+
+<h2>Editing a Post:</h2>
+<blockquote><h3>• To edit a post, click the post and click "Edit"</h3></blockquote>
+<blockquote><h3>• To apply changes, click "Save" otherwise click "Cancel</h3></blockquote>
+
+<h2>Editing an Album:</h2>
+<blockquote><h3>• To edit an album, click the album and click "Edit"</h3></blockquote>
+<blockquote><h3>• To apply changes, click "Save" otherwise click "Cancel</h3></blockquote>
+
+<h2>Viewing Other User's Accounts:</h2>
+<blockquote><h3>• You are able to access other user's accounts by either searching for a user, finding them in your follower/following list, finding them in the activity page or
+by finding any of their posts / albums and clicking their username</h3></blockquote>
+<blockquote><h3>• When viewing their account, you are able to see all their posts / albums, followers, users they follow, their account details such as age and gender and the profile picture</h3></blockquote>
+<blockquote><h3>• If the user is private, no posts or albums will be visible, and you must click the "Send Friend Request" button. Once they have accepted the friend request you will be
+able to see their post / albums</h3></blockquote>
+<blockquote><h3>• You are able to cancel the friend request once it has been sent</h3></blockquote>
+<blockquote><h3>• If the user's account is public, once the "Send Friend Request" button is clicked, you will immediately be following them</h3></blockquote>
+
+<h2>Using Drafts:</h2>
+<blockquote><h3>• To access your drafts, navigate to "Account" > "Create" > "Drafts"</h3></blockquote>
+<blockquote><h3>• Once you have uploaded a photo during the process to create a post, the post is immediately saved to your drafts. Any further changes must be saved by pressing "Save to Drafts"</h3></blockquote>
+<blockquote><h3>• When you first upload the photo and are editing the details you have the option to save the post to your drafts</h3></blockquote>
+<blockquote><h3>• In the "Drafts" page, you can click a draft to edit it further (and not post), post it or delete the draft</h3></blockquote>
+<blockquote><h3>• You are also able to delete drafts quickly by clicking the small "Remove" button below each draft in the "Drafts" page</h3></blockquote>
+
+<h2>Common Errors:</h2>
+<blockquote><h3>• If the photo you uploaded isn't the correct file type, the message "Image Error..." will be displayed</h3></blockquote>
+<blockquote><h3>• If the album title you chose is already used by another of your albums, the message "Cannot have duplicate album names" will be displayed</h3></blockquote>
+<blockquote><h3>• Any fields that must not be left blank will result in the message "Do not leave X blank" being displayed</h3></blockquote>
+
+
+
+
+
+{% endblock %}

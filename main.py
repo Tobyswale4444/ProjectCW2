@@ -325,7 +325,7 @@ def get_metadata(photo_path):
     metadata = {}
     image = Image.open(photo_path)
     exifdata = image._getexif()
-
+    print(exifdata)
     if exifdata is not None:  # explain!
         for tag, value in exifdata.items():
             tagname = TAGS.get(tag, tag)  # forgot what this line does
@@ -3259,6 +3259,9 @@ def create():
 def GeoSnaps():
     return render_template("GeoSnaps.html")
 
+@web_site.route('/helppage')
+def helppage():
+    return render_template("helppage.html")
 
 @web_site.route('/ajaxsearchposts/<search>')
 def ajaxsearchposts(search):
