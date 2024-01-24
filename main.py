@@ -2122,6 +2122,8 @@ def viewpost():
     disliked = False
     username = session["username"]
     postid = request.args.get('id')
+    thumbs = bool(request.args.get('ld'))
+    scrollsaved = bool(request.args.get('s'))
     con = sqlite3.connect('database.db')
     con.row_factory = sqlite3.Row
     sql = "SELECT privacy,user FROM Posts WHERE id = ?"
@@ -2301,7 +2303,7 @@ def viewpost():
                     cursor = con.cursor()
                     cursor.execute(sql, (username, postid, formattedtime))
                     con.commit()
-                    return redirect(url_for('viewpost', id=postid))
+                    return redirect(url_for('viewpost', id=postid, ld=True))
                 elif getusersdisliked is not None:
                     dislikecount -= 1
                     likecount += 1
@@ -2325,7 +2327,7 @@ def viewpost():
                     cursor = con.cursor()
                     cursor.execute(sql, (username, postid, formattedtime))
                     con.commit()
-                    return redirect(url_for('viewpost', id=postid))
+                    return redirect(url_for('viewpost', id=postid, ld=True))
 
             elif getusersliked is not None:
                 likecount -= 1
@@ -2338,7 +2340,7 @@ def viewpost():
                 cursor = con.cursor()
                 cursor.execute(sql, (username, postid))
                 con.commit()
-                return redirect(url_for('viewpost', id=postid))
+                return redirect(url_for('viewpost', id=postid, ld=True))
 
         elif "Dislike" in request.form:
             if getusersliked is None:
@@ -2356,7 +2358,7 @@ def viewpost():
                     cursor = con.cursor()
                     cursor.execute(sql, (username, postid))
                     con.commit()
-                    return redirect(url_for('viewpost', id=postid))
+                    return redirect(url_for('viewpost', id=postid, ld=True))
                 elif getusersdisliked is not None:
                     dislikecount -= 1
                     con = sqlite3.connect('database.db')
@@ -2369,7 +2371,7 @@ def viewpost():
                     cursor = con.cursor()
                     cursor.execute(sql, (username, postid))
                     con.commit()
-                    return redirect(url_for('viewpost', id=postid))
+                    return redirect(url_for('viewpost', id=postid, ld=True))
             elif getusersliked is not None:
                 dislikecount += 1
                 likecount -= 1
@@ -2393,7 +2395,7 @@ def viewpost():
                 cursor = con.cursor()
                 cursor.execute(sql, (username, postid))
                 con.commit()
-                return redirect(url_for('viewpost', id=postid))
+                return redirect(url_for('viewpost', id=postid, ld=True))
         if "save" in request.form:
             if checksaved == False:
                 con = sqlite3.connect('database.db')
@@ -2401,18 +2403,18 @@ def viewpost():
                 cursor = con.cursor()
                 cursor.execute(sql, (postid, username))
                 con.commit()
-                return redirect(url_for('viewpost', id=postid))
+                return redirect(url_for('viewpost', id=postid, s=True))
         elif "unsave" in request.form:
             con = sqlite3.connect('database.db')
             sql = "DELETE FROM savedposts WHERE savedpostid = ? AND username = ?"
             cursor = con.cursor()
             cursor.execute(sql, (postid, username))
             con.commit()
-            return redirect(url_for('viewpost', id=postid))
+            return redirect(url_for('viewpost', id=postid, s=True))
 
     return render_template("viewpost.html", userrows=userrows, rows=rows, getpostuser=getpostuser, username=username,
                            checksaved=checksaved, rows2=rows2, rows3=rows3, albumtitles=albumtitles, date=date,
-                           time=time, disliked =disliked, liked=liked)
+                           time=time, disliked =disliked, liked=liked, thumbs=thumbs, scrollsaved=scrollsaved)
 
 
 @web_site.route('/viewaccount', methods=['GET', 'POST'])

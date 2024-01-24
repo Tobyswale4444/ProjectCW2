@@ -169,7 +169,7 @@
       </div>
 <br>
 <form method="POST">
-    <div class="like-dislike-container">
+    <div class="like-dislike-container" id="thumbs">
         <div class="like">
             <input type="hidden" name="action" value="Like">
             <button name="Like" type="submit" class="likebutton">
@@ -192,13 +192,13 @@
             <h4>{{row["dislikes"]}}</h4>
         </div>
     </div>
-
+    <div id="savebuttons">
       {% if checksaved == False %}
         <p><input type="submit" value="Save" name="save"></p>
       {% else %}
         <p><input type="submit" value="Unsave" name="unsave"></p>
       {% endif %}
-
+    </div>
 </form>
         {% if albumtitles != "" %}
             {% for album in albumtitles %}
@@ -214,7 +214,19 @@
     {% endif %}
     {% endfor %}
 
+{% if thumbs %}
+    <script>
+        var thumbs = document.getElementById('thumbs');
+        thumbs.scrollIntoView()
+    </script>
+{% endif %}
 
+{% if scrollsaved %}
+    <script>
+        var save = document.getElementById('savebuttons');
+        save.scrollIntoView()
+    </script>
+{% endif %}
 
 {% endblock %}
 
