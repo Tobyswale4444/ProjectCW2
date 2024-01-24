@@ -82,15 +82,15 @@
     <h4 style="color: red;">{{msg}}</h4>
     {% if emptytitle == True %}
         <script>
-            var myInput = document.getElementById('text');
-            myInput.focus();
+            var text = document.getElementById('text');
+            text.focus();
         </script>
     {% endif %}
 
     {% if emptydescr %}
         <script>
-            var myInput = document.getElementById('descr');
-            myInput.focus();
+            var descr = document.getElementById('descr');
+            descr.focus();
         </script>
     {% endif %}
 
