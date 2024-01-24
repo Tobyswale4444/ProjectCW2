@@ -465,7 +465,8 @@ def addpost():
 
     photoid = request.args.get('id')
     username = session["username"]
-
+    emptytitle = False
+    emptydescr = False
     con = sqlite3.connect('database.db')
     sql = "SELECT filename FROM tempphotos WHERE id = ?"
     cursor = con.cursor()
@@ -590,57 +591,64 @@ def addpost():
             session['lng'] = 0
             return redirect(url_for('uploadphoto'))
         elif "submit" in request.form:
-            if text != "" and descr != "":
-                if sessionlng == None or sessionlat == None:
-                    sessionlng = 0
-                    sessionlat = 0
-                timeposted = formattedtime
-                con = sqlite3.connect('database.db')
-                sql = "INSERT INTO Posts(text,timeposted,user,filename, descr, privacy, lng, lat) VALUES(?,?,?,?,?,?,?,?)"
-                cursor = con.cursor()
-                cursor.execute(sql, (text, timeposted, username, filename, descr, getprivacy, sessionlng, sessionlat,))
-                con.commit()
-                sql = "SELECT id FROM Posts WHERE text = ? AND filename = ? AND user = ? AND timeposted = ? AND descr = ?"  # THIS THIS filename is unique?
-                cursor.execute(sql, (text, filename, username, timeposted, descr))
-                postidtup = cursor.fetchone()
-                postid = postidtup[0]
-
-                sql = "INSERT INTO photodetails(make, model, datetime, ISO, lensmodel, fstop, shutterspeed,id) VALUES(?,?,?,?,?,?,?,?)"
-                cursor = con.cursor()
-                cursor.execute(sql, (make, model, metadatadatetime, ISO, LensModel, FNumber, ExposureTime, postid))
-                con.commit()
-
-                GetNamedLocation(sessionlat, sessionlng, postid)
-
-                if selected_option != "none":
+            if text != "":
+                if descr != "":
+                    if sessionlng == None or sessionlat == None:
+                        sessionlng = 0
+                        sessionlat = 0
+                    timeposted = formattedtime
                     con = sqlite3.connect('database.db')
-                    sql = "SELECT id FROM Posts WHERE text = ? AND user = ? AND album = 'True'"
+                    sql = "INSERT INTO Posts(text,timeposted,user,filename, descr, privacy, lng, lat) VALUES(?,?,?,?,?,?,?,?)"
                     cursor = con.cursor()
-                    cursor.execute(sql, (selected_option, username,))
-                    getalbumid = cursor.fetchone()
-                    getalbumid = getalbumid[0]
-
-                    sql = "INSERT INTO albums(albumid, postid, user) VALUES(?,?,?)"
-                    cursor = con.cursor()
-                    cursor.execute(sql, (getalbumid, postid, username,))  #
+                    cursor.execute(sql, (text, timeposted, username, filename, descr, getprivacy, sessionlng, sessionlat,))
                     con.commit()
-                    updatealbumlocation(getalbumid)
+                    sql = "SELECT id FROM Posts WHERE text = ? AND filename = ? AND user = ? AND timeposted = ? AND descr = ?"  # THIS THIS filename is unique?
+                    cursor.execute(sql, (text, filename, username, timeposted, descr))
+                    postidtup = cursor.fetchone()
+                    postid = postidtup[0]
 
-                    # update the metadata
+                    sql = "INSERT INTO photodetails(make, model, datetime, ISO, lensmodel, fstop, shutterspeed,id) VALUES(?,?,?,?,?,?,?,?)"
+                    cursor = con.cursor()
+                    cursor.execute(sql, (make, model, metadatadatetime, ISO, LensModel, FNumber, ExposureTime, postid))
+                    con.commit()
 
-                con = sqlite3.connect('database.db')
-                sql = "DELETE FROM tempphotos WHERE id = ? AND user = ?"
-                cursor = con.cursor()
-                cursor.execute(sql, (photoid, username))
-                con.commit()
-                session['lat'] = 0
-                session['lng'] = 0
-                return redirect(url_for('uploadphoto', id=postid))
+                    GetNamedLocation(sessionlat, sessionlng, postid)
+
+                    if selected_option != "none":
+                        con = sqlite3.connect('database.db')
+                        sql = "SELECT id FROM Posts WHERE text = ? AND user = ? AND album = 'True'"
+                        cursor = con.cursor()
+                        cursor.execute(sql, (selected_option, username,))
+                        getalbumid = cursor.fetchone()
+                        getalbumid = getalbumid[0]
+
+                        sql = "INSERT INTO albums(albumid, postid, user) VALUES(?,?,?)"
+                        cursor = con.cursor()
+                        cursor.execute(sql, (getalbumid, postid, username,))  #
+                        con.commit()
+                        updatealbumlocation(getalbumid)
+
+                        # update the metadata
+
+                    con = sqlite3.connect('database.db')
+                    sql = "DELETE FROM tempphotos WHERE id = ? AND user = ?"
+                    cursor = con.cursor()
+                    cursor.execute(sql, (photoid, username))
+                    con.commit()
+                    session['lat'] = 0
+                    session['lng'] = 0
+                    return redirect(url_for('uploadphoto', id=postid))
+                else:
+                    session['lat'] = 0
+                    session['lng'] = 0
+                    msg = "Do not leave blank"
+                    emptydescr = True
             else:
                 session['lat'] = 0
                 session['lng'] = 0
                 msg = "Do not leave blank"
-    return render_template("addpost.html", msg=msg, rows=rows, filename=filename, rows2=rows2, date=date, time=time)
+                emptytitle = True
+    return render_template("addpost.html", msg=msg, rows=rows, filename=filename, rows2=rows2, date=date, time=time, emptydescr=emptydescr, emptytitle=emptytitle)
 
 
 @web_site.route('/drafts', methods=['GET', 'POST'])

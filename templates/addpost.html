@@ -75,11 +75,25 @@
     {% else %}
         {% set newdescr = row["descr"] %}
     {% endif %}
-    <textarea class="textareatitle" name="text" placeholder="Enter text here" maxlength="100">{{newtext}}</textarea><br>
+    <textarea class="textareatitle" name="text" id="text" placeholder="Enter text here" maxlength="100">{{newtext}}</textarea><br>
     <h3>Add a description*</h3>
-<textarea class="textareadescr" name="descr" placeholder="Enter text here" maxlength="250">{{newdescr}}</textarea><br>
+<textarea class="textareadescr" name="descr" id="descr" placeholder="Enter text here" maxlength="250">{{newdescr}}</textarea><br>
     <br>
     <h4 style="color: red;">{{msg}}</h4>
+    {% if emptytitle == True %}
+        <script>
+            var myInput = document.getElementById('text');
+            myInput.focus();
+        </script>
+    {% endif %}
+
+    {% if emptydescr %}
+        <script>
+            var myInput = document.getElementById('descr');
+            myInput.focus();
+        </script>
+    {% endif %}
+
     <br>
     <h3>Add to album:</h3>
     {% endfor %}

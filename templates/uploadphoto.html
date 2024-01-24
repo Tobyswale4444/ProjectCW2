@@ -10,8 +10,9 @@
     <input type="submit" name="submit" value="Upload"><br>
     <h3>{{msg}}</h3>
     {% if posted %}
+
         <br>
-        <br>
+        <h1 style="color: green;">Posted!</h1>
         <a href ='/viewpost?id={{prevpostid}}' class="linkbuttonsmall">View Post</a>
         <br>
     {% endif %}
