@@ -24,7 +24,7 @@
 {% if filtered != True %}
 <div>
   <br>
-  <input type="range" id="slider" name="slidervalue" min="0" max="6000000" step="1000" value="0" style="width: 400px;">
+  <input type="range" id="slider" name="slidervalue" min="0" max="6000000" step="1000" value="3000000" style="width: 400px;">
   <h4 style="margin-bottom: 5;">Radius: <span id="val"></span>m<a href="/helppage#sf" style="margin: 0; margin-left: 10;"><img src="static/information-button.svg" width="20" height="20" style="filter: invert(100%) sepia(91%) saturate(2%) hue-rotate(252deg) brightness(107%) contrast(100%); vertical-align: middle; margin-bottom: 5;"></a></h4>
 
 
@@ -35,114 +35,118 @@
     <div id="map1"  style="width: 400px; height: 300px;" class="map-container"></div>
 
     <script>
-        var map;
-        var existingmarker;
-        var circle;
-        var sliderval;
-        var sliderMoved = false;
-        var latlnglist = {{ latlnglist | tojson | safe }};
+    var map;
+    var existingmarker;
+    var circle;
+    var sliderval = 3000000;
+    var latlnglist = {{ latlnglist | tojson | safe }};
+
+    function initMap() {
+        map = new google.maps.Map(document.getElementById('map1'), {
+            center: { lat: 32.6669, lng: -16.9241 },
+            zoom: 1,
+        });
+
+        existingmarker = new google.maps.Marker({
+            position: map.getCenter(),
+            map: map,
+        });
+
+        circle = new google.maps.Circle({
+            strokeColor: '#FF0000',
+            strokeOpacity: 0.8,
+            strokeWeight: 2,
+            fillColor: '#FF0000',
+            fillOpacity: 0.35,
+            map: map,
+            center: map.getCenter(),
+            radius: sliderval,
+        });
 
 
+        for (var i = 0; i < latlnglist.length; i++) {
+            let lat = parseFloat(latlnglist[i][0]);
+            let lng = parseFloat(latlnglist[i][1]);
+            let postid = latlnglist[i][2]
+            let state = latlnglist[i][3]
 
-        function initMap() {
-            map = new google.maps.Map(document.getElementById('map1'), {
-                center: { lat: 32.6669, lng: -16.9241 },
-                zoom: 1,
-
+            var postmarker = new google.maps.Marker({
+                position: { lat: lat, lng: lng },
+                map: map,
+                icon: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
             });
 
-
-             for (var i = 0; i < latlnglist.length; i++) {
-                 let lat = parseFloat(latlnglist[i][0]);
-                 let lng = parseFloat(latlnglist[i][1]);
-                 let postid = latlnglist[i][2]
-                 let state = latlnglist[i][3]
-
-                 var postmarker = new google.maps.Marker({
-                    position: { lat: lat, lng: lng },
-                    map: map,
-                    icon: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
-                 });
-
-                 if (state === "True") {
-                    postmarker.setIcon('http://maps.google.com/mapfiles/ms/icons/red-dot.png');
-                }
-
-                 postmarker.addListener('click', function () {
-                    if (state === 'False') {
-                        window.location.href = "/viewpost?id=" + postid;
-                    } else {
-                        window.location.href = "/viewalbum?id=" + postid;
-                    }
-                });
+            if (state === "True") {
+                postmarker.setIcon('http://maps.google.com/mapfiles/ms/icons/red-dot.png');
             }
-            map.addListener('click', function(event) {
-                if (!sliderMoved) {
-                    alert("Set the radius!");
-                    return;
+
+            postmarker.addListener('click', function () {
+                if (state === 'False') {
+                    window.location.href = "/viewpost?id=" + postid;
+                } else {
+                    window.location.href = "/viewalbum?id=" + postid;
                 }
-
-                if (existingmarker) {
-                    existingmarker.setMap(null);
-                }
-
-                existingmarker = new google.maps.Marker({
-                    position: event.latLng,
-                    map: map,
-                    title: 'Pin',
-                });
-
-
-                if (circle) {
-                    circle.setMap(null);
-                }
-
-                circle = new google.maps.Circle({
-                    strokeColor: '#FF0000',
-                    strokeOpacity: 0.8,
-                    strokeWeight: 2,
-                    fillColor: '#FF0000',
-                    fillOpacity: 0.35,
-                    map: map,
-                    center: event.latLng,
-                    radius: sliderval,
-                });
-
-
-
-
-                var lat = event.latLng.lat();
-                var lng = event.latLng.lng();
-
-
-                var xmlhttp = new XMLHttpRequest();
-                xmlhttp.open('POST', '/filtercoords', true);
-                xmlhttp.setRequestHeader('Content-Type', 'application/json');
-                xmlhttp.send(JSON.stringify({ lat: lat, lng: lng, radius: sliderval }));
             });
         }
 
-        function updatecircler(value) {
-          if (circle) {
-              circle.setRadius(value);
-          }
+        map.addListener('click', function(event) {
+
+            if (existingmarker) {
+                existingmarker.setMap(null);
+            }
+
+            existingmarker = new google.maps.Marker({
+                position: event.latLng,
+                map: map,
+                title: 'Pin',
+            });
+
+            if (circle) {
+                circle.setMap(null);
+            }
+
+            circle = new google.maps.Circle({
+                strokeColor: '#FF0000',
+                strokeOpacity: 0.8,
+                strokeWeight: 2,
+                fillColor: '#FF0000',
+                fillOpacity: 0.35,
+                map: map,
+                center: event.latLng,
+                radius: sliderval,
+            });
+        });
+    }
+
+    function updatecircler(value) {
+        if (circle) {
+            circle.setRadius(value);
         }
+    }
+
+    var slider = document.getElementById("slider");
+    var output = document.getElementById("val");
+    var sliderval = parseInt(slider.value);
+
+    output.innerHTML = sliderval;
+
+    slider.oninput = function() {
+        sliderval = parseInt(this.value);
+        output.innerHTML = sliderval;
+        updatecircler(sliderval);
 
 
-        var slider = document.getElementById("slider");
-        var output = document.getElementById("val");
-        output.innerHTML = slider.value;
+        var latLng = existingmarker ? existingmarker.getPosition() : map.getCenter();
+        var lat = latLng.lat();
+        var lng = latLng.lng();
 
-        slider.oninput = function() {
-            output.innerHTML = this.value;
-            sliderval = parseInt(this.value);
-            updatecircler(sliderval);
-            sliderMoved = true;
-        }
+        var xmlhttp = new XMLHttpRequest();
+        xmlhttp.open('POST', '/filtercoords', true);
+        xmlhttp.setRequestHeader('Content-Type', 'application/json');
+        xmlhttp.send(JSON.stringify({ lat: lat, lng: lng, radius: sliderval }));
+    }
 
-
-
-    </script>
+</script>
 </body>
 
 
