@@ -395,7 +395,7 @@ def uploadphoto():
         username = session["username"]
         photo = request.files['photo']
         if photo.filename != "":
-            filename = randfilename + "_" + photo.filename
+            filename = randfilename + "_" + photo.filename.replace(" ", "")
             try:
                 photo.save(os.path.join(web_site.root_path, 'static', 'UploadedPhotos', filename))
                 con = sqlite3.connect('database.db')
@@ -2010,7 +2010,7 @@ def account_settings():
         randfilename = randomfilename(os.path.join(web_site.root_path, 'static', 'ProfilePictures'))
         photo = request.files['photo']
         if photo.filename != "":
-            filename = randfilename + "_" + photo.filename
+            filename = randfilename + "_" + photo.filename.replace(" ", "")
             try:
                 photo.save(os.path.join(web_site.root_path, 'static', 'ProfilePictures', filename))
                 photo_path = os.path.join(web_site.root_path, 'static', 'ProfilePictures', filename)
