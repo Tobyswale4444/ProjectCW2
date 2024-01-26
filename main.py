@@ -2031,6 +2031,8 @@ def account_settings():
                 cursor.execute(sql, (filename, username))
                 con.commit()
 
+
+
             except:
                 os.remove(os.path.join(web_site.root_path, 'static', 'ProfilePictures', filename))
 
@@ -2045,6 +2047,41 @@ def account_settings():
                         con.commit()
                         session["username"] = username_update
                         sql = "UPDATE Posts SET user = ? WHERE user = ?"
+                        cursor = con.cursor()
+                        cursor.execute(sql, (username_update, username))
+                        con.commit()
+
+                        sql = "UPDATE Likes SET usersliked = ? WHERE usersliked = ?"
+                        cursor = con.cursor()
+                        cursor.execute(sql, (username_update, username))
+                        con.commit()
+
+                        sql = "UPDATE Dislikes SET usersdisliked = ? WHERE usersdisliked = ?"
+                        cursor = con.cursor()
+                        cursor.execute(sql, (username_update, username))
+                        con.commit()
+
+                        sql = "UPDATE Albums SET user = ? WHERE user = ?"
+                        cursor = con.cursor()
+                        cursor.execute(sql, (username_update, username))
+                        con.commit()
+
+                        sql = "UPDATE friendrequests SET userreceive = ? WHERE userreceive = ?"
+                        cursor = con.cursor()
+                        cursor.execute(sql, (username_update, username))
+                        con.commit()
+
+                        sql = "UPDATE friendrequests SET usersend = ? WHERE usersend = ?"
+                        cursor = con.cursor()
+                        cursor.execute(sql, (username_update, username))
+                        con.commit()
+
+                        sql = "UPDATE savedposts SET username = ? WHERE username = ?"
+                        cursor = con.cursor()
+                        cursor.execute(sql, (username_update, username))
+                        con.commit()
+
+                        sql = "UPDATE tempphotos SET user = ? WHERE user = ?"
                         cursor = con.cursor()
                         cursor.execute(sql, (username_update, username))
                         con.commit()
