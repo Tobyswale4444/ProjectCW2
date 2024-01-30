@@ -20,36 +20,35 @@ Session(web_site)
 @web_site.route('/', methods=['GET', 'POST'])
 @web_site.route('/Index', methods=['GET', 'POST'])
 def index():
-    msg = ""
-    usermsg = ""
-    empty = ""
-    filename = "1024px-Cross_red_circle.svg.png"
+    msg = "" #default nothing
+    usermsg = "" #default nothing
+    empty = "" #set to nothing
     if request.method == 'POST':
-        username = request.form["username"]
-        password = request.form["password"]
-        if username and password != "":
+        username = request.form["username"] #get the inputted username
+        password = request.form["password"] #get the inputted password
+        if username and password != "": #if they both aren't empty
             con = sqlite3.connect('database.db')
-            sql = "SELECT password FROM Accounts WHERE username = ?"
+            sql = "SELECT password FROM Accounts WHERE username = ?" #if a password already exists with that username
             cursor = con.cursor()
             cursor.execute(sql, (username,))
             getpassword = cursor.fetchone()
-            critera = re.compile(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!?*%@$&]).{8,}$")
-            if getpassword is None:
-                if " " not in username and len(username) >= 3 and len(username) <= 15:
-                    if bool(critera.match(password)):
-                        password = hash(password)
-                        sql = "INSERT INTO Accounts(username, password, description, dob) VALUES(?, ?, ?, ?)"
+            critera = re.compile(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!?*%@$&]).{8,}$") #password critera match
+            if getpassword is None: #no password associated with inputted username then username is unique
+                if " " not in username and len(username) >= 3 and len(username) <= 15: #username critera check
+                    if bool(critera.match(password)): #password is valid
+                        password = hash(password) #hash the password
+                        sql = "INSERT INTO Accounts(username, password, description, dob) VALUES(?, ?, ?, ?)" #insert details into database
                         cursor = con.cursor()
                         cursor.execute(sql, (username, password, empty, empty))
                         con.commit()
-                        return redirect("/login")
+                        return redirect("/login") #redirect them to login
                     else:
-                        msg = "Password does not meet criteria"
+                        msg = "Password does not meet criteria" #error message if password isn't valid
                 else:
-                    usermsg = "Username does not meet criteria"
+                    usermsg = "Username does not meet criteria"#error message if username isn't valid
         else:
-            msg = "Do not leave blank"
-    return render_template("Index.html", filename=filename, msg=msg, usermsg=usermsg)
+            msg = "Do not leave blank" #error message if either password or username left blank
+    return render_template("Index.html", msg=msg, usermsg=usermsg) #render html page and send variables
 
 
 def moderate(string):
@@ -143,23 +142,23 @@ def hash(password):
 
 @web_site.route('/ajaxsearchusernames/<search>')
 def ajaxsearchusernames(search):
-    search = search.replace("%20", " ")
+    search = search.replace("%20", " ") #replaces any "%20"s with spaces
 
     con = sqlite3.connect('database.db')
     sql = "SELECT password FROM Accounts WHERE username = ?"
     cursor = con.cursor()
     cursor.execute(sql, (search,))
-    getpassword = cursor.fetchone()
+    getpassword = cursor.fetchone() #checks if unique
     if getpassword is None:
-        unique = "Check_green_circle.svg.png"
+        unique = "Check_green_circle.svg.png" #if unique, a tick should show
     else:
         unique = "1024px-Cross_red_circle.svg.png"
-    if len(search) >= 3 and len(search) <= 15:
+    if len(search) >= 3 and len(search) <= 15: #checks length is between 3 and 15 chars
         length = "Check_green_circle.svg.png"
     else:
         length = "1024px-Cross_red_circle.svg.png"
 
-    if " " not in search and not search[0].isspace() and not search[-1].isspace():
+    if " " not in search and not search[0].isspace() and not search[-1].isspace(): #makes sure no spaces are present and there aren't any spaces at the beginning or end
         space = "Check_green_circle.svg.png"
     else:
         space = "1024px-Cross_red_circle.svg.png"
@@ -169,7 +168,7 @@ def ajaxsearchusernames(search):
         length = "1024px-Cross_red_circle.svg.png"
 
     return jsonify({'unique': unique, 'space': space, 'length': length})
-
+    #constructs the json to send to the javascript
 
 @web_site.route('/ajaxpasswords/<search>')
 def ajaxpasswords(search):
@@ -227,18 +226,18 @@ def ajaxpasswords(search):
 
 @web_site.route('/ajaxpasswordsindex/<search>')
 def ajaxpasswordsindex(search):
-    search = search.replace("%20", " ")
-    uppercheck = False
-    lowercheck = False
-    digitcheck = False
-    symbcheck = False
-    upper = "1024px-Cross_red_circle.svg.png"
-    lower = "1024px-Cross_red_circle.svg.png"
-    digit = "1024px-Cross_red_circle.svg.png"
-    symb = "1024px-Cross_red_circle.svg.png"
-    symbols = ["!", "*", "%", "@", "$", "&"]
+    search = search.replace("%20", " ") #replace any "%20" with spaces
+    uppercheck = False #default to False
+    lowercheck = False #default to False
+    digitcheck = False #default to False
+    symbcheck = False #default to False
+    upper = "1024px-Cross_red_circle.svg.png" #default to the red cross (False)
+    lower = "1024px-Cross_red_circle.svg.png" #default to the red cross (False)
+    digit = "1024px-Cross_red_circle.svg.png" #default to the red cross (False)
+    symb = "1024px-Cross_red_circle.svg.png" #default to the red cross (False)
+    symbols = ["!", "*", "%", "@", "$", "&"] #valid symbols
     if len(search) >= 8:  # Check length is at least 8
-        length = "Check_green_circle.svg.png"
+        length = "Check_green_circle.svg.png" #if True set to green tick
     else:
         length = "1024px-Cross_red_circle.svg.png"
     for i in range(0, len(search)):
@@ -254,7 +253,7 @@ def ajaxpasswordsindex(search):
         if search[i] in symbols:  # Check if at least one char is in the list symbols
             symbcheck = True
             symb = "Check_green_circle.svg.png"
-    if not uppercheck or search == "empty":
+    if not uppercheck or search == "empty": #if empty or not true then set to red cross
         upper = "1024px-Cross_red_circle.svg.png"
     if not lowercheck or search == "empty":
         lower = "1024px-Cross_red_circle.svg.png"
@@ -264,33 +263,32 @@ def ajaxpasswordsindex(search):
         symb = "1024px-Cross_red_circle.svg.png"
 
     return jsonify({'upper': upper, 'length': length, 'lower': lower, 'digit': digit, 'symb': symb})
-
+    #construct json to send to the javascript
 
 @web_site.route('/login', methods=['GET', 'POST'])
 def login():
-    msg = ""
+    msg = "" #defaults to blank
     if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
-        if username and password != "":
+        username = request.form["username"] #gets inputted username
+        password = request.form["password"] #gets inputted password
+        if username and password != "": #if both fields aren't blank
             con = sqlite3.connect('database.db')
-            sql = "SELECT password FROM Accounts WHERE username = ?"
+            sql = "SELECT password FROM Accounts WHERE username = ?" #gets the password that corresponds to the account
             cursor = con.cursor()
             cursor.execute(sql, (username,))
             getpassword = cursor.fetchone()
-            if getpassword is not None:
-                getpassword = getpassword[0]
-                password = hash(password)
-                if password == getpassword:
-                    session["username"] = username
-                    return redirect(url_for('listmyposts'))
-
+            if getpassword is not None: #if a password actually exists, then its an existing/valid account
+                getpassword = getpassword[0] #remove from tuple
+                password = hash(password) #hash the inputted password
+                if password == getpassword: #if the hash of the inputted password matches the hash stored in the database
+                    session["username"] = username #set the session username to the inputted username
+                    return redirect(url_for('listmyposts')) #redirect to "my account" page
                 else:
-                    msg = "Incorrect Password"
+                    msg = "Incorrect Password" #error message if password does not match
             else:
-                msg = "Username not found"
+                msg = "Username not found" #error message if username does not exist
         else:
-            msg = "Do not leave blank"
+            msg = "Do not leave blank" #error message if either password or username are left blank
     return render_template("login.html", msg=msg)
 
 
@@ -1109,25 +1107,25 @@ def calcage(dob):
 
 @web_site.route('/account', methods=['GET', 'POST'])
 def listmyposts():
-    if "username" not in session:
-        return redirect("/login")
+    if "username" not in session: #checks if a user is actually logged in
+        return redirect("/login") #if not, redirect them to the login page
 
-    username = session["username"]
+    username = session["username"] #gets the username stored in the session
     con = sqlite3.connect('database.db')
     con.row_factory = sqlite3.Row
     cursor = con.cursor()
-    sql = "SELECT * FROM Posts WHERE user = ?"
+    sql = "SELECT * FROM Posts WHERE user = ?" #gets all posts by the user
     cursor.execute(sql, (username,))
     con.commit()
     rows = cursor.fetchall()
-    rows = rows[::-1]
+    rows = rows[::-1] #reverses the order so they are shown in order of when they were posted
 
-    sql = "SELECT description, dob,gender,pfp FROM Accounts WHERE username = ?"  # spelt description wrong - will change later...
+    sql = "SELECT description, dob,gender,pfp FROM Accounts WHERE username = ?"  #select details about the user
     cursor = con.cursor()
     cursor.execute(sql, (username,))
 
     row2 = cursor.fetchone()
-    desc = row2[0]
+    desc = row2[0] #[0] gets it out of tuple form
     dobget = row2[1]
     ageget = calcage(dobget)
     genderget = row2[2]
@@ -1137,53 +1135,53 @@ def listmyposts():
         FROM Posts
         WHERE user = ? AND album IS NULL
         GROUP BY user;
-        """
+        """ #selects the number of posts the user has created
     cursor = con.cursor()
     cursor.execute(sql, (username,))
     postcount = cursor.fetchone()
-    if postcount is not None:
+    if postcount is not None: #if they have created some posts
         postcount = postcount[0]
     else:
-        postcount = 0
+        postcount = 0 #if no posts found, set it to 0
 
     sql = """SELECT COUNT(*) as frequency
             FROM Posts
             WHERE user = ? AND album = 'True'
             GROUP BY user;
-            """
+            """ #selects the number of albums the user has created
     cursor = con.cursor()
     cursor.execute(sql, (username,))
     albumcount = cursor.fetchone()
-    if albumcount is not None:
+    if albumcount is not None: #if they have created some albums
         albumcount = albumcount[0]
     else:
-        albumcount = 0
+        albumcount = 0 #if no albums found, set it to 0
 
     sql = """SELECT COUNT(*) as frequency
             FROM friendrequests
             WHERE usersend = ? AND status = 2
             GROUP BY usersend;
-            """
+            """ #selects the number of people they follow
     cursor = con.cursor()
     cursor.execute(sql, (username,))
     followingcount = cursor.fetchone()
-    if followingcount is not None:
+    if followingcount is not None: #if they follow at least one person
         followingcount = followingcount[0]
     else:
-        followingcount = 0
+        followingcount = 0 #else set count to 0
 
     sql = """SELECT COUNT(*) as frequency
                 FROM friendrequests
                 WHERE userreceive = ? AND status = 2
                 GROUP BY userreceive;
-                """
+                """ #selects the number of people who follow them
     cursor = con.cursor()
     cursor.execute(sql, (username,))
     followercount = cursor.fetchone()
-    if followercount is not None:
+    if followercount is not None: #if they are followed by at least one person
         followercount = followercount[0]
     else:
-        followercount = 0
+        followercount = 0 #else set count to 0
 
     return render_template("account.html", rows=rows, desc=desc, age=ageget, gender=genderget, pfp=pfp,
                            postcount=postcount, albumcount=albumcount, followercount=followercount,
@@ -1941,92 +1939,92 @@ def friends():
 
 @web_site.route('/account_settings', methods=['GET', 'POST'])
 def account_settings():
-    if "username" not in session:
-        return redirect("/login")
+    if "username" not in session: #checks that a user is actually logged in
+        return redirect("/login") #if not, redirect to login page
 
-    filename = "1024px-Cross_red_circle.svg.png"
-    username = session["username"]
+    filename = "1024px-Cross_red_circle.svg.png" #defaults to red cross
+    username = session["username"] #gets the user that is logged in
 
     con = sqlite3.connect('database.db')
     con.row_factory = sqlite3.Row
-    sql = "SELECT * FROM Accounts WHERE username = ?"
+    sql = "SELECT * FROM Accounts WHERE username = ?" #selects all info about user
     cursor = con.cursor()
     cursor.execute(sql, (username,))
     con.commit()
     rows = cursor.fetchall()
 
-    sql = "SELECT privacy FROM Accounts WHERE username = ?"
+    sql = "SELECT privacy FROM Accounts WHERE username = ?" #selects the privacy seperately
     cursor = con.cursor()
     cursor.execute(sql, (username,))
     getprivacy = cursor.fetchone()
     getprivacy = getprivacy[0]
 
-    genders = ["None", "Male", "Female", "Other"]
+    genders = ["None", "Male", "Female", "Other"] #options for genders
 
     if request.method == "POST":
-        lat = session.get('lat')
+        lat = session.get('lat') #get the lat and lng clicked (marker on the map)
         lng = session.get('lng')
-        clicked = session.get('clicked')
-        if "cancel" in request.form:
-            session['lat'] = 0
+        clicked = session.get('clicked') #checks if the user has interacted with the map
+        if "cancel" in request.form: #if the user wants to discard any changes
+            session['lat'] = 0 #sets default lng lat to 0, 0
             session['lng'] = 0
-            return redirect('account')
+            return redirect('account') #redirects back to account
 
-        description = request.form["description"]
-        description = moderate(description)
-        dob = request.form["dob"]
-        username_update = request.form["Username"]
-        checkbox_privacy = request.form.get('privacy')
-        checkbox_resetpfp = request.form.get('resetpfp')
-        gender = request.form['gender']
-        oldpassword = request.form["oldpassword"]
-        newpassword = request.form["newpassword"]
+        description = request.form["description"] #gets inputted description
+        description = moderate(description) #moderates description
+        dob = request.form["dob"] #gets inputted date of birth
+        username_update = request.form["Username"] #gets inputted username (to update to)
+        checkbox_privacy = request.form.get('privacy') #gets inputted privacy choice
+        checkbox_resetpfp = request.form.get('resetpfp') #gets if they want to reset their profile picture
+        gender = request.form['gender'] #gets gender choice
+        oldpassword = request.form["oldpassword"] #gets inputted old password
+        newpassword = request.form["newpassword"] #gets the password they want to make their new password
         con = sqlite3.connect('database.db')
-        sql = "SELECT username FROM Accounts WHERE username = ?"
+        sql = "SELECT username FROM Accounts WHERE username = ?" # gets old username
         cursor = con.cursor()
         cursor.execute(sql, (username_update,))
         getusername = cursor.fetchone()
-        sql = "UPDATE Accounts SET description = ? WHERE username = ?"  # updates accounts
+        sql = "UPDATE Accounts SET description = ? WHERE username = ?"  # updates account description, no checks needed
         cursor = con.cursor()
         cursor.execute(sql, (description, username))
         con.commit()
 
-        sql = "UPDATE Accounts SET dob = ? WHERE username = ?"
+        sql = "UPDATE Accounts SET dob = ? WHERE username = ?" # updates account dob, no checks needed
         cursor = con.cursor()
         cursor.execute(sql, (dob, username))
         con.commit()
 
-        sql = "UPDATE Accounts SET gender = ? WHERE username = ?"
+        sql = "UPDATE Accounts SET gender = ? WHERE username = ?" # updates account gender, no checks needed
         cursor = con.cursor()
         cursor.execute(sql, (gender, username))
         con.commit()
 
-        if lat != 0 and lng != 0 and clicked:
-            sql = "UPDATE Accounts SET lat = ?, lng = ? WHERE username = ?"
+        if lat != 0 and lng != 0 and clicked: #ensures the user has actually clicked on the map, and not from a previous session
+            sql = "UPDATE Accounts SET lat = ?, lng = ? WHERE username = ?" #updates account lng and lat
             cursor = con.cursor()
             cursor.execute(sql, (lat, lng, username,))
             con.commit()
 
-        randfilename = randomfilename(os.path.join(web_site.root_path, 'static', 'ProfilePictures'))
-        photo = request.files['photo']
-        if photo.filename != "":
-            filename = randfilename + "_" + photo.filename.replace(" ", "")
+        randfilename = randomfilename(os.path.join(web_site.root_path, 'static', 'ProfilePictures')) #gets a random filename, passing the path in
+        photo = request.files['photo'] #gets photo they chose for their filename
+        if photo.filename != "": #if photo filename is not blank
+            filename = randfilename + "_" + photo.filename.replace(" ", "") #removes any spaces from the filename and adds it to the random filename generated before
             try:
-                photo.save(os.path.join(web_site.root_path, 'static', 'ProfilePictures', filename))
-                photo_path = os.path.join(web_site.root_path, 'static', 'ProfilePictures', filename)
-                metadata = get_metadata(photo_path)  # good way to test if it is acc a photo
+                photo.save(os.path.join(web_site.root_path, 'static', 'ProfilePictures', filename)) #saves the filename
+                photo_path = os.path.join(web_site.root_path, 'static', 'ProfilePictures', filename) #gets the path of the saved filename
+                metadata = get_metadata(photo_path)  #tests for correct filetype
 
                 con = sqlite3.connect('database.db')
-                sql = "SELECT pfp FROM Accounts WHERE username = ?"
+                sql = "SELECT pfp FROM Accounts WHERE username = ?" #gets old filename
                 cursor = con.cursor()
                 cursor.execute(sql, (username,))
                 getoldfilename = cursor.fetchone()
-                getoldfilename = getoldfilename[0]
-                if getoldfilename != "blank-profile-picture-973460_960_720.jpg":
+                getoldfilename = getoldfilename[0] #gets it out of tuple form
+                if getoldfilename != "blank-profile-picture-973460_960_720.jpg": #if old filename isnt the default one
                     os.remove(os.path.join(web_site.root_path, 'static', 'ProfilePictures',
-                                           getoldfilename))  # deletes the file
+                                           getoldfilename))  # deletes the old filename
 
-                sql = "UPDATE Accounts SET pfp = ? WHERE username = ?"
+                sql = "UPDATE Accounts SET pfp = ? WHERE username = ?" #upadates the database with new filename
                 cursor = con.cursor()
                 cursor.execute(sql, (filename, username))
                 con.commit()
@@ -2034,18 +2032,20 @@ def account_settings():
 
 
             except:
-                os.remove(os.path.join(web_site.root_path, 'static', 'ProfilePictures', filename))
+                os.remove(os.path.join(web_site.root_path, 'static', 'ProfilePictures', filename)) #if not the correct filetype, delete the file
 
-        if username_update != username:
+        if username_update != username: #if the new username isnt their old one
             if getusername is None:  # checks if the username is unique
-                if username_update != "":
-                    if " " not in username_update and len(username_update) >= 3 and len(username_update) <= 15:
+                if username_update != "": #checks new username isnt blank
+                    if " " not in username_update and len(username_update) >= 3 and len(username_update) <= 15: #checks username between 3 and 15 chars
                         con = sqlite3.connect('database.db')
                         sql = "UPDATE Accounts SET username = ? WHERE username = ?"  # updates accounts
                         cursor = con.cursor()
                         cursor.execute(sql, (username_update, username))
                         con.commit()
-                        session["username"] = username_update
+                        session["username"] = username_update #updates session
+
+                        #need to update all tables with new username
                         sql = "UPDATE Posts SET user = ? WHERE user = ?"
                         cursor = con.cursor()
                         cursor.execute(sql, (username_update, username))
@@ -2086,37 +2086,49 @@ def account_settings():
                         cursor.execute(sql, (username_update, username))
                         con.commit()
                         username = username_update
-        if checkbox_privacy == "on":
+        if checkbox_privacy == "on": #if they chose their account to be private
             con = sqlite3.connect('database.db')
-            sql = "UPDATE Accounts SET privacy = 'private' WHERE username = ?"
+            sql = "UPDATE Accounts SET privacy = 'private' WHERE username = ?" #update accounts, set to private
             cursor = con.cursor()
             cursor.execute(sql, (username,))
             con.commit()
 
-            sql = "UPDATE Posts SET privacy = 'private' WHERE user = ?"
+            sql = "UPDATE Posts SET privacy = 'private' WHERE user = ?" #update posts so that posts are also private
             cursor = con.cursor()
             cursor.execute(sql, (username,))
             con.commit()
-        if checkbox_privacy is None:
+        if checkbox_privacy is None: #if they chose their account to be public
             con = sqlite3.connect('database.db')
-            sql = "UPDATE Accounts SET privacy = 'public' WHERE username = ?"
+            sql = "UPDATE Accounts SET privacy = 'public' WHERE username = ?" #update account setting to public
             cursor = con.cursor()
             cursor.execute(sql, (username,))
             con.commit()
 
-            sql = "UPDATE Posts SET privacy = 'public' WHERE user = ?"
+            sql = "UPDATE Posts SET privacy = 'public' WHERE user = ?" #update posts setting to public
             cursor = con.cursor()
             cursor.execute(sql, (username,))
             con.commit()
-        if checkbox_resetpfp == "on":
+        if checkbox_resetpfp == "on": #if they want to reset the profile picture back to default
+
             con = sqlite3.connect('database.db')
-            sql = "UPDATE Accounts SET pfp = ? WHERE username = ?"
+            sql = "SELECT pfp FROM Accounts WHERE username = ?"  # gets old filename
             cursor = con.cursor()
-            cursor.execute(sql, ("blank-profile-picture-973460_960_720.jpg", username))
+            cursor.execute(sql, (username,))
+            getoldfilename = cursor.fetchone()
+            getoldfilename = getoldfilename[0]  # gets it out of tuple form
+            if getoldfilename != "blank-profile-picture-973460_960_720.jpg":  # if old filename isnt the default one
+                os.remove(os.path.join(web_site.root_path, 'static', 'ProfilePictures',
+                                       getoldfilename))  # deletes the old filename
+
+
+            con = sqlite3.connect('database.db')
+            sql = "UPDATE Accounts SET pfp = ? WHERE username = ?" #updates account with new filename
+            cursor = con.cursor()
+            cursor.execute(sql, ("blank-profile-picture-973460_960_720.jpg", username)) #filename set to the default profile picture
             con.commit()
 
         con = sqlite3.connect('database.db')
-        sql = "SELECT password FROM Accounts WHERE username = ?"
+        sql = "SELECT password FROM Accounts WHERE username = ?" #get old (hashed) password
         cursor = con.cursor()
         cursor.execute(sql, (username,))
         getpassword = cursor.fetchone()

@@ -1,9 +1,7 @@
 {% extends 'base.html' %}
 {% block content %}
 
-
 <style>
-
 .container {
     display: flex;
     align-items: center;
@@ -30,7 +28,6 @@
         color: #7752E7;
     }
 
-
 h4 {
     margin: 0;
 
@@ -40,13 +37,13 @@ p {
 }
 </style>
 
-<br><br><img src="{{ url_for('static', filename='ProfilePictures/' + pfp) }}" class="rounded-image">
+<br><br><img src="{{ url_for('static', filename='ProfilePictures/' + pfp) }}" class="rounded-image"> <!-- Constructs the profile picture file path -->
 
 <h1>My Account</h1>
 <div class="container">
     <div class="stats">
         <div class="stattitle">
-            <h4>{{postcount}}</h4>
+            <h4>{{postcount}}</h4> <!-- Creates the stats at the top with a title and their value -->
             <p><h4>Posts</h4></p>
         </div>
         <div class="stattitle">
@@ -71,12 +68,12 @@ p {
 </div>
 
 
-<head>
+<head> <!-- Enables the maps under the posts to be usable by providing the API key -->
   <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCrLn37j2Aln7yh58GPY2AuQIDU3poAgrg&callback=console.debug&libraries=maps,marker&v=beta">
 </script>
 </head>
 
-<div class="text-container">
+<div class="text-container"> <!-- Formats the description, age, and gender -->
     <h4>{{desc}}</h4>
 </div>
 {% if age != "" %}
@@ -87,66 +84,46 @@ p {
 {% endif %}
 <br>
 
-<a href="/account_settings" class="linkbutton">Account Settings</a>
-
+<a href="/account_settings" class="linkbutton">Account Settings</a> <!-- Link bar at the top -->
 <a href="/create" class="linkbutton">Create</a>
 <a href="/savedposts" class="linkbutton">Saved Posts</a>
 <a href="/activity" class="linkbutton">Activity</a>
 <a href="/logout" class="linkbutton">Logout</a>
 <br><br><br>
 
-
-
-
-
-<div class="image-grid">
+<div class="image-grid"> <!-- Displays all the posts and albums by the user with a map under each posts -->
   {% for row in rows %}
   <div class="image-item">
     <div class="image-title">
         <br>
       {% if row["album"] == "True" %}
-        <a href="/viewalbum?id={{row['id']}}">
+        <a href="/viewalbum?id={{row['id']}}"> <!-- determines whether to take the user to view album or view post -->
       {% else %}
         <a href="/viewpost?id={{row['id']}}">
       {% endif %}
 
-        <img src="{{ url_for('static', filename='UploadedPhotos/' + row['filename']) }}" alt="Image" loading="lazy" class="scaled-image">
+        <img src="{{ url_for('static', filename='UploadedPhotos/' + row['filename']) }}" alt="Image" loading="lazy" class="scaled-image"> <!-- gets the photo filepath -->
             <br>
             <br>
-            {% if row['text']|length > 50 %}
+            {% if row['text']|length > 50 %} <!-- If the length is > 50 characters, keep the first 50 characters but add a "..." to the end -->
               {{ row['text'][:50] }}...</a>
             {% else %}
               {{ row['text'] }}</a>
             {% endif %}
-          
-          
 
-
-      
-            
-
-             <div class="map-container">
-             {% if row["album"] != "True" %}
+             <div class="map-container"> <!-- creates a map -->
+             {% if row["album"] != "True" %} <!-- if not a post (albums don't have maps-->
               <body>
-               <gmp-map center="{{row['lat']}},{{row['lng']}}" zoom="2" map-id="map">
+               <gmp-map center="{{row['lat']}},{{row['lng']}}" zoom="2" map-id="map"> <!-- Centres on the post location -->
                     <gmp-advanced-marker
                         position="{{row['lat']}},{{row['lng']}}"
                         title="Pin"
-                    ></gmp-advanced-marker>
+                    ></gmp-advanced-marker><!-- Adds a marker at the post location -->
                 </gmp-map>
               </body>
              {% endif %}
               </div>
 
-
-
-
-
-
-
-
-        
-     
   </div>
 </div>
   {% endfor %}
