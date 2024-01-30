@@ -2132,20 +2132,20 @@ def account_settings():
         cursor = con.cursor()
         cursor.execute(sql, (username,))
         getpassword = cursor.fetchone()
-        getpassword = getpassword[0]
-        critera = re.compile(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!?*%@$&]).{8,}$")
+        getpassword = getpassword[0] # gets it out of tuple form
+        critera = re.compile(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!?*%@$&]).{8,}$") #sets criteria
 
         if bool(critera.match(newpassword)):  # fits critera add ticks if they match
-            newpassword = hash(newpassword)
-            oldpassword = hash(oldpassword)
-            if oldpassword != "" and getpassword != "":
-                if oldpassword == getpassword:
+            newpassword = hash(newpassword) #hashes the new password
+            oldpassword = hash(oldpassword) #hashes what they think is their old password
+            if oldpassword != "" and getpassword != "": #if both fields are not blank
+                if oldpassword == getpassword: #if old password equals their actual password (both hashed)
                     con = sqlite3.connect('database.db')
-                    sql = "UPDATE Accounts SET password = ? WHERE username = ?"
+                    sql = "UPDATE Accounts SET password = ? WHERE username = ?" #update their password
                     cursor = con.cursor()
                     cursor.execute(sql, (newpassword, username))
                     con.commit()
-        session['lat'] = 0
+        session['lat'] = 0 #set lng and lat back to 0
         session['lng'] = 0
         return redirect("account")
 
