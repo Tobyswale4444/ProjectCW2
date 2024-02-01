@@ -40,19 +40,19 @@
 <h1>Account Settings</h1>
 
 {% for row in rows %}
-<img src="{{ url_for('static', filename='ProfilePictures/' + row['pfp']) }}" alt="Image" class="rounded-image">
+<img src="{{ url_for('static', filename='ProfilePictures/' + row['pfp']) }}" alt="Image" class="rounded-image"> <!-- get profile picture at the top-->
 <form method="POST" enctype="multipart/form-data">
     <h4>Upload a Profile Picture</h4>
     <br><input class="linkbutton" type="file" name="photo" accept="image/*"><br><br>
-    <br><br><h4>Reset Profile Picture to Default</h4><br><input type="checkbox" id="resetpfp" name="resetpfp"><br><br>
+    <br><br><h4>Reset Profile Picture to Default</h4><br><input type="checkbox" id="resetpfp" name="resetpfp"><br><br> <!-- tick box to reset pfp -->
   <br><h4>Description (Max 150 chars)</h4>
     <p><textarea class="textareadescr" name="description" placeholder="Description" maxlength="150">{{row["description"]}}</textarea></p>
   <br><h4>DOB</h4>
-    <p><input type="date" name="dob" value='{{row["dob"]}}'></p><br>
+    <p><input type="date" name="dob" value='{{row["dob"]}}'></p><br><!-- date of birth -->
   <br><h4>Gender</h4>
     <br>
    <select id="gender" name="gender">
-        {% for option in genders %}
+        {% for option in genders %}<!-- sets the option to whatever their current gender is-->
             {% if option == row["gender"] %}
                 <option value="{{ option }}" selected>{{ option }}</option>
             {% else %}
@@ -61,7 +61,7 @@
         {% endfor %}
     </select>
     <br><br>
-    <h4>Location</h4>
+    <h4>Location</h4><!-- creates a map so the user can set their personal location-->
         {% if row['lat'] == None and row['lng'] == None %}
             <div id="map1" style="height: 300; width: 400;" class="map-container"></div>
             <script>
@@ -160,7 +160,7 @@
 
     <br>
   <h4>Private</h4>
-  {% if getprivacy == "public" %}
+  {% if getprivacy == "public" %}<!-- sets the tick box to checked if account already set to private -->
     <p><input type="checkbox" id="privacy" name="privacy"></p>
   {% elif getprivacy == "private" %}
     <p><input type="checkbox" id="privacy2" name="privacy" value="1" checked></p>
@@ -168,7 +168,7 @@
         <br>
       <h4>Username</h4>
     <div id="div1">
-          <div class = "input-group">
+          <div class = "input-group"><!-- same criteria crosses/ticks as in create account -->
               <p><input type="text" name="Username" id="username" value='{{row["username"]}}' placeholder="Username" onkeyup="searchusernames()">
               <div class="criteria-group" style="padding-left: 27px;">
                 <img id="unique" src="{{ url_for('static', filename='ticks_crosses/1024px-Cross_red_circle.svg.png') }}" alt="Image" class="criteria-image">
@@ -189,7 +189,7 @@
       <div id="div2">
         <div class = "input-group">
             <p><input name="newpassword" id="password" type="password" value="{{password}}" placeholder="New Password" onkeyup="searchpasswords()">
-            <div class="criteria-group">
+            <div class="criteria-group"><!-- extra one to show if the inputted password matches their current one -->
                 <img id="matching" src="{{ url_for('static', filename='ticks_crosses/1024px-Cross_red_circle.svg.png') }}" alt="Image" class="criteria-image">
                 <h5>Old password</h5>
             </div>
@@ -224,11 +224,10 @@
 
 
 
-    <a href ='/deleteaccount' class="linkbutton">Delete Account</a>
+    <a href ='/deleteaccount' class="linkbutton">Delete Account</a> <!-- redirect to delete account option-->
   
 
-    <p><input type="submit" value="Save"> <input type="submit" name="cancel" value="Cancel"></p>
+    <p><input type="submit" value="Save"> <input type="submit" name="cancel" value="Cancel"></p><!-- save or cancel changes -->
     </form>
-<strong>{{msg}}</strong>
     {% endfor %}
 {% endblock %}

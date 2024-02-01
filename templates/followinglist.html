@@ -18,14 +18,14 @@
 
 <h3>{{msg}}</h3>
 <div class="namelink">
-  <table border = "1" class="centered-table"> 
+  <table border = "1" class="centered-table">  <!-- create table of usenames -->
     {% for row in rows %}
     <tr>
-      {% if row["usersend"] == username %}
+      {% if row["usersend"] == username %} <!-- if the user that is logged in is viewing their own list they have permissions to edit-->
         <td><a href ='/removefollowing?id={{row["userreceive"]}}'>{{row["userreceive"]}}</a></td>
       {% else %}
-        {% if row["userreceive"] == username %}
-          <td><a href ='/account'>{{row["userreceive"]}}</a></td>
+        {% if row["userreceive"] == username %} <!-- if you are viewing someone elses following list, you don't have permissions to change so just view account -->
+          <td><a href ='/account'>{{row["userreceive"]}}</a></td> <!-- but if the user is you, redirect to the "your account page"-->
         {% else %}
           <td><a href ='/viewaccount?id={{row["userreceive"]}}'>{{row["userreceive"]}}</a></td>
         {% endif %}

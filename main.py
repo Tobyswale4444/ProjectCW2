@@ -206,7 +206,7 @@ def ajaxpasswords(search):
         if search[i] in symbols:  # Check if at least one char is in the list symbols
             symbcheck = True
             symb = "Check_green_circle.svg.png"
-    if not uppercheck or search == "empty":
+    if not uppercheck or search == "empty":#if empty or not true then set to red cross
         upper = "1024px-Cross_red_circle.svg.png"
     if not lowercheck or search == "empty":
         lower = "1024px-Cross_red_circle.svg.png"
@@ -1090,18 +1090,18 @@ def editalbum():
 
 
 def calcage(dob):
-    try:
-        dobtime = datetime.strptime(dob, "%Y-%m-%d")
-        currentdate = datetime.now()
-        age = currentdate.year - dobtime.year  # find year dif
-        if currentdate.month < dobtime.month:  # if the month has not been then we take off a year
+    try: #incase the date of birth has not been set and is null
+        dobtime = datetime.strptime(dob, "%Y-%m-%d") #convert to known format
+        currentdate = datetime.now() #get time now
+        age = currentdate.year - dobtime.year  # find the difference in years
+        if currentdate.month < dobtime.month:  # if the birthday month has not been then we take off one from the age
             age -= 1
-        elif currentdate.month == dobtime.month and currentdate.day < dobtime.day:  # if we are in the month, then if the day has not been we take away one
+        elif currentdate.month == dobtime.month and currentdate.day < dobtime.day:  # if we are in the month, but the birth day day has not been we take away one from the age
             age -= 1
 
 
     except:
-        return dob
+        return dob #if not in the right format or any error just return what was sent
     return age
 
 
@@ -2743,29 +2743,29 @@ def acceptignore():
 
 @web_site.route('/followinglist')
 def followinglist():
-    if "username" not in session:
-        return redirect("/login")
+    if "username" not in session: #if no user is logged in
+        return redirect("/login") #redirect to login page
 
-    msg = ""
-    username = session["username"]
-    viewusername = request.args.get('id')
+    msg = "" #default to empty
+    username = session["username"] #get user that is logged in
+    viewusername = request.args.get('id') #get whos list they are viewing
     con = sqlite3.connect('database.db')
     con.row_factory = sqlite3.Row
-    sql = "SELECT * FROM friendrequests WHERE usersend = ? AND status = 2"
+    sql = "SELECT * FROM friendrequests WHERE usersend = ? AND status = 2" #get who follows the viewusername
     cursor = con.cursor()
     cursor.execute(sql, (viewusername,))
     rows = cursor.fetchall()
     usernames = []
 
     for row in rows:
-        usernames.append(row['userreceive'])
-    usernames = mergesort(usernames)
+        usernames.append(row['userreceive']) #add usernames to a list
+    usernames = mergesort(usernames) #merge sort the names
 
     # sorts it based of the index of x.lower() in list "usernames"
     rows = sorted(rows, key=lambda x: usernames.index(x["userreceive"].lower()))
 
-    if rows == []:
-        msg = "No followers found"
+    if rows == []: #if the user doesn't follow anyone
+        msg = "No followers found" #provide error message
 
     return render_template("followinglist.html", rows=rows, username=username, msg=msg)
 
@@ -2813,32 +2813,32 @@ def mergesort(usernames):
 
 @web_site.route('/removefollowing', methods=['GET', 'POST'])
 def removefollowing():
-    if "username" not in session:
-        return redirect("/login")
+    if "username" not in session: #if no user is logged in
+        return redirect("/login") #redirect to login page
 
-    username = session["username"]
-    follower = request.args.get('id')
-    if "remove" in request.form:
+    username = session["username"] #get the user that is logged in
+    follower = request.args.get('id') #get the user they have clicked
+    if "remove" in request.form: #if remove clicked
         con = sqlite3.connect('database.db')
         cursor = con.cursor()
-        sql = "DELETE FROM friendrequests WHERE usersend = ? AND userreceive = ?"
+        sql = "DELETE FROM friendrequests WHERE usersend = ? AND userreceive = ?" #remove the relationship where they follow that user
         cursor.execute(sql, (username, follower))
         con.commit()
-        return redirect('/followinglist')
+        return redirect(url_for('followinglist', id=username)) #redirect back to following list
     return render_template("removefollowing.html", follower=follower)
 
 
 @web_site.route('/followerlist')
 def followerlist():
-    if "username" not in session:
-        return redirect("/login")
+    if "username" not in session: #if a user is not logged in
+        return redirect("/login") #redirect to the login page
 
     msg = ""
-    username = session["username"]
-    viewusername = request.args.get('id')
+    username = session["username"] #get the user that is logged in
+    viewusername = request.args.get('id') #get the user that the list is related to (so it works for view account)
     con = sqlite3.connect('database.db')
     con.row_factory = sqlite3.Row
-    sql = "SELECT * FROM friendrequests WHERE userreceive = ? AND status = 2"
+    sql = "SELECT * FROM friendrequests WHERE userreceive = ? AND status = 2" #get all the people that follow the user
     cursor = con.cursor()
     cursor.execute(sql, (viewusername,))
     rows = cursor.fetchall()
@@ -2846,31 +2846,31 @@ def followerlist():
     usernames = []
 
     for row in rows:
-        usernames.append(row['usersend'])
-    usernames = mergesort(usernames)
+        usernames.append(row['usersend']) #add all the usernames to a list
+    usernames = mergesort(usernames) #merge sort the usernames
 
     # sorts it based of the index of x.lower() in list "usernames"
-    rows = sorted(rows, key=lambda x: usernames.index(x["usersend"].lower()))
+    rows = sorted(rows, key=lambda x: usernames.index(x["usersend"].lower())) #sort the rows based on what the merge sort has provided
 
-    if rows == []:
-        msg = "No followers...yet? :("
+    if rows == []: #if the user has no followers
+        msg = "No followers...yet? :(" #provide an error message
     return render_template("followerlist.html", rows=rows, username=username, msg=msg)
 
 
 @web_site.route('/removefollower', methods=['GET', 'POST'])
 def removefollower():
-    if "username" not in session:
-        return redirect("/login")
+    if "username" not in session: #if no user is logged in
+        return redirect("/login") #redirect them to the login page
 
-    username = session["username"]
-    follower = request.args.get('id')
-    if "remove" in request.form:
+    username = session["username"] #get the user who is logged in
+    follower = request.args.get('id') #get the follower they have clicked on
+    if "remove" in request.form: #if they click remove
         con = sqlite3.connect('database.db')
         cursor = con.cursor()
-        sql = "DELETE FROM friendrequests WHERE userreceive = ? AND usersend = ?"
+        sql = "DELETE FROM friendrequests WHERE userreceive = ? AND usersend = ?" #remove the connection from the database
         cursor.execute(sql, (username, follower))
         con.commit()
-        return redirect('/followerlist')
+        return redirect(url_for('followerlist', id=username)) #redirect back to follower list
     return render_template("removefollower.html", follower=follower)
 
 
@@ -3042,45 +3042,45 @@ def deletealbum():
 
 @web_site.route('/deleteaccount', methods=['GET', 'POST'])
 def deleteaccount():
-    if "username" not in session:
-        return redirect("/login")
+    if "username" not in session: #if a user is not logged in
+        return redirect("/login") #redirect them to login page
 
-    username = session["username"]
-    msg = ""
+    username = session["username"] #get user who is logged in
+    msg = "" #set default empty
     con = sqlite3.connect('database.db')
-    sql = "Select password FROM Accounts WHERE username = ?"
+    sql = "Select password FROM Accounts WHERE username = ?" #select their (hashed) password
     cursor = con.cursor()
     cursor.execute(sql, (username,))
     getpassword = cursor.fetchone()
-    getpassword = getpassword[0]
+    getpassword = getpassword[0] #get out of tuple form
     if request.method == "POST":
-        password = request.form["password"]
-        if getpassword == hash(password):
+        password = request.form["password"] #get what they think is their password
+        if getpassword == hash(password): #if their inputted hashed password equals their old hashed password delete it
             sql = "Select pfp FROM Accounts WHERE username = ?"
             cursor = con.cursor()
             cursor.execute(sql, (username,))
             getfilename = cursor.fetchone()
             getfilename = getfilename[0]
-            if getfilename != "blank-profile-picture-973460_960_720.jpg":
+            if getfilename != "blank-profile-picture-973460_960_720.jpg": #if pfp not the default one
                 os.remove(
-                    os.path.join(web_site.root_path, 'static', 'ProfilePictures', getfilename))  # deletes the file
+                    os.path.join(web_site.root_path, 'static', 'ProfilePictures', getfilename))  # delete their pfp
 
             con.row_factory = sqlite3.Row
-            sql = "SELECT * FROM Posts WHERE user = ?"
+            sql = "SELECT * FROM Posts WHERE user = ?" #gets all info about all their posts
             cursor = con.cursor()
             cursor.execute(sql, (username,))
             rows = cursor.fetchall()
             for row in rows:
-                filename = row["filename"]
-                if filename != "7da6b012d99beac0c7eff0949b27b7e6.png":
-                    os.remove(os.path.join(web_site.root_path, 'static', 'UploadedPhotos', filename))
+                filename = row["filename"] #gets filename of each posts' picture
+                if filename != "7da6b012d99beac0c7eff0949b27b7e6.png": #if not album picture (used by all so must remain)
+                    os.remove(os.path.join(web_site.root_path, 'static', 'UploadedPhotos', filename)) #delete post picture
 
-            sql = "DELETE FROM tempphotos WHERE user = ?"
+            sql = "DELETE FROM tempphotos WHERE user = ?" #delete their drafts
             cursor = con.cursor()
             cursor.execute(sql, (username,))
             con.commit()
 
-            sql = "DELETE FROM savedposts WHERE username = ?"
+            sql = "DELETE FROM savedposts WHERE username = ?" #delete any posts they have saved
             cursor = con.cursor()
             cursor.execute(sql, (username,))
             con.commit()
@@ -3092,14 +3092,14 @@ def deleteaccount():
             cursor.execute(sql, (username,))
             rows = cursor.fetchall()
             for row in rows:
-                sql = "Select likes FROM Posts WHERE id = ?"
+                sql = "Select likes FROM Posts WHERE id = ?" #remove 1 like from all posts they have liked
                 cursor = con.cursor()
                 cursor.execute(sql, (row[0],))
                 getlikes = cursor.fetchone()
                 getlikes = getlikes[0]
                 getlikes -= 1
 
-                sql = "UPDATE Posts SET likes = ? WHERE id = ?"
+                sql = "UPDATE Posts SET likes = ? WHERE id = ?" #update like count for each of those posts
                 cursor = con.cursor()
                 cursor.execute(sql, (getlikes, row[0],))
                 con.commit()
@@ -3110,82 +3110,79 @@ def deleteaccount():
             cursor.execute(sql, (username,))
             rows = cursor.fetchall()
             for row in rows:
-                sql = "Select dislikes FROM Posts WHERE id = ?"
+                sql = "Select dislikes FROM Posts WHERE id = ?" #remove 1 dislike from all posts they have disliked
                 cursor = con.cursor()
                 cursor.execute(sql, (row[0],))
                 getdislikes = cursor.fetchone()
                 getdislikes = getdislikes[0]
                 getdislikes -= 1
 
-                sql = "UPDATE Posts SET dislikes = ? WHERE id = ?"
+                sql = "UPDATE Posts SET dislikes = ? WHERE id = ?" #update dislike count for each of those posts
                 cursor = con.cursor()
                 cursor.execute(sql, (getdislikes, row[0],))
                 con.commit()
             # END OF update like and dislike counts of the stuff we have liked/disliked
 
-            sql = "DELETE FROM Likes WHERE usersliked = ?"
-            cursor = con.cursor()
-            cursor.execute(sql, (username,))
-            con.commit()
-            # Leaves the like count of a post but i like it since it a post keeps its interaction and is further recommended (if it deserves)
-            # just cuz you delete your account doesnt mean your opinion wasnt valid...
-            # however it means you could create, like, delete
-
-            sql = "DELETE FROM Dislikes WHERE usersdisliked = ?"
+            sql = "DELETE FROM Likes WHERE usersliked = ?" #delete from the like table where they have liked
             cursor = con.cursor()
             cursor.execute(sql, (username,))
             con.commit()
 
-            sql = "DELETE FROM friendrequests WHERE usersend = ? OR userreceive = ?"
+            sql = "DELETE FROM Dislikes WHERE usersdisliked = ?" #delete from the dislike table where they have liked
+            cursor = con.cursor()
+            cursor.execute(sql, (username,))
+            con.commit()
+
+            sql = "DELETE FROM friendrequests WHERE usersend = ? OR userreceive = ?" #delete all friend relationships
             cursor = con.cursor()
             cursor.execute(sql, (username, username,))
             con.commit()
 
             sql = """DELETE FROM Likes
-            WHERE id IN (SELECT id FROM Posts WHERE user = ?)"""
+            WHERE id IN (SELECT id FROM Posts WHERE user = ?)""" #delete their posts from the like table (recommendation)
             cursor = con.cursor()
             cursor.execute(sql, (username,))
             con.commit()
 
             sql = """DELETE FROM Dislikes
-            WHERE id IN (SELECT id FROM Posts WHERE user = ?)"""
+            WHERE id IN (SELECT id FROM Posts WHERE user = ?)""" #delete their posts from the dislike table
             cursor = con.cursor()
             cursor.execute(sql, (username,))
             con.commit()
 
             sql = """DELETE FROM albums
-            WHERE albumid IN (SELECT id FROM Posts WHERE user = ?)"""
+            WHERE albumid IN (SELECT id FROM Posts WHERE user = ?)""" #delete from album table their albums and the posts associated
             cursor = con.cursor()
             cursor.execute(sql, (username,))
             con.commit()
 
             sql = """DELETE FROM savedposts
-                        WHERE savedpostid IN (SELECT id FROM Posts WHERE user = ?)"""
+                        WHERE savedpostid IN (SELECT id FROM Posts WHERE user = ?)""" #delete their posts from other peoples saved posts
             cursor = con.cursor()
             cursor.execute(sql, (username,))
             con.commit()
 
             sql = """DELETE FROM photodetails
-            WHERE id IN (SELECT id FROM Posts WHERE user = ?)"""
+            WHERE id IN (SELECT id FROM Posts WHERE user = ?)""" #delete the photodetails of all their posts
             cursor = con.cursor()
             cursor.execute(sql, (username,))
             con.commit()
 
             sql = """DELETE FROM Posts
             where user = ?"""
-            cursor = con.cursor()
+            cursor = con.cursor() #delete all their posts, must happen (almost) last so the other stuff can happen first (likes etc)
             cursor.execute(sql, (username,))
             con.commit()
 
-            sql = "DELETE FROM Accounts WHERE username = ?"
+            sql = "DELETE FROM Accounts WHERE username = ?" #finally delete account from account table, must happen last
             cursor = con.cursor()
             cursor.execute(sql, (username,))
             con.commit()
-            if "username" in session and session["username"] == username:
+            if "username" in session and session["username"] == username: #remove name from session
                 del session["username"]
             return redirect("/Index")
         else:
-            msg = "Incorrect Password"
+            msg = "Incorrect Password" #if inputted password doesn't match then provide appropriate error message
 
     return render_template("deleteaccount.html", msg=msg)
 
