@@ -6,21 +6,13 @@
 </script>
 </head>
 
-
-
-
 <h1>Saved Posts</h1>
-
-<h3>{{msg}}</h3>
+<h3>{{msg}}</h3> <!-- message to show if nothing saved-->
  <div class="image-grid">
   {% for row in rows %}
   <div class="image-item">
     <div class="image-title">
-      
-      
-        
-        
-        {% if row["user"] != username %}
+        {% if row["user"] != username %} <!-- if your post, redirect to "account"-->
             <a href="/viewaccount?id={{row['user']}}" style="display: flex; align-items: center;">
                 <img src="{{ url_for('static', filename='ProfilePictures/' + row['pfp']) }}" alt="Image" class="rounded-image-small">
                 <span>{{row["user"]}}</span>
@@ -31,36 +23,23 @@
                 <span>{{row["user"]}}</span>
             </a>
         {% endif %}
-        
-        {% if row["album"] == "True" %}
+        {% if row["album"] == "True" %} <!-- if album, redirect to view album page-->
           <a href="/viewalbum?id={{row['id']}}">
           <br>
         {% else %}
           <a href="/viewpost?id={{row['id']}}">
           <br>
         {% endif %}
-  
-  
-            
-        
           <img src="{{ url_for('static', filename='UploadedPhotos/' + row['filename']) }}" alt="Image" loading="lazy" class="scaled-image">
+              <br><!-- get post/album image-->
               <br>
-              <br>
-            
-              {% if row['text']|length > 50 %}
+              {% if row['text']|length > 50 %} <!-- if text too long, shorten with ellipsis-->
                 {{ row['text'][:50] }}...</a>
               {% else %}
                 {{ row['text'] }}</a>
               {% endif %}
-            
-            
-
-
-        
-              
-
                <div class="map-container">
-                {% if row["album"] != "True" %}
+                {% if row["album"] != "True" %} <!-- create map-->
                 <body>
                   <gmp-map center="{{row['lat']}},{{row['lng']}}" zoom="2" map-id="map">
                     <gmp-advanced-marker
@@ -71,16 +50,6 @@
                 </body>
                {% endif %}
                 </div>
-
-
-
-
-
-
-
-        
-        
-     
   </div>
 </div>
   {% endfor %}

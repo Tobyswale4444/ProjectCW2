@@ -377,40 +377,41 @@ def randomfilename(path):  # calc the probability
 
 @web_site.route('/uploadphoto', methods=['GET', 'POST'])
 def uploadphoto():
-    if "username" not in session:
-        return redirect("/login")
+    if "username" not in session: #if no user is logged in
+        return redirect("/login") #redirect to login page
 
-    posted = False
-    prevpostid = request.args.get('id')
-    if prevpostid != None:
-        posted = True
-    msg = ""
+    posted = False #set posted to false (nothing posted yet)
+    prevpostid = request.args.get('id') #if the user has just previously posted a post, get its id
+    if prevpostid != None: #if there is actually a previous post id
+        posted = True #set posted to true
+    msg = "" #if nothing posted previously set message to empty
 
-    if request.method == 'POST':
-        datetimenow = datetime.now()
-        formattedtime = datetimenow.strftime("%d/%m/%y %H:%M")
-        randfilename = randomfilename(os.path.join(web_site.root_path, 'static', 'UploadedPhotos'))
-        username = session["username"]
-        photo = request.files['photo']
-        if photo.filename != "":
-            filename = randfilename + "_" + photo.filename.replace(" ", "")
-            try:
-                photo.save(os.path.join(web_site.root_path, 'static', 'UploadedPhotos', filename))
+    if request.method == 'POST': #a button clicked
+        datetimenow = datetime.now() #get time now
+        formattedtime = datetimenow.strftime("%d/%m/%y %H:%M") #put time now in known format
+        randfilename = randomfilename(os.path.join(web_site.root_path, 'static', 'UploadedPhotos')) #create a random filename
+        username = session["username"] #get the user that is logged in (posted the post)
+        photo = request.files['photo'] #get the photo they uploaded
+        if photo.filename != "": #if there is a photo (error prevention)
+            filename = randfilename + "_" + photo.filename.replace(" ", "") #concatonate the filename
+            try: #erros likely if not proper file type
+                photo.save(os.path.join(web_site.root_path, 'static', 'UploadedPhotos', filename)) #save the file
                 con = sqlite3.connect('database.db')
-                sql = "INSERT INTO tempphotos(filename, user) VALUES(?,?)"
+                sql = "INSERT INTO tempphotos(filename, user) VALUES(?,?)" #save the file to database
                 cursor = con.cursor()
                 cursor.execute(sql, (filename, username))
                 con.commit()
 
-                sql = "SELECT id FROM tempphotos WHERE filename = ? AND user = ?"
-                cursor = con.cursor()
+                sql = "SELECT id FROM tempphotos WHERE filename = ? AND user = ?" #get the id of the post whos photo it is
+                cursor = con.cursor() #filename and username both unique so able to get id with no clashes
                 cursor.execute(sql, (filename, username))
                 getid = cursor.fetchone()
-                getid = getid[0]
+                getid = getid[0] #out of tuple form
 
-                photo_path = os.path.join(web_site.root_path, 'static', 'UploadedPhotos', filename)
+                photo_path = os.path.join(web_site.root_path, 'static', 'UploadedPhotos', filename) #get the filepath of the photo they uploaded
 
-                metadata = get_metadata(photo_path)
+                metadata = get_metadata(photo_path) #try to get metadata using func (this is where errors will occur if wrong file type)
+                #get all metadata I chose, format is tag, followed by alternative if nothing there i.e., "N/A"
                 make = str(metadata.get('Make', 'N/A'))
                 model = str(metadata.get('Model', 'N/A'))
                 metadatadatetime = str(metadata.get('DateTime', 'N/A'))
@@ -419,40 +420,40 @@ def uploadphoto():
                 FNumber = str(metadata.get('FNumber', 'N/A'))
                 ExposureTime = str(metadata.get('ExposureTime', 'N/A'))
                 if ExposureTime != "N/A":
-                    ExposureTime = str(round(1 / float(ExposureTime)))
+                    ExposureTime = str(round(1 / float(ExposureTime))) #stored as decimal but common format is fraction so convert
                 if metadatadatetime == "N/A":
                     metadatadatetime = str(metadata.get('DateTimeOriginal', 'N/A'))  # try other tag if other is empty
 
-                if metadatadatetime != "N/A":
-                    metadatadatetime = metadatadatetime[:-3]
-                    metadatadatetime = metadatadatetime.replace(":", "-", 2)
+                if metadatadatetime != "N/A": #if a datetime found
+                    metadatadatetime = metadatadatetime[:-3]# remove the last 3 chars which are milliseconds (not wanted)
+                    metadatadatetime = metadatadatetime.replace(":", "-", 2) #library uses - not : for date so replace first 2 occurances (2023-12-18 18:12 instead of 2023:12:18 18:12)
 
-                gps_string = metadata.get('GPSInfo', 'N/A')
-                if gps_string != "N/A":
-                    output = convertGPS(gps_string)  # converts it to lat lng
+                gps_string = metadata.get('GPSInfo', 'N/A') #get gps
+                if gps_string != "N/A": #if none then convert Degrees, minutes and seconds into long lat using function
+                    output = convertGPS(gps_string)
                     lat = output[0]
                     lng = output[1]
                 else:
-                    lat = None
+                    lat = None #if no gps data then set to none
                     lng = None
 
                 sql = "UPDATE tempphotos SET make = ?, model = ?, timeposted = ?, datetime = ?, ISO = ?, lensmodel = ?, fstop = ?, shutterspeed = ?, lat = ?, lng = ? WHERE id = ?"
-                cursor = con.cursor()
+                cursor = con.cursor() #insert into tempphotos table
                 cursor.execute(sql, (
                 make, model, formattedtime, metadatadatetime, ISO, LensModel, FNumber, ExposureTime, lat, lng, getid,))
                 con.commit()
 
-                return redirect(url_for('addpost', id=getid))
+                return redirect(url_for('addpost', id=getid)) #redirect to add post with the id of the tempphoto
             except:
-                msg = "Image Error..."
-                os.remove(os.path.join(web_site.root_path, 'static', 'UploadedPhotos', filename))
+                msg = "Image Error..." #if there is an error during this process, the file type is incorrect so provide error message
+                os.remove(os.path.join(web_site.root_path, 'static', 'UploadedPhotos', filename)) #delete the file
                 con = sqlite3.connect('database.db')
-                sql = "DELETE FROM tempphotos WHERE filename = ? and user = ?"
+                sql = "DELETE FROM tempphotos WHERE filename = ? and user = ?" #delete any information related to the filename from temphotos
                 cursor = con.cursor()
                 cursor.execute(sql, (filename, username))
                 con.commit()
         else:
-            msg = "Please select an image"
+            msg = "Please select an image" #if button pressed but no image selected, provide error message
     return render_template("uploadphoto.html", prevpostid=prevpostid, posted=posted, msg=msg)
 
 
@@ -2155,11 +2156,11 @@ def account_settings():
 
 @web_site.route('/logout')
 def logout():
-    try:
+    try: #try to get the user that is logged in and remove that username from session
         username = session["username"]
         session.pop('username', None)
     except:
-        return redirect("/login")
+        return redirect("/login") #if the user's username isn't in the session, they are already logged out so redirect to login page
     return render_template("logout.html", username=username)
 
 
@@ -2625,28 +2626,28 @@ def viewaccount():
 
 @web_site.route('/activity', methods=['GET', 'POST'])
 def activity():
-    if "username" not in session:
-        return redirect("/login")
+    if "username" not in session: #if no user is logged in
+        return redirect("/login") #redirect to login page
 
-    msg = ""
-    username = session["username"]
+    msg = "" #default to empty
+    username = session["username"] #get the user that is logged in
     con = sqlite3.connect('database.db')
     con.row_factory = sqlite3.Row
     cursor = con.cursor()
     sql = """SELECT Likes.usersliked, Likes.id, Likes.timesent
        FROM Likes
        JOIN Posts ON Likes.id = Posts.id
-       WHERE Posts.user = ?"""
+       WHERE Posts.user = ?""" #get all the user's post that have been liked and by who and also when
     cursor.execute(sql, (username,))
     rows = cursor.fetchall()
     newrows = []
     for row in rows:
-        rowdict = dict(row)
+        rowdict = dict(row) #add the likes to a dictionary and id each bit of info with type = Like
         rowdict['type'] = 'like'
         newrows.append(rowdict)
 
     con.row_factory = sqlite3.Row
-    cursor = con.cursor()
+    cursor = con.cursor() #get all the users who have successfully followed the user
     sql = """SELECT friendrequests.usersend, friendrequests.timesent
            FROM friendrequests
            WHERE friendrequests.userreceive = ? AND status = 2"""
@@ -2654,44 +2655,44 @@ def activity():
     rows2 = cursor.fetchall()
     newrows2 = []
     for row in rows2:
-        rowdict = dict(row)
+        rowdict = dict(row) #turn the followers into a dictionary and give each info a type of "follower"
         rowdict['type'] = 'follower'
         newrows2.append(rowdict)
 
     con.row_factory = sqlite3.Row
-    cursor = con.cursor()
+    cursor = con.cursor() #get all the friend requests to the user
     sql = "SELECT * FROM friendrequests WHERE userreceive = ? AND status = 1"
     cursor.execute(sql, (username,))
     rows3 = cursor.fetchall()
     newrows3 = []
     for row in rows3:
-        rowdict = dict(row)
+        rowdict = dict(row) #give each friend request a type of "request"
         rowdict['type'] = 'request'
         newrows3.append(rowdict)
 
     con.row_factory = sqlite3.Row
-    cursor = con.cursor()
+    cursor = con.cursor() #get all the users that the logged in user now follows
     sql = "SELECT * FROM friendrequests WHERE usersend = ? AND status = 2"
     cursor.execute(sql, (username,))
     rows4 = cursor.fetchall()
     newrows4 = []
     for row in rows4:
-        rowdict = dict(row)
+        rowdict = dict(row) #add to a new dictionary with type "following"
         rowdict['type'] = 'following'
         newrows4.append(rowdict)
 
     con.row_factory = sqlite3.Row
-    cursor = con.cursor()
+    cursor = con.cursor() #get all the friend requests the user has sent
     sql = "SELECT * FROM friendrequests WHERE usersend = ? AND status = 1"
     cursor.execute(sql, (username,))
     rows5 = cursor.fetchall()
     newrows5 = []
     for row in rows5:
-        rowdict = dict(row)
+        rowdict = dict(row) #give each sent friend request a type of "requestfollowing"
         rowdict['type'] = 'requestfollowing'
         newrows5.append(rowdict)
 
-    newrows += newrows2
+    newrows += newrows2 #add each dictionary together
     newrows += newrows3
     newrows += newrows4
     newrows += newrows5
@@ -2700,44 +2701,44 @@ def activity():
     for row in newrows:
         getdatetime = datetime.strptime(row["timesent"], "%d/%m/%y %H:%M:%S")  # converts to known format
         datetimenow = datetime.now()  # Gets time now
-        datetimedif = datetimenow - getdatetime  # finds dif
-        timedif = datetimedif.total_seconds()  # converts dif to s
-        rowdict = dict(row)  # sets var to old dict of row
-        rowdict['timedif'] = timedif  # adds sec dif to dict
+        datetimedif = datetimenow - getdatetime  # finds difference
+        timedif = datetimedif.total_seconds()  # converts difference to seconds
+        rowdict = dict(row)  # creates a new dictionary of each bit of info
+        rowdict['timedif'] = timedif  # adds how long ago it happened (time difference in seconds)
         rowsinsec.append(rowdict)  # appends to list
 
-    sortedrows = sorted(rowsinsec, key=lambda x: x.get('timedif'))
+    sortedrows = sorted(rowsinsec, key=lambda x: x.get('timedif')) #sort based on how long ago it was
 
-    if sortedrows == []:
-        msg = "No recent activity"
+    if sortedrows == []: #if there is no activity
+        msg = "No recent activity" #provide message
     return render_template("activity.html", rows=sortedrows, username=username, msg=msg)
 
 
 @web_site.route('/acceptignore', methods=['GET', 'POST'])
 def acceptignore():
-    if "username" not in session:
-        return redirect("/login")
+    if "username" not in session: #if no user is logged in
+        return redirect("/login") #redirect them back to login page
 
-    username = session["username"]
-    usernamesend = request.args.get('id')
+    username = session["username"] #get the user that is logged in
+    usernamesend = request.args.get('id') #get the user that sent the follow request / the user they clicked
 
     if request.method == "POST":
-        if "accept" in request.form:
-            datetimenow = datetime.now()
-            formattedtime = datetimenow.strftime("%d/%m/%y %H:%M:%S")
+        if "accept" in request.form: #if accept clicked
+            datetimenow = datetime.now() #get the date time now
+            formattedtime = datetimenow.strftime("%d/%m/%y %H:%M:%S") #format into common format
             con = sqlite3.connect('database.db')
             cursor = con.cursor()
-            sql = "UPDATE friendrequests SET status = 2,timesent = ? WHERE userreceive = ? AND usersend = ?"  # set time here
+            sql = "UPDATE friendrequests SET status = 2,timesent = ? WHERE userreceive = ? AND usersend = ?"  #update relationship (and add when they accepted)
             cursor.execute(sql, (formattedtime, username, usernamesend))
             con.commit()
-            return redirect('/activity')
-        elif "ignore" in request.form:
+            return redirect('/activity') #redirect back to activity page
+        elif "ignore" in request.form: #if declined
             con = sqlite3.connect('database.db')
             cursor = con.cursor()
-            sql = "DELETE FROM friendrequests WHERE userreceive = ? AND usersend = ?"
+            sql = "DELETE FROM friendrequests WHERE userreceive = ? AND usersend = ?" #delete the relationship
             cursor.execute(sql, (username, usernamesend))
             con.commit()
-            return redirect('/activity')
+            return redirect('/activity') #redirect back to activity page
     return render_template("acceptignore.html")
 
 
@@ -3273,11 +3274,11 @@ def deletepost():
 
 @web_site.route('/savedposts')
 def savedposts():
-    if "username" not in session:
-        return redirect("/login")
+    if "username" not in session: #if no user is logged in
+        return redirect("/login") #redirect to login page
 
-    msg = ""
-    username = session["username"]
+    msg = "" #set default to empty
+    username = session["username"] #get user that is logged in
     con = sqlite3.connect('database.db')
     con.row_factory = sqlite3.Row
     cursor = con.cursor()
@@ -3285,13 +3286,13 @@ def savedposts():
     FROM Posts
     JOIN Accounts ON Accounts.username = Posts.user
     LEFT JOIN savedposts ON savedposts.savedpostid = Posts.id
-    WHERE savedposts.username = ?"""
+    WHERE savedposts.username = ?""" #get all the post info of each saved post, and the user's pfp for each
     cursor.execute(sql, (username,))
     rows = cursor.fetchall()
-    rows = rows[::-1]
+    rows = rows[::-1] #reverse order so its most recently saved to least
 
-    if rows == []:
-        msg = "No saved posts found"
+    if rows == []: #if no posts saved
+        msg = "No saved posts found" #provide appropriate message
     return render_template("savedposts.html", rows=rows, username=username, msg=msg)
 
 

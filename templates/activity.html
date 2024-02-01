@@ -24,25 +24,25 @@
 
 <h3>{{msg}}</h3>
 <div class="namelink">
-  <table class="centered-table" style="text-align: left;">
+  <table class="centered-table" style="text-align: left;"> <!-- create a table-->
     {% for row in rows %}
-    <tr>
+    <tr> <!-- for each row, check what type to change what context to give it-->
       {% if row["type"] == "like" %}
-        {% if row["usersliked"] != username %}
+        {% if row["usersliked"] != username %} <!-- if the user who liked a post isn't the logged in user, clicking on the username takes you to view account page-->
           <td><a href ='/viewaccount?id={{row["usersliked"]}}'>{{row["usersliked"]}}</a> liked your <a href ='/viewpost?id={{row["id"]}}'>post</a></td>
-          <td>{{row["timesent"]}}</td>
+          <td>{{row["timesent"]}}</td> <!-- add another column for the time sent-->
         {% endif %}
       {% else %}
-        {% if row["type"] == "follower" %}
+        {% if row["type"] == "follower" %} <!-- if it's a user that has followed you (no need to check if you followed yourself as not possible)-->
           <td><a href ='/viewaccount?id={{row["usersend"]}}'>{{row["usersend"]}}</a> is now following you</td>
           <td>{{row["timesent"]}}</td>
-        {% elif row["type"] == "request" %}
+        {% elif row["type"] == "request" %} <!-- if its a follow request, give option to accept ignored if clicked-->
           <td><a href ='/acceptignore?id={{row["usersend"]}}'>{{row["usersend"]}}</a> has sent you a follow request</td>
           <td>{{row["timesent"]}}</td>
-        {% elif row["type"] == "following" %}
+        {% elif row["type"] == "following" %} <!-- if you have just followed someone-->
           <td>You are now following <a href='/viewaccount?id={{row["userreceive"]}}'>{{row["userreceive"]}}</a></td>
           <td>{{row["timesent"]}}</td>
-        {% elif row["type"] == "requestfollowing" %}
+        {% elif row["type"] == "requestfollowing" %} <!-- if you have sent a friend request-->
           <td>You sent a follow request to <a href='/viewaccount?id={{row["userreceive"]}}'>{{row["userreceive"]}}</a></td>
           <td>{{row["timesent"]}}</td>
         {% endif %}
