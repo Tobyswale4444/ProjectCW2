@@ -78,17 +78,15 @@
 
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
 
-
-
 <br>
 <br>
 <br>
 <div class="userlink">
-{% for row in userrows %}
+{% for row in userrows %} <!-- iterate through rows about the user-->
     {% if row[0] != username %}
-        <a href="/viewaccount?id={{row[0]}}" style="display: flex; align-items: center;">
-            <img src="{{ url_for('static', filename='ProfilePictures/' + row[9]) }}" alt="Image">
-            <span>{{row[0]}}</span>
+        <a href="/viewaccount?id={{row[0]}}" style="display: flex; align-items: center;"> <!-- inside a link that redirects to view account (if its your account redirect to account)-->
+            <img src="{{ url_for('static', filename='ProfilePictures/' + row[9]) }}" alt="Image"> <!-- get the profile picture -->
+            <span>{{row[0]}}</span> <!-- the username -->
         </a>
     {% else %}
         <a href="/account" style="display: flex; align-items: center;">
@@ -100,13 +98,13 @@
 </div>
 <br>
     {% for row in rows %}
-      {% if getpostuser == username %}
+      {% if getpostuser == username %} <!-- if it is your post, you are able to edit or delete or add to album-->
         <br>
         <a href ='/editpost?id={{row["id"]}}' class="linkbuttonsmall">Edit Post</a>
         <a href ='/deletepost?id={{row["id"]}}' class="linkbuttonsmall">Delete Post</a>
         <h3>Add to album:</h3>
 <form method="POST">
-        <select name="selected_option">
+        <select name="selected_option"> <!-- dropdown of all albums the user has created-->
           <option value="none">None</option>
             {% for row3 in rows3 %}
                 <option value="{{row3['text']}}">{{row3['text']}}</option>
@@ -116,21 +114,21 @@
 </form>
       {% endif %}
       <div class="text-container">
-          <h2>{{row["text"]}}</h2>
+          <h2>{{row["text"]}}</h2> <!-- post title and description-->
           <h4>{{row["descr"]}}</h4>
       </div>
 
       <br>
       <br>
       <div class = "photoandmeta">
-          <div class="photo-container">
+          <div class="photo-container"> <!-- post's photo-->
               <img src="{{ url_for('static', filename='UploadedPhotos/' + row['filename']) }}" alt="Image" class="scaled-image-big">
           </div>
       <br> 
       <br>
           <div class="meta-container">
             {% for row2 in rows2 %}
-
+                <!-- all post info such as ISO, datetime etc-->
                 <h3>Date: {{date}} {{time}}</h3>
                 <h3>Aperture: {{row2['fstop']}}</h3>
                 <h3>ISO: {{row2['ISO']}}</h3>
@@ -145,10 +143,10 @@
             {% endfor %}
             <h3>Coordinates: {{row['lat']}}, {{row['lng']}}</h3>
             <h3>Country: {{row['country']}}</h3>
-              {% if row['city'] != "N/A" %}
+              {% if row['city'] != "N/A" %} <!-- if no city found, don't show-->
                 <h3>City: {{row['city']}}</h3>
               {% endif %}
-              {% if row['town'] != "N/A" %}
+              {% if row['town'] != "N/A" %} <!-- if no town was found, don't show -->
                 <h3>Town: {{row['town']}}</h3>
               {% endif %}
           </div>
@@ -159,9 +157,9 @@
             </script>
           </head>
           <body>
-            <gmp-map center="{{row['lat']}},{{row['lng']}}" zoom="4" map-id="map">
+            <gmp-map center="{{row['lat']}},{{row['lng']}}" zoom="4" map-id="map"> <!-- create map centre of the post marker -->
                     <gmp-advanced-marker
-                        position="{{row['lat']}},{{row['lng']}}"
+                        position="{{row['lat']}},{{row['lng']}}" <!-- create a marker at the post's location-->
                         title="Pin"
                     ></gmp-advanced-marker>
                 </gmp-map>
@@ -169,40 +167,40 @@
       </div>
 <br>
 <form method="POST">
-    <div class="like-dislike-container" id="thumbs">
+    <!-- like/dislike START -->
+    <div class="like-dislike-container" id="thumbs"> <!-- wrap in a div with id so when liked, refresh and auto scroll down to the button (user stays where they were) -->
         <div class="like">
-            <input type="hidden" name="action" value="Like">
             <button name="Like" type="submit" class="likebutton">
-                {% if liked == True %}
+                {% if liked == True %} <!-- if already liked, set colour to green-->
                     <img src="static/Thumbs/thumbs-up.png" width="50" height="50" style="filter: invert(60%) sepia(45%) saturate(1569%) hue-rotate(91deg) brightness(102%) contrast(92%);">
-                {% else %}
+                {% else %} <!-- if not already liked, just display regular, black button (image is a thumbs up) -->
                     <img src="static/Thumbs/thumbs-up.png" width="50" height="50">
                 {% endif %}
             </button>
-            <h4>{{row["likes"]}}</h4>
+            <h4>{{row["likes"]}}</h4>  <!-- display like count-->
         </div>
         <div class="dislike">
             <button name="Dislike" type="submit" class="likebutton">
-                {% if disliked == True %}
+                {% if disliked == True %}<!-- if already disliked, set colour to red-->
                     <img src="static/Thumbs/thumbs-down.png" width="50" height="50" style="filter: invert(39%) sepia(80%) saturate(4422%) hue-rotate(344deg) brightness(105%) contrast(100%);">
-                {% else %}
+                {% else %} <!-- if not disliked, display regular image-->
                     <img src="static/Thumbs/thumbs-down.png" width="50" height="50">
                 {% endif %}
             </button>
-            <h4>{{row["dislikes"]}}</h4>
+            <h4>{{row["dislikes"]}}</h4> <!-- dislike count-->
         </div>
     </div>
-    <div id="savebuttons">
-      {% if checksaved == False %}
-        <p><input type="submit" value="Save" name="save"></p>
-      {% else %}
-        <p><input type="submit" value="Unsave" name="unsave"></p>
+    <div id="savebuttons"> <!-- id allows for auto scroll like with the like/dislike stuff-->
+      {% if checksaved == False %} <!-- if not saved yet-->
+        <p><input type="submit" value="Save" name="save"></p> <!-- save button should show -->
+      {% else %} <!-- if already saved-->
+        <p><input type="submit" value="Unsave" name="unsave"></p> <!-- unsave button should show -->
       {% endif %}
     </div>
 </form>
-        {% if albumtitles != "" %}
-            {% for album in albumtitles %}
-                <td><a href ='/viewalbum?id={{album["id"]}}' class="linkbuttonsmall">View album: "{{album['title']}}"</a></td>
+        {% if albumtitles != "" %} <!-- list of albums the post is in, if in at least one album: -->
+            {% for album in albumtitles %} <!-- for each album it is in -->
+                <td><a href ='/viewalbum?id={{album["id"]}}' class="linkbuttonsmall">View album: "{{album['title']}}"</a></td> <!-- create a button that takes the user to view the album the post is in, iteration allows for multiple albums -->
                 <br>
             {% endfor %}
         {% endif %}
@@ -214,18 +212,18 @@
     {% endif %}
     {% endfor %}
 
-{% if thumbs %}
+{% if thumbs %} <!-- when page is loaded, if the post has been liked/disliked -->
     <script>
         var thumbs = document.getElementById('thumbs');
         thumbs.scrollIntoView()
-    </script>
+    </script> <!-- scroll to the like/dislike buttons on the page for seamless transition -->
 {% endif %}
 
-{% if scrollsaved %}
+{% if scrollsaved %} <!-- when page is loaded, if the user has just saved/unsaved the post -->
     <script>
         var save = document.getElementById('savebuttons');
         save.scrollIntoView()
-    </script>
+    </script> <!-- scroll to the save button for seamless transition -->
 {% endif %}
 
 {% endblock %}

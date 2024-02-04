@@ -74,13 +74,15 @@ def moderate(string):
     return string
 
 
-def GetNamedLocation(lat, lng, id):
+def GetNamedLocation(lat, lng, id): #takes the lat, lng and id of the post/album
     try:
         geolocator = Nominatim(user_agent="web_site")
-        latlng = str(lat) + ", " + str(lng)
-        location = geolocator.reverse(latlng, language='en')
+        latlng = str(lat) + ", " + str(lng) #concatonate the lat and lng to format required by library
+        location = geolocator.reverse(latlng, language='en') #get entire location (place names in english)
+        #try/except statements incase a marker isnt in a country/city/town
+
         try:
-            country = location.raw['address']['country']
+            country = location.raw['address']['country'] #location.raw is a dictionary so key/value pairs can be obtained
         except:
             country = "N/A"
 
@@ -94,12 +96,14 @@ def GetNamedLocation(lat, lng, id):
         except:
             town = "N/A"
 
+        #if any are none, then set to n/a
         if country == None:
             country = "N/A"
         if city == None:
             city = "N/A"
         if town == None:
             town = "N/A"
+        #since the id is passed the update can happen in the function
         con = sqlite3.connect('database.db')  #
         sql = "UPDATE Posts SET country = ?, city = ?, town = ? WHERE id = ?"
         cursor = con.cursor()
@@ -107,7 +111,15 @@ def GetNamedLocation(lat, lng, id):
         con.commit()
 
         return
-    except:
+    except: #if any errors then default all to n/a
+        country = "N/A"
+        city = "N/A"
+        town = "N/A"
+        con = sqlite3.connect('database.db')
+        sql = "UPDATE Posts SET country = ?, city = ?, town = ? WHERE id = ?"
+        cursor = con.cursor()
+        cursor.execute(sql, (country, city, town, id,))
+        con.commit()
         return
 
 
@@ -321,35 +333,39 @@ def filtercoords():
 
 def get_metadata(photo_path):
     metadata = {}
-    image = Image.open(photo_path)
-    exifdata = image._getexif()
-    print(exifdata)
-    if exifdata is not None:  # explain!
-        for tag, value in exifdata.items():
-            tagname = TAGS.get(tag, tag)  # forgot what this line does
-            metadata[tagname] = value
+    image = Image.open(photo_path) #open image
+    exifdata = image._getexif() #get EXIF daya
+    if exifdata is not None:  #if there is any EXIF data
+        for tag, value in exifdata.items(): #go through all the EXIF data
+            tagname = TAGS.get(tag, tag)  #get the name of the tag (from numberical form)
+            metadata[tagname] = value #add to dictionary with name of tag and its value
     return metadata
 
 
 def convertGPS(gpsdata):  # converts DMS to lat and lng
     try:
         latdegrees = float((gpsdata[2][0]))
+        print(latdegrees)
         latmin = float((gpsdata[2][1]))
+        print(latmin)
         latsec = float((gpsdata[2][2]))
+        print(latsec)
 
         lngdegrees = float((gpsdata[4][0]))
+        print(lngdegrees)
         lngmin = float((gpsdata[4][1]))
+        print(lngmin)
         lngsec = float((gpsdata[4][2]))
+        print(lngsec)
 
-        lat = latdegrees + (latmin / 60) + (latsec / 3600)
+        lat = latdegrees + (latmin / 60) + (latsec / 3600) #equation
         lng = lngdegrees + (lngmin / 60) + (lngsec / 3600)
 
-        lat = round(lat, 8)
+        lat = round(lat, 8) #round to standard of 8 decimal points
         lng = round(lng, 8)
-
-        if gpsdata[1] == 'S':
+        if gpsdata[1] == 'S': #if s then lat needs to be flipped
             lat = -lat
-        if gpsdata[3] == 'W':
+        if gpsdata[3] == 'W': #if w then lng needs to be flipped
             lng = -lng
 
         return lat, lng
@@ -459,87 +475,88 @@ def uploadphoto():
 
 @web_site.route('/addpost', methods=['GET', 'POST'])
 def addpost():
-    if "username" not in session:
-        return redirect("/login")
+    if "username" not in session: #check if a user is logged in
+        return redirect("/login") #if no user logged in, redirect to login page
 
-    photoid = request.args.get('id')
-    username = session["username"]
-    emptytitle = False
+    photoid = request.args.get('id') #get the id of the photo in tempphotos
+    username = session["username"] #get the user that is logged in
+    emptytitle = False #set the title and descr empty state to False
     emptydescr = False
     con = sqlite3.connect('database.db')
-    sql = "SELECT filename FROM tempphotos WHERE id = ?"
+    sql = "SELECT filename FROM tempphotos WHERE id = ?" #get the filename
     cursor = con.cursor()
     cursor.execute(sql, (photoid,))
     getfilename = cursor.fetchone()
-    filename = getfilename[0]
+    filename = getfilename[0] #out of tuple form
 
     con = sqlite3.connect('database.db')
     sql = "SELECT user FROM tempphotos WHERE id = ?"
     cursor = con.cursor()
     cursor.execute(sql, (photoid,))
     getuser = cursor.fetchone()
-    getuser = getuser[0]
-    if not getuser:
-        return render_template('404.html')
+    getuser = getuser[0] #get the user that posted it
+    if not getuser: #if doesnt exist
+        return render_template('404.html') #
     if getuser != username:
-        return render_template('404.html')
+        return render_template('404.html') #if it is not the user's post then give error (avoids manual entry of URL)
 
     con.row_factory = sqlite3.Row
     cursor = con.cursor()
-    sql = "SELECT * FROM tempphotos WHERE id = ? AND user = ?"
+    sql = "SELECT * FROM tempphotos WHERE id = ? AND user = ?" #get all the info
     cursor.execute(sql, (photoid, username))
     con.commit()
     rows2 = cursor.fetchall()
 
-    sql = "Select datetime FROM tempphotos WHERE id = ? AND user = ?"
+    sql = "Select datetime FROM tempphotos WHERE id = ? AND user = ?" #get the datetime
     cursor = con.cursor()
     cursor.execute(sql, (photoid, username))
     datetimeup = cursor.fetchone()
     datetimeup = datetimeup[0]
 
-    date = datetimeup[:10]
+    date = datetimeup[:10] #split datetime into date and time
     time = datetimeup[11:]
 
-    username = session["username"]
-    msg = ""
+    msg = "" #default message to empty
 
     sql = "SELECT privacy FROM Accounts WHERE username = ?"
     cursor = con.cursor()
     cursor.execute(sql, (username,))
     getprivacy = cursor.fetchone()
-    getprivacy = getprivacy[0]
+    getprivacy = getprivacy[0] #get the privacy of the user
 
     con.row_factory = sqlite3.Row
     cursor = con.cursor()
-    sql = "SELECT * FROM Posts WHERE album = 'True' AND user = ?"
+    sql = "SELECT * FROM Posts WHERE album = 'True' AND user = ?" #get all the existing albums the user has
     cursor.execute(sql, (username,))
     rows = cursor.fetchall()
 
     if request.method == 'POST':
-        datetimenow = datetime.now()
-        formattedtime = datetimenow.strftime("%d/%m/%y %H:%M")
-        sessionlat = session.get('lat')
+        datetimenow = datetime.now() #get the datetime now
+        formattedtime = datetimenow.strftime("%d/%m/%y %H:%M") #format datetime
+        sessionlat = session.get('lat') #get the lng and lat they clicked
         sessionlng = session.get('lng')
 
-        text = request.form["text"]
+        text = request.form["text"] #get the title they chose
         text = moderate(text)
-        descr = request.form["descr"]
+        descr = request.form["descr"] #get the description they chose
         descr = moderate(descr)
-        selected_option = request.form['selected_option']
-        make = request.form["make"]
-        model = request.form["model"]
-        date = request.form["date"]
-        time = request.form["time"]
-        if date != "" and time != "":
-            metadatadatetime = str(date) + " " + str(time)
+        selected_option = request.form['selected_option'] #add to album choice
+        make = request.form["make"] #get the camera make they entered
+        model = request.form["model"] #get the camera model they entered
+        date = request.form["date"] #get the date they chose
+        time = request.form["time"] #get the time they chose
+        if date != "" and time != "": #if date and time have been modified
+            metadatadatetime = str(date) + " " + str(time) #concactonate so can be stored together in database
         elif date != "" and time == "":
-            metadatadatetime = str(date) + " " + "12:00"
+            metadatadatetime = str(date) + " " + "12:00" #if date chosen but not time, set time to default 12:00
         else:
-            metadatadatetime = "N/A"
-        ISO = request.form["ISO"]
-        LensModel = request.form["lensmodel"]
-        FNumber = request.form["fstop"]
-        ExposureTime = request.form["shutterspeed"]
+            metadatadatetime = "N/A" #if only time chosen or neither, set to N/A
+        ISO = request.form["ISO"] #get the ISO they chose
+        LensModel = request.form["lensmodel"] #get the lensmodel they chose
+        FNumber = request.form["fstop"] #get the aperture they chose
+        ExposureTime = request.form["shutterspeed"] #get the shutterspeed they chose
+
+        #if any details are left empty then set to N/A
         if make == "" or make.isspace():
             make = "N/A"
         if model == "" or model.isspace():
@@ -554,99 +571,99 @@ def addpost():
             FNumber = "N/A"
         if ExposureTime == "" or ExposureTime.isspace():
             ExposureTime = "N/A"
-        if "cancel" in request.form:
-            con = sqlite3.connect('database.db')
 
-            sql = "Select filename FROM tempphotos WHERE id = ?"
+
+        if "cancel" in request.form: #if they clicked cancel
+            con = sqlite3.connect('database.db')
+            sql = "Select filename FROM tempphotos WHERE id = ?" #get the filename
             cursor = con.cursor()
             cursor.execute(sql, (photoid,))
             getfilename = cursor.fetchone()
             filename = getfilename[0]
-            os.remove(os.path.join(web_site.root_path, 'static', 'UploadedPhotos', filename))
+            os.remove(os.path.join(web_site.root_path, 'static', 'UploadedPhotos', filename)) #delete the file
 
-            sql = "DELETE FROM tempphotos WHERE id = ? AND user = ?"
+            sql = "DELETE FROM tempphotos WHERE id = ? AND user = ?" #delete from tempphotos
             cursor = con.cursor()
             cursor.execute(sql, (photoid, username))
             con.commit()
-            session['lat'] = 0
+            session['lat'] = 0 #set lat and lng back to 0
             session['lng'] = 0
-            return redirect(url_for('uploadphoto'))
-        if "drafts" in request.form:
-            if sessionlng == None or sessionlat == None:
-                sessionlng = 0
+            return redirect(url_for('uploadphoto')) #back to upload photo page
+        if "drafts" in request.form: #if they chose to save to drafts
+            if sessionlng == None or sessionlat == None: #if no location chosen
+                sessionlng = 0 #default the post location to 0,0
                 sessionlat = 0
+            #if title or descr are empty, give default title/descr or "untitled"
             if text == "":
                 text = "Untitled"
             if descr == "":
                 descr = "Untitled"
             con = sqlite3.connect('database.db')  #
-            sql = "UPDATE tempphotos SET make = ?, model = ?, timeposted = ?, datetime = ?, ISO = ?, lensmodel = ?, fstop = ?, shutterspeed = ?, lng = ?, lat = ?, text = ?, descr = ? WHERE id = ?"
+            sql = "UPDATE tempphotos SET make = ?, model = ?, timeposted = ?, datetime = ?, ISO = ?, lensmodel = ?, fstop = ?, shutterspeed = ?, lng = ?, lat = ?, text = ?, descr = ? WHERE id = ?" #update tempphotos table
             cursor = con.cursor()
             cursor.execute(sql, (
             make, model, formattedtime, metadatadatetime, ISO, LensModel, FNumber, ExposureTime, sessionlng, sessionlat,
             text, descr, photoid))
             con.commit()
-            session['lat'] = 0
+            session['lat'] = 0 #set lng and lat back to 0
             session['lng'] = 0
             return redirect(url_for('uploadphoto'))
-        elif "submit" in request.form:
-            if text != "":
-                if descr != "":
+        elif "submit" in request.form: #they chose to post the...post
+            if text != "": #title isnt empty
+                if descr != "": #descr isnt empty
                     if sessionlng == None or sessionlat == None:
-                        sessionlng = 0
+                        sessionlng = 0 #if no location chosen, default to 0,0
                         sessionlat = 0
-                    timeposted = formattedtime
+                    timeposted = formattedtime #(just a rename)
                     con = sqlite3.connect('database.db')
-                    sql = "INSERT INTO Posts(text,timeposted,user,filename, descr, privacy, lng, lat) VALUES(?,?,?,?,?,?,?,?)"
+                    sql = "INSERT INTO Posts(text,timeposted,user,filename, descr, privacy, lng, lat) VALUES(?,?,?,?,?,?,?,?)" #add into posts table
                     cursor = con.cursor()
                     cursor.execute(sql, (text, timeposted, username, filename, descr, getprivacy, sessionlng, sessionlat,))
                     con.commit()
-                    sql = "SELECT id FROM Posts WHERE text = ? AND filename = ? AND user = ? AND timeposted = ? AND descr = ?"  # THIS THIS filename is unique?
+                    sql = "SELECT id FROM Posts WHERE text = ? AND filename = ? AND user = ? AND timeposted = ? AND descr = ?"  #get the id of the post, filename is unique so ok, others for security
                     cursor.execute(sql, (text, filename, username, timeposted, descr))
                     postidtup = cursor.fetchone()
-                    postid = postidtup[0]
+                    postid = postidtup[0] #post id
 
-                    sql = "INSERT INTO photodetails(make, model, datetime, ISO, lensmodel, fstop, shutterspeed,id) VALUES(?,?,?,?,?,?,?,?)"
+                    sql = "INSERT INTO photodetails(make, model, datetime, ISO, lensmodel, fstop, shutterspeed,id) VALUES(?,?,?,?,?,?,?,?)" #insert the post info into the photodetails table
                     cursor = con.cursor()
                     cursor.execute(sql, (make, model, metadatadatetime, ISO, LensModel, FNumber, ExposureTime, postid))
                     con.commit()
 
-                    GetNamedLocation(sessionlat, sessionlng, postid)
+                    GetNamedLocation(sessionlat, sessionlng, postid) #get the town,city and country the post location is in
 
-                    if selected_option != "none":
+                    if selected_option != "none": #if an album selected
                         con = sqlite3.connect('database.db')
-                        sql = "SELECT id FROM Posts WHERE text = ? AND user = ? AND album = 'True'"
+                        sql = "SELECT id FROM Posts WHERE text = ? AND user = ? AND album = 'True'" #get the id of the album with the title (titles are unique)
                         cursor = con.cursor()
                         cursor.execute(sql, (selected_option, username,))
                         getalbumid = cursor.fetchone()
                         getalbumid = getalbumid[0]
 
-                        sql = "INSERT INTO albums(albumid, postid, user) VALUES(?,?,?)"
+                        sql = "INSERT INTO albums(albumid, postid, user) VALUES(?,?,?)" #insert into albums table the post id and the album id
                         cursor = con.cursor()
                         cursor.execute(sql, (getalbumid, postid, username,))  #
                         con.commit()
                         updatealbumlocation(getalbumid)
 
-                        # update the metadata
-
                     con = sqlite3.connect('database.db')
-                    sql = "DELETE FROM tempphotos WHERE id = ? AND user = ?"
+                    sql = "DELETE FROM tempphotos WHERE id = ? AND user = ?" #delete post from tempphotos (not a draft anymore)
                     cursor = con.cursor()
                     cursor.execute(sql, (photoid, username))
                     con.commit()
-                    session['lat'] = 0
+                    session['lat'] = 0 #set lng and lat to 0
                     session['lng'] = 0
-                    return redirect(url_for('uploadphoto', id=postid))
+                    return redirect(url_for('uploadphoto', id=postid)) #redirect to upload photo page with id to allow for "view post" button
                 else:
-                    session['lat'] = 0
+                    session['lat'] = 0 #if they left the descr field empty
                     session['lng'] = 0
-                    msg = "Do not leave blank"
-                    emptydescr = True
+                    msg = "Do not leave blank" #give appropriate error message
+                    emptydescr = True #set the empty descr state to true (allows for auto scroll)
             else:
-                session['lat'] = 0
+                session['lat'] = 0 #if they left the title field empty
                 session['lng'] = 0
-                msg = "Do not leave blank"
-                emptytitle = True
+                msg = "Do not leave blank" #give appropriate error message
+                emptytitle = True #set the empty title state to true (allows for auto scroll)
     return render_template("addpost.html", msg=msg, rows=rows, filename=filename, rows2=rows2, date=date, time=time, emptydescr=emptydescr, emptytitle=emptytitle)
 
 
@@ -2166,49 +2183,48 @@ def logout():
 
 @web_site.route('/viewpost', methods=['GET', 'POST'])
 def viewpost():
-    if "username" not in session:
-        return redirect("/login")
-    liked = False
-    disliked = False
-    username = session["username"]
-    postid = request.args.get('id')
-    thumbs = bool(request.args.get('ld'))
-    scrollsaved = bool(request.args.get('s'))
+    if "username" not in session: #if no user is logged in
+        return redirect("/login") #redirect to login page
+    liked = False #set liked status to false
+    disliked = False #set disliked status to false
+    username = session["username"] #get the user that is logged in
+    postid = request.args.get('id') #get the id of the post
+    thumbs = bool(request.args.get('ld')) #ld = like/dislike and get if state is True or False (auto scroll)
+    scrollsaved = bool(request.args.get('s')) #s = save and get if state is True or False (auto scroll)
     con = sqlite3.connect('database.db')
     con.row_factory = sqlite3.Row
-    sql = "SELECT privacy,user FROM Posts WHERE id = ?"
+    sql = "SELECT privacy,user FROM Posts WHERE id = ?" #get the privacy of, and the user who posted the post
     cursor = con.cursor()
     cursor.execute(sql, (postid,))
     postinfo = cursor.fetchall()
-    if not postinfo:
-        return render_template('404.html')
+    if not postinfo: #if a post doesnt exist, e.g. a user manually typed in a post id that doesnt exist
+        return render_template('404.html') #give error page
     getprivacy = postinfo[0]['privacy']
     getuser = postinfo[0]['user']
-    # get the album id if its in one
 
-    sql = "SELECT status FROM friendrequests WHERE usersend = ? AND userreceive = ? "
+    sql = "SELECT status FROM friendrequests WHERE usersend = ? AND userreceive = ? " #get the relationship between the user viewing and the user who posted
     cursor = con.cursor()
     cursor.execute(sql, (username, getuser,))
     getstatus = cursor.fetchone()
-    if getstatus is None:
+    if getstatus is None: #if no relationship, then status is 0
         getstatus = "0"
-    getstatus = getstatus[0]
-    if getprivacy == "private" and getstatus != 2 and getuser != username:
-        return redirect(url_for('viewaccount', id=getuser))
+    getstatus = getstatus[0] # get out of tuple form
+    if getprivacy == "private" and getstatus != 2 and getuser != username: #if the user is private and the user doesnt follow them then redirect, (ignore if its your post)
+        return redirect(url_for('viewaccount', id=getuser)) #redirect to view account, as not allowed to view post so must send a friend request first
 
-    sql = "SELECT user FROM Posts WHERE id = ?"
+    sql = "SELECT user FROM Posts WHERE id = ?" #get the user who posted (clean)
     cursor = con.cursor()
     cursor.execute(sql, (postid,))
     getpostuser = cursor.fetchone()
     getpostuser = getpostuser[0]
 
     con.row_factory = sqlite3.Row
-    sql = "SELECT * FROM Posts WHERE id = ?"
+    sql = "SELECT * FROM Posts WHERE id = ?" #get all info about the post
     cursor = con.cursor()
     cursor.execute(sql, (postid,))
     rows = cursor.fetchall()
     albumtitles = []
-    try:
+    try: #try to get all the albums it is in
         con = sqlite3.connect('database.db')  # get the album id if its in one
         con.row_factory = sqlite3.Row
         sql = """SELECT Posts.text, Posts.id
@@ -2218,81 +2234,81 @@ def viewpost():
         cursor = con.cursor()
         cursor.execute(sql, (postid,))
         allalbums = cursor.fetchall()
-        for album in allalbums:
+        for album in allalbums: #create a list so that each item in the list is a dictionary relating to an album that stores the title and the id of the album
             dict = {}
             dict["title"] = album[0]
             dict["id"] = album[1]
             albumtitles.append(dict)
-    except:
+    except: #if in none, set to an empty string
         albumtitles = ""
         pass
 
     con = sqlite3.connect('database.db')
     con.row_factory = sqlite3.Row
-    sql = "SELECT * FROM photodetails WHERE id = ?"
+    sql = "SELECT * FROM photodetails WHERE id = ?" #get all photo details about the post
     cursor = con.cursor()
     cursor.execute(sql, (postid,))
     rows2 = cursor.fetchall()
 
-    sql = "Select datetime FROM photodetails WHERE id = ?"
+    sql = "Select datetime FROM photodetails WHERE id = ?" #get the datetime
     cursor = con.cursor()
     cursor.execute(sql, (postid,))
     datetimeup = cursor.fetchone()
     datetimeup = datetimeup[0]
-    date = datetimeup[:10]
+    date = datetimeup[:10] #split into date and into time
     time = datetimeup[11:]
 
     con = sqlite3.connect('database.db')
-    sql = "SELECT usersliked FROM Likes WHERE usersliked = ? AND id = ?"
+    sql = "SELECT usersliked FROM Likes WHERE usersliked = ? AND id = ?" #if the user viewing has liked the post
     cursor = con.cursor()
     cursor.execute(sql, (username, postid))
     getusersliked = cursor.fetchone()
-    if getusersliked != None:
+    if getusersliked != None: #set the like status to true
         liked = True
 
-    sql = "SELECT usersdisliked FROM Dislikes WHERE usersdisliked = ? AND id = ?"
+    sql = "SELECT usersdisliked FROM Dislikes WHERE usersdisliked = ? AND id = ?" #if the user viewing has liked the post
     cursor = con.cursor()
     cursor.execute(sql, (username, postid))
     getusersdisliked = cursor.fetchone()
-    if getusersdisliked != None:
+    if getusersdisliked != None: #set dislike status to true
         disliked = True
 
 
     con.row_factory = sqlite3.Row
     cursor3 = con.cursor()
-    sql3 = "SELECT * FROM Posts WHERE album = 'True' AND user = ?"
+    sql3 = "SELECT * FROM Posts WHERE album = 'True' AND user = ?" #get all of albums created by the user who posted the post
     cursor3.execute(sql3, (username,))
     rows3 = cursor3.fetchall()
 
-    sql = "SELECT savedpostid FROM savedposts WHERE savedpostid = ? and username = ?"
+    sql = "SELECT savedpostid FROM savedposts WHERE savedpostid = ? and username = ?" #get if the viewing user has already saved the post
     cursor = con.cursor()
     cursor.execute(sql, (postid, username))
     getsavedid = cursor.fetchone()
-    if getsavedid is not None:
+    if getsavedid is not None: #if they have saved, set checksaved to true
         checksaved = True
     else:
-        checksaved = False
+        checksaved = False #if nothing in database, set checksaved to false
 
     con = sqlite3.connect('database.db')
-    sql = "SELECT * FROM Accounts WHERE username = (SELECT user FROM Posts WHERE id = ?)"
+    sql = "SELECT * FROM Accounts WHERE username = (SELECT user FROM Posts WHERE id = ?)" #get all info from the accounts page about the user who posted it
     cursor = con.cursor()
     con.row_factory = sqlite3.Row
     cursor.execute(sql, (postid,))
     userrows = cursor.fetchall()
 
     if request.method == "POST":
-        if "add" in request.form:
-            selected_option = request.form['selected_option']
-            if selected_option != "none":
+        if "add" in request.form: #if its your post, and they choose to add it to an album
+            selected_option = request.form['selected_option'] #get the album title they added it to
+            if selected_option != "none": #if they chose an album
                 con = sqlite3.connect('database.db')
-                sql = "SELECT id FROM Posts WHERE text = ? AND user = ? AND album = 'True'"
+                sql = "SELECT id FROM Posts WHERE text = ? AND user = ? AND album = 'True'" #get the album id from the album name and the username (album names are unique for each user)
                 cursor = con.cursor()
                 cursor.execute(sql, (selected_option, username,))
                 con.commit()
                 getalbumid = cursor.fetchone()
                 getalbumid = getalbumid[0]
 
-                sql = "SELECT albumid FROM albums WHERE postid = ?"
+                sql = "SELECT albumid FROM albums WHERE postid = ?" #select if the post has already been added to an album
                 cursor = con.cursor()
                 con.row_factory = sqlite3.Row
                 cursor.execute(sql, (postid,))
@@ -2302,161 +2318,163 @@ def viewpost():
                 if postinalbumid != None:  # if the post is already in other albums
                     for i in postinalbumid:
                         listofpostalbumids.append(i[0])  # get all the album ids that the post is in
-                if getalbumid not in listofpostalbumids or postinalbumid == None:  # if the post isnt already in the album, or if the post isnt in any albums then add it
+                if getalbumid not in listofpostalbumids or postinalbumid == None:  # if the post isnt already in the selected album, or if the post isnt in any albums then add it
                     con = sqlite3.connect('database.db')
-                    sql = "INSERT INTO albums(albumid, postid, user) VALUES(?,?,?)"
+                    sql = "INSERT INTO albums(albumid, postid, user) VALUES(?,?,?)" #add to the selected album
                     cursor = con.cursor()
                     cursor.execute(sql, (getalbumid, postid, username,))
                     con.commit()
                     updatealbumlocation(getalbumid)
-                    return redirect(url_for('viewpost', id=postid))
+                    return redirect(url_for('viewpost', id=postid)) #refresh the page to show the "view album" button
 
+        #like and dislike START
         con = sqlite3.connect('database.db')
-        sql = "SELECT usersliked FROM Likes WHERE usersliked = ? AND id = ?"
+        sql = "SELECT usersliked FROM Likes WHERE usersliked = ? AND id = ?" #get if the viewing user has already liked it
         cursor = con.cursor()
         cursor.execute(sql, (username, postid))
         getusersliked = cursor.fetchone()
 
-        sql = "SELECT usersdisliked FROM Dislikes WHERE usersdisliked = ? AND id = ?"
+        sql = "SELECT usersdisliked FROM Dislikes WHERE usersdisliked = ? AND id = ?" #get if the viewing user has already disliked it
         cursor = con.cursor()
         cursor.execute(sql, (username, postid))
         getusersdisliked = cursor.fetchone()
 
         # find it
-        sql = "SELECT likes FROM Posts WHERE id = ?"
+        sql = "SELECT likes FROM Posts WHERE id = ?" #select the like count
         cursor = con.cursor()
         cursor.execute(sql, (postid,))
         getlikecount = cursor.fetchone()
         likecount = int(getlikecount[0])
 
-        sql = "SELECT dislikes FROM Posts WHERE id = ?"
+        sql = "SELECT dislikes FROM Posts WHERE id = ?" #select the dislike count
         cursor = con.cursor()
         cursor.execute(sql, (postid,))
         getdislikecount = cursor.fetchone()
         dislikecount = int(getdislikecount[0])
 
-        if "Like" in request.form:
-            datetimenow = datetime.now()
+        if "Like" in request.form: #if they clicked like
+            datetimenow = datetime.now() #get the time when they liked it
             formattedtime = datetimenow.strftime("%d/%m/%y %H:%M:%S")
-            if getusersliked is None:
-                if getusersdisliked is None:
-
-                    likecount += 1
+            if getusersliked is None: #if they havnt already liked it before
+                if getusersdisliked is None: #if they havnt aleady disliked it before
+                    #no interaction state
+                    likecount += 1 #increment like count by 1
                     # update it
-                    sql = "UPDATE Posts SET likes = ? WHERE id = ?"
+                    sql = "UPDATE Posts SET likes = ? WHERE id = ?" #update the like count
                     cursor = con.cursor()
                     cursor.execute(sql, (likecount, postid,))
                     con.commit()
 
                     con = sqlite3.connect('database.db')
-                    sql = "INSERT INTO Likes(usersliked, id,timesent) VALUES(?,?,?)"
+                    sql = "INSERT INTO Likes(usersliked, id,timesent) VALUES(?,?,?)" #insert username, post id and time into Likes table
                     cursor = con.cursor()
                     cursor.execute(sql, (username, postid, formattedtime))
                     con.commit()
-                    return redirect(url_for('viewpost', id=postid, ld=True))
-                elif getusersdisliked is not None:
-                    dislikecount -= 1
-                    likecount += 1
+                    return redirect(url_for('viewpost', id=postid, ld=True)) #refresh and set ld to True so not taken to the top of the page
+                elif getusersdisliked is not None: #if they have already disliked it
+                    dislikecount -= 1 #decrement dislikecount by one
+                    likecount += 1 #increment likecount by one
                     con = sqlite3.connect('database.db')
-                    sql = "UPDATE Posts SET likes = ? WHERE id = ?"
+                    sql = "UPDATE Posts SET likes = ? WHERE id = ?" #update like count
                     cursor = con.cursor()
                     cursor.execute(sql, (likecount, postid,))
                     con.commit()
 
-                    sql = "UPDATE Posts SET dislikes = ? WHERE id = ?"
+                    sql = "UPDATE Posts SET dislikes = ? WHERE id = ?" #update disliked count
                     cursor = con.cursor()
                     cursor.execute(sql, (dislikecount, postid,))
                     con.commit()
 
-                    sql = "DELETE FROM Dislikes WHERE usersdisliked = ? and id = ?"
+                    sql = "DELETE FROM Dislikes WHERE usersdisliked = ? and id = ?" #remove from dislikes table
                     cursor = con.cursor()
                     cursor.execute(sql, (username, postid))
                     con.commit()
 
-                    sql = "INSERT INTO Likes(usersliked, id,timesent) VALUES(?,?,?)"
+                    sql = "INSERT INTO Likes(usersliked, id,timesent) VALUES(?,?,?)" #add to likes table
                     cursor = con.cursor()
                     cursor.execute(sql, (username, postid, formattedtime))
                     con.commit()
                     return redirect(url_for('viewpost', id=postid, ld=True))
 
-            elif getusersliked is not None:
-                likecount -= 1
+            elif getusersliked is not None: #if they have already liked it and they click it
+                likecount -= 1 #decrement by one
                 con = sqlite3.connect('database.db')
-                sql = "UPDATE Posts SET likes = ? WHERE id = ?"
+                sql = "UPDATE Posts SET likes = ? WHERE id = ?" #update like count
                 cursor = con.cursor()
                 cursor.execute(sql, (likecount, postid,))
                 con.commit()
-                sql = "DELETE FROM Likes WHERE usersliked = ? and id = ?"
+                sql = "DELETE FROM Likes WHERE usersliked = ? and id = ?" #delete from like table
                 cursor = con.cursor()
                 cursor.execute(sql, (username, postid))
                 con.commit()
                 return redirect(url_for('viewpost', id=postid, ld=True))
 
-        elif "Dislike" in request.form:
-            if getusersliked is None:
-                if getusersdisliked is None:
-
-                    dislikecount += 1
+        elif "Dislike" in request.form: #if they clicked dislike
+            if getusersliked is None: #if they havnt liked it yet
+                if getusersdisliked is None: #if they havnt disliked it yet
+                    #no interaction yet
+                    dislikecount += 1 #increment dislike count by one
                     # update it
-                    sql = "UPDATE Posts SET dislikes = ? WHERE id = ?"
+                    sql = "UPDATE Posts SET dislikes = ? WHERE id = ?" #update dislike count
                     cursor = con.cursor()
                     cursor.execute(sql, (dislikecount, postid,))
                     con.commit()
 
                     con = sqlite3.connect('database.db')
-                    sql = "INSERT INTO Dislikes(usersdisliked, id) VALUES(?,?)"
+                    sql = "INSERT INTO Dislikes(usersdisliked, id) VALUES(?,?)" #add to dislike table, username, postid (time not needed as too toxic to tell people when their post has been disliked)
                     cursor = con.cursor()
                     cursor.execute(sql, (username, postid))
                     con.commit()
-                    return redirect(url_for('viewpost', id=postid, ld=True))
-                elif getusersdisliked is not None:
-                    dislikecount -= 1
+                    return redirect(url_for('viewpost', id=postid, ld=True)) #redirect and set ld to true so the user isnt taken to the top of the site
+                elif getusersdisliked is not None: #if they have disliked it before
+                    dislikecount -= 1 #decrement dislikecount by one
                     con = sqlite3.connect('database.db')
-                    sql = "UPDATE Posts SET dislikes = ? WHERE id = ?"
+                    sql = "UPDATE Posts SET dislikes = ? WHERE id = ?" #update the dislike count
                     cursor = con.cursor()
                     cursor.execute(sql, (dislikecount, postid,))
                     con.commit()
 
-                    sql = "DELETE FROM Dislikes WHERE usersdisliked = ? and id = ?"
+                    sql = "DELETE FROM Dislikes WHERE usersdisliked = ? and id = ?" #delete from dislike table
                     cursor = con.cursor()
                     cursor.execute(sql, (username, postid))
                     con.commit()
-                    return redirect(url_for('viewpost', id=postid, ld=True))
-            elif getusersliked is not None:
-                dislikecount += 1
-                likecount -= 1
+                    return redirect(url_for('viewpost', id=postid, ld=True)) #redirect
+            elif getusersliked is not None: #if they have liked it before
+                dislikecount += 1 #increase dislikecount by one
+                likecount -= 1 #decrease like count by one
                 con = sqlite3.connect('database.db')
-                sql = "UPDATE Posts SET likes = ? WHERE id = ?"
+                sql = "UPDATE Posts SET likes = ? WHERE id = ?" #update the like count
                 cursor = con.cursor()
                 cursor.execute(sql, (likecount, postid,))
                 con.commit()
 
-                sql = "UPDATE Posts SET dislikes = ? WHERE id = ?"
+                sql = "UPDATE Posts SET dislikes = ? WHERE id = ?" #update the dislike count
                 cursor = con.cursor()
                 cursor.execute(sql, (dislikecount, postid,))
                 con.commit()
 
-                sql = "DELETE FROM Likes WHERE usersliked = ? and id = ?"
+                sql = "DELETE FROM Likes WHERE usersliked = ? and id = ?" #delete from likes table
                 cursor = con.cursor()
                 cursor.execute(sql, (username, postid))
                 con.commit()
 
-                sql = "INSERT INTO Dislikes(usersdisliked, id) VALUES(?,?)"
+                sql = "INSERT INTO Dislikes(usersdisliked, id) VALUES(?,?)" #add to dislikes table
                 cursor = con.cursor()
                 cursor.execute(sql, (username, postid))
                 con.commit()
                 return redirect(url_for('viewpost', id=postid, ld=True))
-        if "save" in request.form:
-            if checksaved == False:
+        # like and dislike END
+        if "save" in request.form: #if they click "save"
+            if checksaved == False: #if they havnt saved it aready
                 con = sqlite3.connect('database.db')
-                sql = "INSERT INTO savedposts(savedpostid, username) VALUES(?, ?)"
+                sql = "INSERT INTO savedposts(savedpostid, username) VALUES(?, ?)" #add to savedpost table
                 cursor = con.cursor()
                 cursor.execute(sql, (postid, username))
                 con.commit()
-                return redirect(url_for('viewpost', id=postid, s=True))
-        elif "unsave" in request.form:
+                return redirect(url_for('viewpost', id=postid, s=True)) #redirect and set s to true so user not taken to top of page
+        elif "unsave" in request.form: #if they click unsave
             con = sqlite3.connect('database.db')
-            sql = "DELETE FROM savedposts WHERE savedpostid = ? AND username = ?"
+            sql = "DELETE FROM savedposts WHERE savedpostid = ? AND username = ?" #delete from savedpost table
             cursor = con.cursor()
             cursor.execute(sql, (postid, username))
             con.commit()
@@ -2877,86 +2895,84 @@ def removefollower():
 
 @web_site.route('/editpost', methods=['GET', 'POST'])
 def editpost():
-    if "username" not in session:
-        return redirect("/login")
+    if "username" not in session: #if no user is logged in
+        return redirect("/login") #redirect to login page
 
-    username = session["username"]
-    postid = request.args.get('id')
+    username = session["username"] #get the user that is logged in
+    postid = request.args.get('id') #get the post that has been clicked / chosen to edit
     con = sqlite3.connect('database.db')
 
     # get the album id if its in one
 
-    sql = "SELECT user FROM Posts WHERE id = ?"
+    sql = "SELECT user FROM Posts WHERE id = ?" #get the user that created the post / has permissions to edit the post
     cursor = con.cursor()
     cursor.execute(sql, (postid,))
     getuser = cursor.fetchone()
-    if not getuser:
-        session['lat'] = 0
-        session['lng'] = 0
-        return render_template('404.html')
-    if getuser[0] != username:
-        session['lat'] = 0
-        session['lng'] = 0
-        return render_template('404.html')
+    print(session.get("lat"))
+    if not getuser: #if there is no user associtated with the post id, the post doesnt exist (prevents manual entry)
+        return render_template('404.html') #redirect to error page
+    if getuser[0] != username: #if the logged in user isnt the same as the user who created the post (prevents manual entry)
+        return render_template('404.html') #redirect to error page
 
     con.row_factory = sqlite3.Row
-    sql = "SELECT * FROM Posts WHERE id = ?"
+    sql = "SELECT * FROM Posts WHERE id = ?" #get all info about the post
     cursor = con.cursor()
     cursor.execute(sql, (postid,))
     rows = cursor.fetchall()
 
     con.row_factory = sqlite3.Row
-    sql = "SELECT * FROM photodetails WHERE id = ?"
+    sql = "SELECT * FROM photodetails WHERE id = ?" #get all photodetails about the post
     cursor = con.cursor()
     cursor.execute(sql, (postid,))
     rows2 = cursor.fetchall()
 
-    sql = "Select datetime FROM photodetails WHERE id = ?"
+    sql = "Select datetime FROM photodetails WHERE id = ?" #get the datetime seperately
     cursor = con.cursor()
     cursor.execute(sql, (postid,))
     datetimeup = cursor.fetchone()
     datetimeup = datetimeup[0]
-    date = datetimeup[:10]
+    date = datetimeup[:10] #split into the date and into the time
     time = datetimeup[11:]
 
     if request.method == "POST":
-        lat = session.get('lat')
+        lat = session.get('lat') #if they updated the location, get the place (lng/lat) they clicked
         lng = session.get('lng')
-        if "cancel" in request.form:
-            session['lat'] = 0
+        if "cancel" in request.form: #if they clicked cancel, discard changes
+            session['lat'] = 0 #set session lat/lng back to 0 as others use it
             session['lng'] = 0
-            return redirect(url_for('viewpost', id=postid))
+            return redirect(url_for('viewpost', id=postid)) #redirect back to viewpost
         con = sqlite3.connect('database.db')
-        description = request.form["description"]
+        description = request.form["description"] #get the new description
         description = moderate(description)
-        text = request.form["text"]
+        text = request.form["text"] #get the new title
         text = moderate(text)
-        if text == "":
+        if text == "": #if the title and descr are empty, just default to "untitled"
             text = "Untitled"
         if description == "":
             description = "Untitled"
-        sql = "UPDATE Posts SET descr = ?, text = ?, lat = ?, lng = ? WHERE id = ?"
+        sql = "UPDATE Posts SET descr = ?, text = ?, lat = ?, lng = ? WHERE id = ?" #update title, descr and location in posts table
         cursor = con.cursor()
         cursor.execute(sql, (description, text, lat, lng, postid))
         con.commit()
 
-        GetNamedLocation(lat, lng, postid)
+        GetNamedLocation(lat, lng, postid) #get the new named location if it changes (update database done in the function)
 
-        make = request.form["make"]
+        make = request.form["make"] #get the new details about the photo
         model = request.form["model"]
 
         date = request.form["date"]
         time = request.form["time"]
-        if date != "" and time != "":
-            metadatadatetime = str(date) + " " + str(time)
-        elif date != "" and time == "":
+        if date != "" and time != "": #if neither are emtpy
+            metadatadatetime = str(date) + " " + str(time) #concatonate so can be stored together in database
+        elif date != "" and time == "": #if date is valid but time is empty, default time to 12:00
             metadatadatetime = str(date) + " " + "12:00"
         else:
-            metadatadatetime = "N/A"
-        ISO = request.form["ISO"]
+            metadatadatetime = "N/A" #if date chosen (even if time chosen) default back to N/A
+        ISO = request.form["ISO"] #continue getting info about the post
         LensModel = request.form["lensmodel"]
         FNumber = request.form["fstop"]
         ExposureTime = request.form["shutterspeed"]
+        #if any left emtpy, default to N/A
         if make == "" or make.isspace():
             make = "N/A"
         if model == "" or model.isspace():
@@ -2970,6 +2986,7 @@ def editpost():
         if ExposureTime == "" or ExposureTime.isspace():
             ExposureTime = "N/A"
 
+        #update the photodetails table with the new info
         con = sqlite3.connect('database.db')
         sql = "UPDATE photodetails SET make = ?, model = ?, datetime = ?, ISO = ?, lensmodel = ?, fstop = ?, shutterspeed = ? WHERE id = ?"
         cursor = con.cursor()
@@ -2979,17 +2996,17 @@ def editpost():
         listofalbumids = []
         con.row_factory = sqlite3.Row
         cursor = con.cursor()
-        sql = "SELECT albumid FROM albums WHERE postid = ?"  # upadtes all the albums this post is in
+        sql = "SELECT albumid FROM albums WHERE postid = ?"  # gets a list of all the albums the post is in
         cursor.execute(sql, (postid,))
         allids = cursor.fetchall()
         for row in allids:
             listofalbumids.append(row[0])
 
         for i in listofalbumids:
-            updatealbumlocation(i)
-        session['lat'] = 0
+            updatealbumlocation(i) #update the album location (see album section)
+        session['lat'] = 0 #set lng lat session to 0
         session['lng'] = 0
-        return redirect(url_for('viewpost', id=postid))
+        return redirect(url_for('viewpost', id=postid)) #once edited, redirect back to viewpost
     return render_template("editpost.html", rows=rows, postid=postid, rows2=rows2, date=date, time=time)
 
 

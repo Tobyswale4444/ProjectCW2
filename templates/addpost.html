@@ -38,13 +38,13 @@
 <h2>Edit Metadata</h2>
 <div class = "photoandmeta">
 <div class="photo-container">
-    <img src="{{ url_for('static', filename='UploadedPhotos/' + filename) }}" alt="Image" class="scaled-image-big">
+    <img src="{{ url_for('static', filename='UploadedPhotos/' + filename) }}" alt="Image" class="scaled-image-big"> <!-- display preview image at top-->
 </div>
 
 <form method="POST" enctype="multipart/form-data">
   <div class="meta-container">
   {% for row in rows2 %}
-
+    <!-- edit photo details with extracted metadata as default values -->
     <h3 style="text-align: left; width: 400;">Date:
         <input type="date" name="date" value='{{date}}'>
         <input type="time" name="time" value='{{time}}'>
@@ -64,6 +64,7 @@
 
     <h2>Post Details</h2>
     <h3>Add a title*</h3>
+    <!-- add post is used to edit drafts so default is what is in tempphotos, if empty set field empty too -->
     {% if row["text"] == None %}
         {% set newtext = "" %}
     {% else %}
@@ -80,13 +81,14 @@
 <textarea class="textareadescr" name="descr" id="descr" placeholder="Enter text here" maxlength="250">{{newdescr}}</textarea><br>
     <br>
     <h4 style="color: red;">{{msg}}</h4>
+    <!-- if they try to post with an empty title, auto scroll to the input -->
     {% if emptytitle == True %}
         <script>
             var text = document.getElementById('text');
             text.focus();
         </script>
     {% endif %}
-
+    <!-- if they try to post with an empty descr, auto scroll to the input -->
     {% if emptydescr %}
         <script>
             var descr = document.getElementById('descr');
@@ -97,6 +99,7 @@
     <br>
     <h3>Add to album:</h3>
     {% endfor %}
+    <!-- dropdown select to select an album to add too -->
     <select name="selected_option">
         <option value="none">None</option>
             {% for row in rows %}
@@ -116,7 +119,8 @@
 
 
 {% for row in rows2 %}
-    {% if row['lat'] == None and row['lng'] == None %}
+    <!-- add location map, same as in account settings -->
+    {% if row['lat'] == None and row['lng'] == None %} <!-- first map is for if no lng or lat stored in tempphotos table (metadata or from draft) -->
             <div id="map1" class="map-container-big"></div>
             <script>
                 var map;
@@ -131,7 +135,7 @@
                     });
 
                     map.addListener('click', function(event) {
-                        if (existingmarker) {
+                        if (existingmarker) { //if an existing marker set it to null and create a new one
                             existingmarker.setMap(null);
                         }
 
@@ -142,7 +146,7 @@
                             draggable: true
                         });
 
-                        var lat = event.latLng.lat();
+                        var lat = event.latLng.lat(); //get lat and lng of marker
                         var lng = event.latLng.lng();
 
 
@@ -156,13 +160,13 @@
             <script async defer
                 src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCrLn37j2Aln7yh58GPY2AuQIDU3poAgrg&libraries=maps,marker&v=beta&callback=initMap">
             </script>
-        {% else %}
+        {% else %} <!-- second map for if stored location -->
             <div id="map2" class="map-container-big"></div>
             <script>
                 var map;
                 var existingmarker;
 
-                var existinglat = {{row['lat']}};
+                var existinglat = {{row['lat']}}; //get existing lat and lng of post location
                 var existinglng = {{row['lng']}};
 
                 function initMap() {
@@ -179,14 +183,14 @@
                         title: 'Pin',
                     });
 
-                    function sendCoordinates(lat, lng) {
+                    function sendCoordinates(lat, lng) { //function to send coords
                         var xmlhttp = new XMLHttpRequest();
                         xmlhttp.open('POST', '/coords', true);
                         xmlhttp.setRequestHeader('Content-Type', 'application/json');
                         xmlhttp.send(JSON.stringify({ lat: lat, lng: lng }));
                     }
 
-                    sendCoordinates(existinglat, existinglng);
+                    sendCoordinates(existinglat, existinglng); //send coords first in case no changes are made
 
                     map.addListener('click', function (event) {
                         if (existingmarker) {
@@ -200,10 +204,10 @@
                             draggable: true
                         });
 
-                    var lat = event.latLng.lat();
+                    var lat = event.latLng.lat(); //clicked so update lat and lng
                     var lng = event.latLng.lng();
 
-                    sendCoordinates(lat, lng);
+                    sendCoordinates(lat, lng); //if click the send new coords to python
                 });
             }
             </script>
@@ -211,11 +215,8 @@
         {% endif %}
     <br>
     <input type="submit" name="submit" value="Submit"><input type="submit" name="drafts" value="Save to Drafts"><input type="submit" name="cancel" value="Cancel (delete draft)">
-    <br>
+    <br> <!-- buttons -->
     <br>
 </form>
 {% endfor %}
-
-
-
 {% endblock %}

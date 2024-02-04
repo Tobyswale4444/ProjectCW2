@@ -2,26 +2,17 @@
 {% block content %}
 <h1>Upload a Photo</h1>
 
-
 <form method="POST" enctype="multipart/form-data">
     <div style="text-align: center;">
-    <input class="linkbutton" type="file" name="photo" accept="image/*"><br><br>
+    <input class="linkbutton" type="file" name="photo" accept="image/*"><br><br> <!-- Image types only -->
     </div>
     <input type="submit" name="submit" value="Upload"><br>
-    <h3>{{msg}}</h3>
+    <h3>{{msg}}</h3> <!-- Display if image error -->
     {% if posted %}
 
         <br>
-        <h1 style="color: green;">Posted!</h1>
-        <a href ='/viewpost?id={{prevpostid}}' class="linkbuttonsmall">View Post</a>
+        <h1 style="color: green;">Posted!</h1> <!-- To indicate when a post has posted -->
+        <a href ='/viewpost?id={{prevpostid}}' class="linkbuttonsmall">View Post</a> <!-- Option to view post once its posted -->
         <br>
     {% endif %}
-
-
-
-
-
-
-
-
 {% endblock %}
