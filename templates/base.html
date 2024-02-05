@@ -6,9 +6,8 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script>
         function searchposts(){
-          var search = encodeURIComponent($("#search").val());
-          $("#div1").load("ajaxsearchposts/"+search, function(responseTxt, statusTxt, xhr){
-
+          var search = encodeURIComponent($("#search").val()); //get what has been searched for (encode spaces into %20)
+          $("#div1").load("ajaxsearchposts/"+search, function(responseTxt, statusTxt, xhr){ //update div1 with what was selected from the sql statement
         });
         }
 

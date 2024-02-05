@@ -5,13 +5,13 @@
 
 {% for row in rows %}
   <h3>Edit title</h3>
-  <p><textarea class="textareatitle" name="text" placeholder="Enter text here" maxlength="100">{{row["text"]}}</textarea></p>
+  <p><textarea class="textareatitle" name="text" placeholder="Enter text here" maxlength="100">{{row["text"]}}</textarea></p> <!-- default value is the existing title -->
   <h3>Edit description</h3>
-  <p><textarea class="textareadescr" name="description" placeholder="Enter text here" maxlength="250">{{row["descr"]}}</textarea></p><br>
+  <p><textarea class="textareadescr" name="description" placeholder="Enter text here" maxlength="250">{{row["descr"]}}</textarea></p><br> <!-- default value is the existing description -->
   <h3>{{msg}}</h3>
   <h3>{{msg2}}</h3>
-  <a href ='/deletealbum?id={{albumid}}' class="linkbuttonsmall">Delete Album</a>
-  <p><input type="submit" value="Update"><input type="submit" name="cancel" value="Cancel"></p>
+  <a href ='/deletealbum?id={{albumid}}' class="linkbuttonsmall">Delete Album</a> <!-- option to delete the album -->
+  <p><input type="submit" value="Update"><input type="submit" name="cancel" value="Cancel"></p> <!-- save changes or discard them -->
 {% endfor %}
 </form>
 {% endblock %}

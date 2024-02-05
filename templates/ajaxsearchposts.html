@@ -1,5 +1,3 @@
-
-
 <h3>{{msg}}</h3>
 <div class="image-grid">
   {% for row in rows %}
@@ -38,10 +36,6 @@
               <a href="/viewpost?id={{row['id']}}">
               <br>
             {% endif %}
-
-
-
-
               <img src="{{ url_for('static', filename='UploadedPhotos/' + row['filename']) }}" alt="Image" loading="lazy" class="scaled-image">
                   <br>
                   <br>
@@ -50,11 +44,6 @@
                   {% else %}
                     {{ row['text'] }}</a>
                   {% endif %}
-
-
-
-
-
                   <div class="map-container">
                   {% if row["album"] != "True" %}
                     <body>
@@ -65,12 +54,9 @@
                         ></gmp-advanced-marker>
                     </gmp-map>
                     </body>
-
                   {% endif %}
                   </div>
         {% endif %}
-
   </div>
 </div>
-
   {% endfor %}

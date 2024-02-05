@@ -319,15 +319,14 @@ def coords():
 
 @web_site.route('/filtercoords', methods=['POST'])
 def filtercoords():
-    data = request.get_json()
+    data = request.get_json() #get the data from the javascript
     lat = data.get('lat')
     lng = data.get('lng')
 
-    session['filterlat'] = round(lat, 8)
+    session['filterlat'] = round(lat, 8) #round to 8 dp and add to session
     session['filterlng'] = round(lng, 8)
     radius = data.get('radius')
     session['radius'] = radius
-
     return "Success"
 
 
@@ -760,48 +759,48 @@ def removefromdrafts():
 
 @web_site.route('/addalbum', methods=['GET', 'POST'])
 def addalbum():
-    if "username" not in session:
-        return redirect("/login")
+    if "username" not in session: #if no user is logged in
+        return redirect("/login") #redirect to login page
 
-    msg = ""
-    msg2 = ""
-    username = session["username"]
-    filename = "7da6b012d99beac0c7eff0949b27b7e6.png"
+    msg = "" #default to empty
+    msg2 = "" #default to empty
+    username = session["username"] #get the user that is logged in
+    filename = "7da6b012d99beac0c7eff0949b27b7e6.png" #the album image is always the same, a folder icon
     if request.method == "POST":
-        datetimenow = datetime.now()
-        formattedtime = datetimenow.strftime("%d/%m/%y %H:%M")
+        datetimenow = datetime.now() #get the time when posted
+        formattedtime = datetimenow.strftime("%d/%m/%y %H:%M") #reformat
         con = sqlite3.connect('database.db')
-        sql = "SELECT privacy FROM Accounts WHERE username = ?"
+        sql = "SELECT privacy FROM Accounts WHERE username = ?" #get the privacy of the user creating the album
         cursor = con.cursor()
         cursor.execute(sql, (username,))
         getprivacy = cursor.fetchone()
-        getprivacy = getprivacy[0]
-        if "create" in request.form:
-            text = request.form["text"]
+        getprivacy = getprivacy[0] #remove from tuple form
+        if "create" in request.form: #create clicked
+            text = request.form["text"] #get the title they chose
             text = moderate(text)
-            descr = request.form["descr"]
+            descr = request.form["descr"] #get the description they chose
             descr = moderate(descr)
 
-            if text != "":
-                if descr == "":
+            if text != "": #if the title isnt empty
+                if descr == "": #if the description is empty, set it to "untitled"
                     descr = "Untitled"
                 con = sqlite3.connect('database.db')
-                sql = "SELECT id FROM Posts WHERE user = ? AND text = ? AND album = 'True'"
+                sql = "SELECT id FROM Posts WHERE user = ? AND text = ? AND album = 'True'" #check if an album (created by the user) with that name already exists
                 cursor = con.cursor()
                 cursor.execute(sql, (username, text,))
                 getunid = cursor.fetchone()
 
-                if getunid is None:
+                if getunid is None: #if an album with that name (created by the user) doesnt already exist
                     con = sqlite3.connect('database.db')
-                    sql = "INSERT INTO Posts(text,user, descr, filename, privacy,album, timeposted) VALUES(?,?,?,?,?,?,?)"
+                    sql = "INSERT INTO Posts(text,user, descr, filename, privacy,album, timeposted) VALUES(?,?,?,?,?,?,?)" #add to posts table, but set "album" to "True"
                     cursor = con.cursor()
                     cursor.execute(sql, (text, username, descr, filename, getprivacy, "True", formattedtime,))
                     con.commit()
-                    return redirect(url_for('listmyposts'))
+                    return redirect(url_for('listmyposts')) #once created, redirect back to account page
                 else:
-                    msg = "Cannot have duplicate album names"
+                    msg = "Cannot have duplicate album names" #if an album created by that user does already exist, do not create and give them an error message
             else:
-                msg2 = "Do not leave title blank"
+                msg2 = "Do not leave title blank" #f the title was left blank
     return render_template("addalbum.html", msg=msg, msg2=msg2)
 
 
@@ -811,17 +810,18 @@ def sortdatetime(dict):
 
 
 def formatdattime(datetimeprovided):
-    if datetimeprovided != "N/A":
-        datetimenow = datetime.now()
-        datetimedif = datetimenow - datetimeprovided
-        total = datetimedif.total_seconds()
-        return total
+    if datetimeprovided != "N/A": #if the date time that is passed in, is not "N/A"
+        datetimenow = datetime.now() #get the time now
+        datetimedif = datetimenow - datetimeprovided #calc the time difference between now and when the date time is
+        total = datetimedif.total_seconds() #convert into seconds (so can be sorted)
+        return total #return the seconds total
     else:
-        total = 0
+        total = 0 #if the datetime is N/A then return 0 so added to end
         return total
 
 
-def updatealbumlocation(albumid):  # also updates the average likes
+def updatealbumlocation(albumid): #takes only the album id
+    # default to empty or 0
     listofpostids = []
     latavg = 0
     lngavg = 0
@@ -829,102 +829,103 @@ def updatealbumlocation(albumid):  # also updates the average likes
     con = sqlite3.connect('database.db')
     con.row_factory = sqlite3.Row
     cursor = con.cursor()
-    sql = "SELECT postid FROM albums WHERE albumid = ?"  # gets every postid that the user has posted
+    sql = "SELECT postid FROM albums WHERE albumid = ?"  # gets every postid that is in the album
     cursor.execute(sql, (albumid,))
     for row in cursor.fetchall():
         listofpostids.append(row[0])
 
     for i in listofpostids:
-        sql = "SELECT lat, lng FROM Posts WHERE id = ?"  # go through every post and get lat lng of each
+        sql = "SELECT lat, lng FROM Posts WHERE id = ?"  # go through every post in that album and get lat lng of each
         cursor.execute(sql, (i,))
         lnglat = cursor.fetchone()
-        if lnglat is not None:
-            if lnglat[0] is not None and lnglat[1] is not None:
-                latavg += float(lnglat[0])
-                lngavg += float(lnglat[1])
+        if lnglat is not None: #if there is a location
+            if lnglat[0] is not None and lnglat[1] is not None: #and neither lng or lat is None
+                latavg += float(lnglat[0]) #add all the latitudes together
+                lngavg += float(lnglat[1]) #add all the longitudes together
 
-    if latavg != 0 and lngavg != 0:
-        latavg = latavg / len(listofpostids)
+    if latavg != 0 and lngavg != 0: #if the total latitude is not 0 and the total longitude is not zero (cant divide with 0s)
+        latavg = latavg / len(listofpostids) # mean average so divide total by number of posts
         lngavg = lngavg / len(listofpostids)
     else:
-        latavg = None
+        latavg = None #if the total lat/lngs are 0, set to None
         lngavg = None
     con = sqlite3.connect('database.db')
-    sql = "UPDATE Posts SET lat = ?, lng = ? WHERE id = ?"
+    sql = "UPDATE Posts SET lat = ?, lng = ? WHERE id = ?" #update databse with average location
     cursor = con.cursor()
-    cursor.execute(sql, (latavg, lngavg, albumid,))  #
+    cursor.execute(sql, (latavg, lngavg, albumid,))
     con.commit()
 
+    #Calc avg Likecount
     listofpostids = []
     con = sqlite3.connect('database.db')
     con.row_factory = sqlite3.Row
     cursor = con.cursor()
-    sql = "SELECT postid FROM albums WHERE albumid = ?"
+    sql = "SELECT postid FROM albums WHERE albumid = ?" #get all the posts that are in the album
     cursor.execute(sql, (albumid,))
     allids = cursor.fetchall()
     for row in allids:
         listofpostids.append(row[0])
     for x in listofpostids:
-        sql = "SELECT likes FROM Posts WHERE id = ?"  # avg likes of all posts (rounded up)
+        sql = "SELECT likes FROM Posts WHERE id = ?"  #for each post, get the like count
         cursor.execute(sql, (x,))
         likes = cursor.fetchone()
-        if likes is not None:
+        if likes is not None: #if there is a value, add to a grand total
             total += int(likes[0])
-    if total != 0:
-        average = total / len(listofpostids)
+    if total != 0: #if the total is not zero (can't divide with 0s)
+        average = total / len(listofpostids) #use mean and divide like count total by number of posts
     else:
-        average = 0
+        average = 0 #if total is zero, set average to zero
 
-    average = math.ceil(average)
+    average = math.ceil(average) #since a like count has to be a whole number, round up to nearest integer
 
-    sql = "UPDATE Posts SET likes = ? WHERE id = ?"
+    sql = "UPDATE Posts SET likes = ? WHERE id = ?" #update the database with the average like count of the album
     cursor = con.cursor()
     cursor.execute(sql, (average, albumid,))  #
     con.commit()
 
-    GetNamedLocation(latavg, lngavg, albumid)
+    GetNamedLocation(latavg, lngavg, albumid) #with new average location, can calculate which country the album is in (on average)
     return
 
 
 @web_site.route('/viewalbum', methods=['GET', 'POST'])
 def viewalbum():
-    if "username" not in session:
-        return redirect("/login")
+    if "username" not in session: #if no user is logged in
+        return redirect("/login") #redirect to login page
 
-    listofpostids = []
+    listofpostids = [] #set to empty
     sorteddatetime = {}
-    username = session["username"]
-    albumid = request.args.get('id')
+    username = session["username"] #get the user that is logged in
+    albumid = request.args.get('id') #get the album that wants to be viewed
 
     con = sqlite3.connect('database.db')
     con.row_factory = sqlite3.Row
-    sql = "SELECT privacy,user FROM Posts WHERE id = ?"
+    sql = "SELECT privacy,user FROM Posts WHERE id = ?" #get the privacy of the album
     cursor = con.cursor()
     cursor.execute(sql, (albumid,))
     postinfo = cursor.fetchall()
-    if not postinfo:
-        return render_template('404.html')
-    getprivacy = postinfo[0]['privacy']
-    getuser = postinfo[0]['user']
+    if not postinfo: #if there is no info associated with the id, the album does not exist
+        return render_template('404.html') #give error message
+    getprivacy = postinfo[0]['privacy'] #get the privacy
+    getuser = postinfo[0]['user'] #get the user who psoted the album
     # get the album id if its in one
 
-    sql = "SELECT status FROM friendrequests WHERE usersend = ? AND userreceive = ? "
+    sql = "SELECT status FROM friendrequests WHERE usersend = ? AND userreceive = ? " #select the friendship/relationship between the viewing user and the user who posted the album
     cursor = con.cursor()
     cursor.execute(sql, (username, getuser,))
     getstatus = cursor.fetchone()
-    if getstatus is None:
+    if getstatus is None: #if there is no record, set to 0
         getstatus = "0"
-    getstatus = getstatus[0]
-    if getprivacy == "private" and getstatus != 2 and getuser != username:
+    getstatus = getstatus[0] #if there is, get out of tuple form
+    if getprivacy == "private" and getstatus != 2 and getuser != username: #if the user is private and the viewing user does not follow the creation user redirect to view account (ignore if viewing your own album
         return redirect(url_for('viewaccount', id=getuser))
 
-    sql = "SELECT * FROM Accounts WHERE username = (SELECT user FROM Posts WHERE id = ?)"
+    sql = "SELECT * FROM Accounts WHERE username = (SELECT user FROM Posts WHERE id = ?)" #select all info about the user who created the album
     cursor = con.cursor()
     con.row_factory = sqlite3.Row
     cursor.execute(sql, (albumid,))
     userrows = cursor.fetchall()
 
-    sql = "SELECT user FROM Posts WHERE id = ?"
+    sql = "SELECT user FROM Posts WHERE id = ?" #get the user who created the album
     cursor = con.cursor()
     cursor.execute(sql, (albumid,))
     getalbumuser = cursor.fetchone()
@@ -932,7 +933,7 @@ def viewalbum():
 
     con.row_factory = sqlite3.Row
     cursor = con.cursor()
-    sql = "SELECT postid FROM albums WHERE albumid = ?"
+    sql = "SELECT postid FROM albums WHERE albumid = ?" #get all the posts that are in the album
     cursor.execute(sql, (albumid,))
     for row in cursor.fetchall():
         listofpostids.append(row[0])
@@ -943,90 +944,89 @@ def viewalbum():
         sql = "SELECT datetime FROM photodetails WHERE id = ?"  # go through every post and get datetime of each
         cursor.execute(sql, (i,))
         getdatetime = cursor.fetchone()
-        if getdatetime[0] != "N/A":
-            getdatetime = datetime.strptime(getdatetime[0], "%Y-%m-%d %H:%M")
+        if getdatetime[0] != "N/A": #if there is a datetime
+            getdatetime = datetime.strptime(getdatetime[0], "%Y-%m-%d %H:%M") #convert to known format
             formatdattimetotal = formatdattime(getdatetime)  # gets how many seconds ago it was taken
-            datetimedict[
-                i] = formatdattimetotal  # adds the seconds value to a dictionary with the key being the post id (i)
-            sorteddatetime = sortdatetime(datetimedict)
-            sorteddatetime = sorteddatetime[::-1]  # sorts it
+            datetimedict[i] = formatdattimetotal  # adds the seconds value to a dictionary with the key being the post id (i)
+            sorteddatetime = sortdatetime(datetimedict) #sorts based on time
+            sorteddatetime = sorteddatetime[::-1]  #put oldest post at the top (scroll down to oldest)
         else:
-            unformatposts.append(i)  # posts without a time
+            unformatposts.append(i)  # posts without a time added to a separate list
     sortedpostids = []
     for i in sorteddatetime:
-        sortedpostids.append(i[
-                                 0])  # once the dictinary is sorted in seconds ago then remove the seconds so just a list of postids in chronological order
-    sortedpostids += unformatposts
+        sortedpostids.append(i[0])  # once the dictinary is sorted in seconds ago then remove the seconds so just a list of postids in chronological order
+    sortedpostids += unformatposts #add the posts without a time to the end
     lnglatpoints = []
     filenames = []
 
     con.row_factory = sqlite3.Row
     cursor = con.cursor()
     postinfo = []
-    for postid2 in sortedpostids:
+    for postid2 in sortedpostids: #iterate through each post in the list of posts that are in the album
         sql = """SELECT Posts.*, Accounts.pfp
                  FROM Posts
                  JOIN Accounts ON Accounts.username = Posts.user
-                 WHERE Posts.id = ?"""
+                 WHERE Posts.id = ?""" #get all info about the post, as well as the user's profile picture
         cursor.execute(sql, (postid2,))
         postresult = cursor.fetchone()
-        if postresult:
-            postinfo.append(postresult)
+        if postresult: #if there is information
+            postinfo.append(postresult) #add it to a list
 
     cursor = con.cursor()
-    for postid2 in sortedpostids:
-        sql = "SELECT lng, lat, filename FROM Posts WHERE id = ?"
+    for postid2 in sortedpostids: #iterate through each post in the list of posts that are in the album
+        sql = "SELECT lng, lat, filename FROM Posts WHERE id = ?" #get the latitudes, longitudes and filenames of each post
         cursor.execute(sql, (postid2,))
         postresult = cursor.fetchone()
-        if postresult:
+        if postresult: #if there is information
             lnglattemp = []
-            lnglattemp.append(postresult[1])
+            lnglattemp.append(postresult[1]) #add the longitude and latitude to a temp list
             lnglattemp.append(postresult[0])
-            lnglattemp.append(postid2)
-            lnglatpoints.append(lnglattemp)
-            filenames.append(postresult[2])
+            lnglattemp.append(postid2) #add the post id to the list
+            lnglatpoints.append(lnglattemp) #add the list to a list of all the posts' locations and ids
+            filenames.append(postresult[2]) #add the filename of each post to a list of all the posts' filenames
+            #id for filenames not needed as it will be in the same order with the same amount, so able to iterate through normally in the HTML
 
     con.row_factory = sqlite3.Row
-    sql = "Select * FROM Posts WHERE id = ?"
+    sql = "Select * FROM Posts WHERE id = ?" #get all info about the album
     cursor = con.cursor()
     cursor.execute(sql, (albumid,))
-    rows2 = cursor.fetchall()  # rows 2 is for album info
+    rows2 = cursor.fetchall()
 
     con = sqlite3.connect('database.db')
-    sql = "SELECT savedpostid FROM savedposts WHERE savedpostid = ? and username = ?"
+    sql = "SELECT savedpostid FROM savedposts WHERE savedpostid = ? and username = ?" #check whether the user has already saved the album
     cursor = con.cursor()
     cursor.execute(sql, (albumid, username))
     getsavedid = cursor.fetchone()
-    if getsavedid is not None:
-        checksaved = True
+    if getsavedid is not None: #if the user has already saved it
+        checksaved = True #set checksaved to True
     else:
-        checksaved = False
+        checksaved = False #if the user has not already saved it set checksaved to False
 
-    imagesize = []
-    for i in filenames:
-        path = "static/UploadedPhotos/" + i
-        with Image.open(path) as img:
+    imagesize = [] #empty list of image sizes
+    for i in filenames: #iterate through the filenames
+        path = "static/UploadedPhotos/" + i #get the file path of each image
+        with Image.open(path) as img: #open the image
             heightwidth = []
             heightwidth.append(img.size[1])
-            heightwidth.append(img.size[0])  # get the width and height of the image
-            imagesize.append(heightwidth)
+            heightwidth.append(img.size[0])  # get the width and height of the image, add to a list
+            imagesize.append(heightwidth) #add the width and height list to a wider list for all images (list within list)
 
     if request.method == "POST":
-        if "save" in request.form:
+        if "save" in request.form: #if the user clicks save
             if checksaved == False:
                 con = sqlite3.connect('database.db')
-                sql = "INSERT INTO savedposts(savedpostid, username) VALUES(?, ?)"
+                sql = "INSERT INTO savedposts(savedpostid, username) VALUES(?, ?)" #add to savedpost table
                 cursor = con.cursor()
                 cursor.execute(sql, (albumid, username))
                 con.commit()
-                return redirect(url_for('viewalbum', id=albumid))
-        elif "unsave" in request.form:
+                return redirect(url_for('viewalbum', id=albumid)) #redirect back to viewalbum page
+        elif "unsave" in request.form: #if the user clicks unsave
             con = sqlite3.connect('database.db')
-            sql = "DELETE FROM savedposts WHERE savedpostid = ? AND username = ?"
+            sql = "DELETE FROM savedposts WHERE savedpostid = ? AND username = ?" #delete record of the save
             cursor = con.cursor()
             cursor.execute(sql, (albumid, username))
             con.commit()
-            return redirect(url_for('viewalbum', id=albumid))
+            return redirect(url_for('viewalbum', id=albumid)) #redirect back to viewalbum page
     return render_template("viewalbum.html", rows=postinfo, rows2=rows2, username=username, userrows=userrows,
                            getalbumuser=getalbumuser, checksaved=checksaved, lnglatpoints=lnglatpoints,
                            filenames=filenames, imagesize=imagesize)
@@ -1034,76 +1034,76 @@ def viewalbum():
 
 @web_site.route('/removefromalbum', methods=['GET', 'POST'])
 def removefromalbum():
-    if "username" not in session:
-        return redirect("/login")
+    if "username" not in session: #if no user is logged in
+        return redirect("/login") #redirect to login page
 
-    albumid = request.args.get('albumid')
-    postid = request.args.get('postid')
+    albumid = request.args.get('albumid') #get the album id that the post is being removed from
+    postid = request.args.get('postid') #get the post id that is being removed
 
     con = sqlite3.connect('database.db')
     con.row_factory = sqlite3.Row
     cursor = con.cursor()
-    sql = "DELETE FROM albums WHERE albumid = ? AND postid = ?"
+    sql = "DELETE FROM albums WHERE albumid = ? AND postid = ?" #delete record from albums table
     cursor.execute(sql, (albumid, postid))
     con.commit()
 
-    updatealbumlocation(albumid)
-    msg = "Post was removed"
-    return render_template("removefromalbum.html", msg=msg, albumid=albumid)
+    updatealbumlocation(albumid) #update album location
+    msg = "Post was removed" #provide message
+    return render_template("removefromalbum.html", msg=msg, albumid=albumid) #albumid to allow return
 
 
 @web_site.route('/editalbum', methods=['GET', 'POST'])
 def editalbum():
-    if "username" not in session:
-        return redirect("/login")
+    if "username" not in session: # if no user is logged in
+        return redirect("/login") #redirect to login page
 
-    albumid = request.args.get('id')
-    username = session["username"]
+    albumid = request.args.get('id') #get the album that is wanted to be edited
+    username = session["username"] #get the user that is logged in
     con = sqlite3.connect('database.db')
-    msg = ""
+    msg = "" #default to empty
     msg2 = ""
-    sql = "SELECT user FROM Posts WHERE id = ?"
+    sql = "SELECT user FROM Posts WHERE id = ?" #get the user that created the album
     cursor = con.cursor()
     cursor.execute(sql, (albumid,))
     getuser = cursor.fetchone()
-    if not getuser:
-        return render_template('404.html')
-    if getuser[0] != username:
-        return render_template('404.html')
+    if not getuser: # if there is no user associated with the album, then it doesn't exist
+        return render_template('404.html') #redirect to error page
+    if getuser[0] != username: #if the user that's logged in doesn't match the user that created the album
+        return render_template('404.html') #redirect to error page
 
     con.row_factory = sqlite3.Row
-    sql = "SELECT * FROM Posts WHERE id = ?"
+    sql = "SELECT * FROM Posts WHERE id = ?" #select all info about the album
     cursor = con.cursor()
     cursor.execute(sql, (albumid,))
     rows = cursor.fetchall()
     if request.method == "POST":
-        if "cancel" in request.form:
-            return redirect(url_for('viewalbum', id=albumid))
+        if "cancel" in request.form: #if cancel clicked, discard any changes
+            return redirect(url_for('viewalbum', id=albumid)) #redirect to the viewalbum page
 
-        description = request.form["description"]
+        description = request.form["description"] #get the new description
         description = moderate(description)
-        text = request.form["text"]
+        text = request.form["text"] #get the new title
         text = moderate(text)
-        if text != "":
-            if description == "":
+        if text != "": #if the title isnt empty
+            if description == "": # if the description is empty, set it to untitled
                 description = "Untitled"
             con = sqlite3.connect('database.db')
-            sql = "SELECT id FROM Posts WHERE user = ? AND text = ? AND album = 'True'"
+            sql = "SELECT id FROM Posts WHERE user = ? AND text = ? AND album = 'True'" #check if an album (Created by this user) with the new name already exists
             cursor = con.cursor()
             cursor.execute(sql, (username, text,))
             getunid = cursor.fetchone()
 
-            if getunid is None:
+            if getunid is None: #if the album title is unique
                 con = sqlite3.connect('database.db')
-                sql = "UPDATE Posts SET descr = ?, text = ? WHERE id = ?"
+                sql = "UPDATE Posts SET descr = ?, text = ? WHERE id = ?" #update the record in the posts table
                 cursor = con.cursor()
                 cursor.execute(sql, (description, text, albumid,))
                 con.commit()
-                return redirect(url_for('viewalbum', id=albumid))
+                return redirect(url_for('viewalbum', id=albumid)) #redirect back to the view album page
             else:
-                msg = "Cannot have duplicate album names"
+                msg = "Cannot have duplicate album names" #if the name already exists (for the user), provide error message
         else:
-            msg2 = "Do not leave title blank"
+            msg2 = "Do not leave title blank" #if the title is left blank
     return render_template("editalbum.html", rows=rows, albumid=albumid, msg=msg, msg2=msg2)
 
 
@@ -1217,11 +1217,6 @@ def CheckWithinRadius(dict):
     chosenlng = session.get('filterlng')  # gets the lng the chose
     radius = session.get('radius')  # gets the radius they chose
 
-    if radius == None:
-        radius = 6371000
-    if chosenlat == None or chosenlng == None:
-        chosenlat = 52.000000
-        chosenlng = -2.5000000
     for i in dict:
         postlat = float(dict[i][0])  # lat of each post
         postlng = float(dict[i][1])  # lng of each post
@@ -1367,7 +1362,7 @@ def recommendation(username):
         if lnglat2 is not None:
             if lnglat2[0] is not None and lnglat2[1] is not None:
                 latlngtup2 = []
-                latlngtup2.append(lnglat2[0])  # add it to a tuple so its in the format (51.2323, -2.121)
+                latlngtup2.append(lnglat2[0])  # add it to a list so its in the format [51.2323, -2.121]
                 latlngtup2.append(lnglat2[1])
                 allpostsdict[i] = latlngtup2
     radius = 15000  # sets a radius of 15000 around each post
@@ -1570,7 +1565,7 @@ def recommendation(username):
     if lnglat4 is not None:
         if lnglat4[0] is not None and lnglat4[1] is not None:
             latlngtup4 = []
-            latlngtup4.append(lnglat4[0])  # add it to a tuple so its in the format (51.2323, -2.121)
+            latlngtup4.append(lnglat4[0])  # add it to a list so its in the format [51.2323, -2.121]
             latlngtup4.append(lnglat4[1])
             lnglatlist.append(latlngtup4)
     # get your latlng ^
@@ -1581,7 +1576,7 @@ def recommendation(username):
     for row in cursor.fetchall():
         if row[0] != None and row[1] != None:
             latlngtup2 = []
-            latlngtup2.append(row[0])  # add it to a tuple so its in the format (51.2323, -2.121)
+            latlngtup2.append(row[0])  # add it to a list so its in the format [51.2323, -2.121]
             latlngtup2.append(row[1])
             allpostsdict[row[2]] = latlngtup2
     radius = 15000  # sets a radius of 15000 around user
@@ -1679,12 +1674,12 @@ def error404(error):
 
 @web_site.route('/recommended', methods=['GET', 'POST'])
 def recommended():
-    if "username" not in session:
-        return redirect("/login")
+    if "username" not in session: #if no user is logged in
+        return redirect("/login") #redirect to login page
 
-    msg = ""
-    username = session["username"]
-    postids = recommendation(username)
+    msg = "" #default to empty
+    username = session["username"] #get the user that is logged in
+    postids = recommendation(username) #call the recommendation function, passing through ONLY the username and receive a list of post ids in order of relevance
     con = sqlite3.connect('database.db')
     con.row_factory = sqlite3.Row
     cursor = con.cursor()
@@ -1699,27 +1694,26 @@ def recommended():
         if postresult:
             postinfo.append(postresult)  # add to a list of all posts
 
-    if postinfo == []:
-        msg = "This does not exist"
+    if postinfo == []: #if somehow, no posts were recommended (not possible unless no posts on the whole site)
+        msg = "This does not exist" #provide error message
     return render_template("recommended.html", rows=postinfo, username=username, msg=msg)
 
 
-def sortdatetimefunc(listofpostids):
+def sortdatetimefunc(listofpostids): #takes in a list of ids
     datetimedict = {}
     unsortedpostids = []
     sorteddatetime = {}
-    for i in listofpostids:
+    for i in listofpostids: #iterate through the ids
         con = sqlite3.connect('database.db')
         cursor = con.cursor()
         sql = "SELECT timeposted FROM Posts WHERE id = ?"  # go through every post and get datetime of each
         cursor.execute(sql, (i,))
         getdatetime = cursor.fetchone()
-        if getdatetime is not None:
-            if getdatetime[0] != "N/A":
-                getdatetime = datetime.strptime(getdatetime[0], "%d/%m/%y %H:%M")
+        if getdatetime is not None: #if it has a datetime
+            if getdatetime[0] != "N/A": #and that datetime is not "N/A"
+                getdatetime = datetime.strptime(getdatetime[0], "%d/%m/%y %H:%M") #confirm format
                 formatdattimetotal = formatdattime(getdatetime)  # gets how many seconds ago it was taken
-                datetimedict[
-                    i] = formatdattimetotal  # adds the seconds value to a dictionary with the key being the post id (i)
+                datetimedict[i] = formatdattimetotal  # adds the seconds value to a dictionary with the key being the post id (i)
                 sorteddatetime = sortdatetime(datetimedict)  # sorts it
             else:
                 unsortedpostids.append(i)  # adds posts with no date and time to a seperate list
@@ -1732,45 +1726,45 @@ def sortdatetimefunc(listofpostids):
     return sortedpostids2
 
 
-def sortpopularity(listofpostids):
+def sortpopularity(listofpostids): #takes in a list of ids
     likesdict = {}
     sortlikes = {}
     for i in listofpostids:
         con = sqlite3.connect('database.db')
         cursor = con.cursor()
-        sql = "SELECT likes FROM Posts WHERE id = ?"
+        sql = "SELECT likes FROM Posts WHERE id = ?" #gets the like count of each post
         cursor.execute(sql, (i,))
         getlikes = cursor.fetchone()
-        likesdict[i] = getlikes[0]  # adds the seconds value to a dictionary with the key being the post id (i)
+        likesdict[i] = getlikes[0]  # adds the like value to a dictionary with the dictionary value being the post id (i)
         sortlikes = sortdatetime(likesdict)  # sorts it (able to use other func as not actually specific to datetime)
         # only sort likes as if you have many likes and many dislikes, its got lots of interaction so must be popular
 
     sortedpostids2 = []
     for i in sortlikes:
-        sortedpostids2.append(i[0])  # adds all the post ids (removing the datetime)
-    return sortedpostids2[::-1]
+        sortedpostids2.append(i[0])  # adds all the post ids (removing the likecount)
+    return sortedpostids2[::-1] #go from high to low
 
 
 @web_site.route('/allposts', methods=['GET', 'POST'])
 def listallposts():
-    if "username" not in session:
-        return redirect("/login")
+    if "username" not in session: #if no user is logged in
+        return redirect("/login") #redirect to login page
 
-    msg = ""
-    username = session["username"]
-    listofpostids = []
-    getallalbumids = []
-    filtered = False
+    msg = "" #default to empty
+    username = session["username"] #get the user that is logged in
+    listofpostids = [] #set to empty
+    getallalbumids = [] #set to empty
+    filtered = False #Set filtered to False
     con = sqlite3.connect('database.db')
     con.row_factory = sqlite3.Row
     cursor = con.cursor()
-    sql = "SELECT id FROM Posts WHERE privacy = 'public'"  # gets every postid
+    sql = "SELECT id FROM Posts WHERE privacy = 'public'"  # gets every public postid in a list
     cursor.execute(sql)
     for row in cursor.fetchall():
         listofpostids.append(row[0])
     con.row_factory = sqlite3.Row
     cursor = con.cursor()
-    sql = "SELECT id FROM Posts WHERE album = 'True'"  # gets every postid
+    sql = "SELECT id FROM Posts WHERE album = 'True' AND privacy = 'public'"  # gets every public albumid in a list
     cursor.execute(sql)
     for row in cursor.fetchall():
         getallalbumids.append(row[0])
@@ -1780,40 +1774,40 @@ def listallposts():
         sql = "SELECT lat, lng FROM Posts WHERE id = ?"  # go through every post and get lat lng of each
         cursor.execute(sql, (i,))
         lnglat = cursor.fetchone()
-        if lnglat is not None:
-            if lnglat[0] is not None and lnglat[1] is not None:
+        if lnglat is not None: #if there is a lat lng
+            if lnglat[0] is not None and lnglat[1] is not None: #if both lat and lng exist
                 latlngtup = []
-                latlngtup.append(lnglat[0])  # add it to a tuple so its in the format (51.2323, -2.121)
+                latlngtup.append(lnglat[0])  # add it to a list so its in the format [51.2323, -2.121]
                 latlngtup.append(lnglat[1])
-                lnglatdict[i] = latlngtup  # add this tuple to a dictionary with the key as the post id
+                lnglatdict[i] = latlngtup  # add this list to a dictionary with the key as the post id
 
-    if "sortedpostids" in session:
-        if session['sortedpostids'] == []:  # if filtered post is emptied than no filter is active so use all posts
-            sortedpostids = sortdatetimefunc(listofpostids)  # filtered set to false as default so no need to set again
+    if "sortedpostids" in session: #if not first time loading the page
+        if session['sortedpostids'] == []:  # if filtered post is emptied than no filter is active so show all posts (sorted chronologically)
+            sortedpostids = sortdatetimefunc(listofpostids)
 
         else:
-            sortedpostids = session['sortedpostids']  # if there is a filter active then set filtered to true
+            sortedpostids = session['sortedpostids']  # if there is a filter active then set filtered to true and set the list of posts to what was sorted
             filtered = True
 
     else:
         sortedpostids = sortdatetimefunc(listofpostids)  # else if it is there first time loggin on then use all posts
-        session['sortedpostids'] = []
+        session['sortedpostids'] = [] #set the session to empty
 
     if request.method == "POST":
-        selected_option = request.form['selected_option']
-        checkboxposts = request.form.get('posts')
-        checkboxalbums = request.form.get('albums')
-        if "unfilter" in request.form:
+        selected_option = request.form['selected_option'] #get the sorted option
+        checkboxposts = request.form.get('posts') #if they want to filter posts
+        checkboxalbums = request.form.get('albums') #if they want to filter albums
+        if "unfilter" in request.form: #if they click unfilter
             session['sortedpostids'] = []  # so when the page is reloaded, it tells the bit above that no filter is set
             return redirect(url_for('listallposts'))
 
-        if "filter" in request.form:
-            filtered = True
-            slidervalue = int(request.form['slidervalue'])
-            insideposts = CheckWithinRadius(lnglatdict)
+        if "filter" in request.form: #if they click filter
+            filtered = True #set filter to true
+            slidervalue = int(request.form['slidervalue']) #get the radius of the circle on the map
+            insideposts = CheckWithinRadius(lnglatdict) #get all the posts that are within the radius
 
             for i in getallalbumids:  # makes sure we incl albums (if a post is inside the circle and in an album, give the album too)
-                updatealbumlocation(i)
+                updatealbumlocation(i) #update to ensure location is accurate
                 allpostsdict = {}
                 con = sqlite3.connect('database.db')
                 con.row_factory = sqlite3.Row
@@ -1821,86 +1815,86 @@ def listallposts():
                 sql = """SELECT albums.postid, Posts.lat, Posts.lng
                         FROM albums
                         JOIN Posts ON albums.postid = Posts.id
-                        WHERE albums.albumid = ?"""
+                        WHERE albums.albumid = ?""" #get all the lng/lat of each post within each album
                 cursor.execute(sql, (i,))
                 for row in cursor.fetchall():
                     lat = row['lat']
                     lng = row['lng']
                     if lat is not None and lng is not None:
-                        lnglatlist = []
-                        lnglatlist.append(lat, )
+                        lnglatlist = [] #temp list
+                        lnglatlist.append(lat)
                         lnglatlist.append(lng)
-                        allpostsdict[i] = lnglatlist
-                postalbuminside = CheckWithinRadius(allpostsdict)
-                if postalbuminside != []:
-                    insideposts.append(i)
+                        allpostsdict[i] = lnglatlist #add to dictionary with album id and each post's lng lat
+                postalbuminside = CheckWithinRadius(allpostsdict) #check if any of the posts in the album are within the radius
+                if postalbuminside != []: #if there are actually posts inside
+                    insideposts.append(i) #add the album to the list of posts inside the radius
 
-            if checkboxposts != None or checkboxalbums != None:  # if at least one is clicked (slider could be)
+            if checkboxposts != None or checkboxalbums != None:  # if at least one checkbox is clicked (slider could be)
                 sortedpostids2 = []
-                if checkboxalbums != None and checkboxposts == None:  # if only albums is clicked (slider could be)
+                if checkboxalbums != None and checkboxposts == None:  # if only albums checkbox is clicked (slider could be)
                     con = sqlite3.connect('database.db')
                     con.row_factory = sqlite3.Row
                     cursor = con.cursor()
-                    sql = "SELECT id FROM Posts WHERE album = 'True' AND privacy = 'public'"
+                    sql = "SELECT id FROM Posts WHERE album = 'True' AND privacy = 'public'" #get all the public albums
                     cursor.execute(sql)
                     con.commit()
                     rows = cursor.fetchall()
                     sortedpostids = []
                     for row in rows:
                         sortedpostids.append(row[0])
-                    sortedpostids = sortdatetimefunc(sortedpostids)
-                    session['sortedpostids'] = sortedpostids
+                    sortedpostids = sortdatetimefunc(sortedpostids) #sort based on datetime
+                    session['sortedpostids'] = sortedpostids #add to session so is shown when page reloaded
 
 
-                elif checkboxposts != None and checkboxalbums == None:  # if only posts is clicked (slider could be)
+                elif checkboxposts != None and checkboxalbums == None:  # if only posts checkbox is clicked (slider could be)
                     con = sqlite3.connect('database.db')
                     con.row_factory = sqlite3.Row
                     cursor = con.cursor()
-                    sql = "SELECT id FROM Posts WHERE album IS NULL AND privacy = 'public'"
+                    sql = "SELECT id FROM Posts WHERE album IS NULL AND privacy = 'public'" #get all public posts
                     cursor.execute(sql)
                     con.commit()
                     rows = cursor.fetchall()
                     sortedpostids = []
                     for row in rows:
                         sortedpostids.append(row[0])
-                    sortedpostids = sortdatetimefunc(sortedpostids)
-                    session['sortedpostids'] = sortedpostids
-                if slidervalue > 0:
-                    for i in sortedpostids:
+                    sortedpostids = sortdatetimefunc(sortedpostids) #sort based on datetime
+                    session['sortedpostids'] = sortedpostids #add to session
+                if slidervalue > 0: #if slider is used
+                    for i in sortedpostids: #if the sortedpost is also in the list of posts within the radius, add to another list
                         if i in insideposts:
                             sortedpostids2.append(i)
                     sortedpostids = sortedpostids2
-                    session['sortedpostids'] = sortedpostids
+                    session['sortedpostids'] = sortedpostids #add to session
 
             elif checkboxposts == None and checkboxalbums == None:  # if neither are clicked (slider could be)
-                sortedpostids = insideposts
-                session['sortedpostids'] = sortedpostids
-                sortedpostids = sortdatetimefunc(sortedpostids)
+                sortedpostids = insideposts #show only stuff in the radius
+                session['sortedpostids'] = sortedpostids #add to session
+                sortedpostids = sortdatetimefunc(sortedpostids) #sort for later use
             elif checkboxposts != None and checkboxalbums != None:  # if both are clicked (slider could be)
-                sortedpostids = insideposts
+                sortedpostids = insideposts #techincally they have chosen all so just show the stuff inside the radius
                 session['sortedpostids'] = sortedpostids
-                sortedpostids = sortdatetimefunc(sortedpostids)
+                sortedpostids = sortdatetimefunc(sortedpostids) #sort for later use
             if checkboxposts == None and checkboxalbums == None and slidervalue == 0:  # absolutely nothing selected
-                session['sortedpostids'] = []
+                session['sortedpostids'] = [] #set session to empty to indicate no filter chosen
                 return redirect(url_for('listallposts'))
-        if "sort" in request.form:
-            if session['sortedpostids'] != []:
-                sortedpostids = session['sortedpostids']
+        if "sort" in request.form: #if they have clicked sort
+            if session['sortedpostids'] != []: #if there are posts loaded
+                sortedpostids = session['sortedpostids'] #get the posts that are loaded
             if selected_option == "Newest":
-                sortedpostids = sortdatetimefunc(sortedpostids)
-                sortedpostids = sortedpostids  # sorted posts
+                sortedpostids = sortdatetimefunc(sortedpostids) #sort newest to oldest
+                sortedpostids = sortedpostids  # sorted posts remain same order
             elif selected_option == "Oldest":
-                sortedpostids = sortdatetimefunc(sortedpostids)
-                sortedpostids = sortedpostids[::-1]
+                sortedpostids = sortdatetimefunc(sortedpostids) #sort newest to oldest
+                sortedpostids = sortedpostids[::-1] #reverse
             elif selected_option == "Popularity":
-                sortedpostids = sortpopularity(sortedpostids)
+                sortedpostids = sortpopularity(sortedpostids) #sort based on popularity
 
     postinfo = []
-    for postid2 in sortedpostids:
+    for postid2 in sortedpostids: #sortedpostids is the posts we want to show
         sql = """SELECT Posts.*, Accounts.pfp
                      FROM Posts
                      JOIN Accounts ON Accounts.username = Posts.user
-                     WHERE Posts.id = ?"""  # get the info about each post in the list
+                     WHERE Posts.id = ?"""  # get the info about each post in the list and the user who created's profile pic
         cursor.execute(sql, (postid2,))
         postresult = cursor.fetchone()
         if postresult:
@@ -1912,17 +1906,17 @@ def listallposts():
         lnglat = cursor.fetchone()
         if lnglat is not None:
             if lnglat[0] is not None and lnglat[1] is not None:
-                latlng = []
-                latlng.append(lnglat[0])  # add it to a tuple so its in the format (51.2323, -2.121)
+                latlng = [] #temp lnglat list
+                latlng.append(lnglat[0])  # add it to a list so its in the format [51.2323, -2.121]
                 latlng.append(lnglat[1])
-                latlng.append(i)
-                if lnglat[2] == "True":
+                latlng.append(i) #append the id of the post
+                if lnglat[2] == "True": #if the post is an album, add a True to the list to identify in the HTML
                     latlng.append("True")
                 else:
-                    latlng.append("False")
-                latlnglist.append(latlng)
+                    latlng.append("False") #if not an album, indiciate with a False
+                latlnglist.append(latlng) #a separate list for the lng lat list with the id
     if not postinfo:
-        msg = "No results found. It's Hard to Explain..."
+        msg = "No results found. It's Hard to Explain..." #if no posts or albums, give error message
 
     return render_template("allposts.html", rows=postinfo, username=username, filtered=filtered, latlnglist=latlnglist,
                            msg=msg)
@@ -1930,27 +1924,26 @@ def listallposts():
 
 @web_site.route('/friends', methods=['GET', 'POST'])
 def friends():
-    if "username" not in session:
-        return redirect("/login")
+    if "username" not in session: #if no user is logged in
+        return redirect("/login") #redirect to login page
 
-    msg = ""
-    username = session["username"]
+    msg = "" #default to empty
+    username = session["username"] #get the user that is logged in
     con = sqlite3.connect('database.db')
     con.row_factory = sqlite3.Row
     cursor = con.cursor()
-
     sql = """
     SELECT 
     Posts.*, Accounts.pfp
     FROM Posts
     JOIN Accounts ON Accounts.username = Posts.user
     LEFT JOIN friendrequests ON Posts.user = friendrequests.userreceive
-    WHERE friendrequests.usersend = ? AND friendrequests.status = 2"""
+    WHERE friendrequests.usersend = ? AND friendrequests.status = 2""" #get all the posts and their info as well as the account pfp of the post creator
     cursor.execute(sql, (username,))
     con.commit()
     rows = cursor.fetchall()
 
-    if rows == []:
+    if rows == []: #if no info found, give error message
         msg = "No posts found"
     return render_template("friends.html", rows=rows, msg=msg)
 
@@ -3012,49 +3005,49 @@ def editpost():
 
 @web_site.route('/deletealbum', methods=['GET', 'POST'])
 def deletealbum():
-    if "username" not in session:
-        return redirect("/login")
+    if "username" not in session: #if no user is logged in
+        return redirect("/login") #redirect to login page
 
-    username = session["username"]
-    albumid = request.args.get('id')
+    username = session["username"] #get the user that is logged in
+    albumid = request.args.get('id') #get the album that is wanted to be deleted
 
     con = sqlite3.connect('database.db')
-    sql = "SELECT user FROM Posts WHERE id = ?"
+    sql = "SELECT user FROM Posts WHERE id = ?" #select the user that created the album
     cursor = con.cursor()
     cursor.execute(sql, (albumid,))
     getuser = cursor.fetchone()
 
-    if not getuser:
-        return render_template('404.html')
-    if getuser[0] != username:
-        return render_template('404.html')
+    if not getuser: #if there is no user associated with the id, the album does not exist
+        return render_template('404.html') #redirect to error page
+    if getuser[0] != username: #if the logged in user does not match the user that created the album
+        return render_template('404.html') #redirect to error page
 
-    deleted = False
+    deleted = False #set deleted to false
 
     if request.method == "POST":
-        if "yes" in request.form:
+        if "yes" in request.form: #if they are certain they want to delete the album
             con = sqlite3.connect('database.db')
             con.row_factory = sqlite3.Row
-            sql = "DELETE FROM Posts WHERE id = ?"
+            sql = "DELETE FROM Posts WHERE id = ?" #delete record in posts
             cursor = con.cursor()
             cursor.execute(sql, (albumid,))
             con.commit()
 
             con.row_factory = sqlite3.Row
-            sql = "DELETE FROM albums WHERE albumid = ?"
+            sql = "DELETE FROM albums WHERE albumid = ?" #delete all records of posts that are in that album
             cursor = con.cursor()
             cursor.execute(sql, (albumid,))
             con.commit()
 
             con.row_factory = sqlite3.Row
-            sql = "DELETE FROM savedposts WHERE savedpostid = ?"
+            sql = "DELETE FROM savedposts WHERE savedpostid = ?" #delete any instances where the album was saved
             cursor = con.cursor()
             cursor.execute(sql, (albumid,))
             con.commit()
 
-            deleted = True
-        elif "no" in request.form:
-            return redirect(url_for('viewalbum', id=albumid))
+            deleted = True #set deleted to true
+        elif "no" in request.form: #if they dont want to delete the album
+            return redirect(url_for('viewalbum', id=albumid)) #redirect back to view album
     return render_template("deletealbum.html", deleted=deleted)
 
 
@@ -3207,34 +3200,34 @@ def deleteaccount():
 
 @web_site.route('/deletepost', methods=['GET', 'POST'])
 def deletepost():
-    if "username" not in session:
-        return redirect("/login")
+    if "username" not in session: #if there is no user logged in
+        return redirect("/login") #redirect to login page
 
-    username = session["username"]
-    postid = request.args.get('id')
+    username = session["username"] #get the user that is logged in
+    postid = request.args.get('id') #get the post id that is wanted to be deleted
 
     con = sqlite3.connect('database.db')
-    sql = "SELECT user FROM Posts WHERE id = ?"
+    sql = "SELECT user FROM Posts WHERE id = ?" #get the user that posted the post
     cursor = con.cursor()
     cursor.execute(sql, (postid,))
     getuser = cursor.fetchone()
-    if not getuser:
-        return render_template('404.html')
-    if getuser[0] != username:
+    if not getuser: #if there is no user associated with the post id, the post does not exist (in the case of manual entry)
+        return render_template('404.html') #redirect to error page
+    if getuser[0] != username: #if the logged in user does not match the user that posted the post, redirect to error page
         return render_template('404.html')
 
-    deleted = False
+    deleted = False #set deleted state to False
     if request.method == "POST":
-        if "yes" in request.form:
+        if "yes" in request.form: #if the user is certain they want to delete the post
             con = sqlite3.connect('database.db')
-            sql = "Select filename FROM Posts WHERE id = ?"
+            sql = "Select filename FROM Posts WHERE id = ?" #get the filename of the image associated with the post
             cursor = con.cursor()
             cursor.execute(sql, (postid,))
             getfilename = cursor.fetchone()
-            filename = getfilename[0]
+            filename = getfilename[0] #remove from tuple form
             os.remove(os.path.join(web_site.root_path, 'static', 'UploadedPhotos', filename))  # deletes the file
 
-            listofalbumids = []
+            listofalbumids = [] #get all the albums the photo was in (in a list)
             con.row_factory = sqlite3.Row
             cursor = con.cursor()
             sql = "SELECT albumid FROM albums WHERE postid = ?"
@@ -3243,48 +3236,49 @@ def deletepost():
             for row in allids:
                 listofalbumids.append(row[0])
 
+            #delete process START
             con = sqlite3.connect('database.db')
             con.row_factory = sqlite3.Row
-            sql = "DELETE FROM Posts WHERE id = ?"
+            sql = "DELETE FROM Posts WHERE id = ?" #delete all info about the post from the Posts table
             cursor = con.cursor()
             cursor.execute(sql, (postid,))
             con.commit()
 
             con.row_factory = sqlite3.Row
-            sql = "DELETE FROM albums WHERE postid = ?"
+            sql = "DELETE FROM albums WHERE postid = ?" #delete any records where the post is in the album
             cursor = con.cursor()
             cursor.execute(sql, (postid,))
             con.commit()
 
             con.row_factory = sqlite3.Row
-            sql = "DELETE FROM photodetails WHERE id = ?"
+            sql = "DELETE FROM photodetails WHERE id = ?" #delete all info about the post from the photodetails table
             cursor = con.cursor()
             cursor.execute(sql, (postid,))
             con.commit()
 
             con.row_factory = sqlite3.Row
-            sql = "DELETE FROM Likes WHERE id = ?"
+            sql = "DELETE FROM Likes WHERE id = ?" #delete any records where the post has been liked
             cursor = con.cursor()
             cursor.execute(sql, (postid,))
             con.commit()
 
             con.row_factory = sqlite3.Row
-            sql = "DELETE FROM Dislikes WHERE id = ?"
+            sql = "DELETE FROM Dislikes WHERE id = ?" #delete any records where the post has been disliked
             cursor = con.cursor()
             cursor.execute(sql, (postid,))
             con.commit()
 
             con.row_factory = sqlite3.Row
-            sql = "DELETE FROM savedposts WHERE savedpostid = ?"
+            sql = "DELETE FROM savedposts WHERE savedpostid = ?" #delete any records where the post has been saved
             cursor = con.cursor()
             cursor.execute(sql, (postid,))
             con.commit()
 
-            for i in listofalbumids:
+            for i in listofalbumids: #update the album location of any albums the post was in (location and avg like would have changed)
                 updatealbumlocation(i)
 
-            deleted = True
-        elif "no" in request.form:
+            deleted = True #set deleted to true
+        elif "no" in request.form: #if they dont want to delete the post, take them back to the viewpost page
             return redirect(url_for('viewpost', id=postid))
     return render_template("deletepost.html", deleted=deleted)
 
@@ -3315,9 +3309,8 @@ def savedposts():
 
 @web_site.route('/search')
 def search():
-    if "username" not in session:
-        return redirect("/login")
-
+    if "username" not in session: #if no user is logged in
+        return redirect("/login") #redirect to login page
     return render_template("search.html")
 
 
@@ -3325,7 +3318,6 @@ def search():
 def create():
     if "username" not in session:
         return redirect("/login")
-
     return render_template("create.html")
 
 
@@ -3339,13 +3331,13 @@ def helppage():
 
 @web_site.route('/ajaxsearchposts/<search>')
 def ajaxsearchposts(search):
-    search = search.replace("%20", " ")
-    msg = ""
-    username = session["username"]
+    search = search.replace("%20", " ") #any spaces have been encoded as %20 so revert back to spaces
+    msg = "" #default to empty
+    username = session["username"] #get the user that is logged in
     con = sqlite3.connect('database.db')
     con.row_factory = sqlite3.Row
     cursor = con.cursor()
-
+    #sql statement to select the correct posts
     sql = '''
       SELECT DISTINCT Posts.*, Accounts.pfp
       FROM Posts
@@ -3362,26 +3354,25 @@ def ajaxsearchposts(search):
     newrows = []
     for row in rows:
         rowdict = dict(row)
-        rowdict['type'] = 'post'
+        rowdict['type'] = 'post' #add an identifier to distinguish between a user and a post
         newrows.append(rowdict)
     sql = '''
        SELECT username, pfp
        FROM Accounts
-       WHERE username LIKE ?'''
+       WHERE username LIKE ?''' #this second sql statement selects any users where their username is similar to what has been searched
     cursor.execute(sql, ('%' + search + '%',))
     con.commit()
     rows2 = cursor.fetchall()
     newrows2 = []
     for row in rows2:
         rowdict = dict(row)
-        rowdict['type'] = 'user'
+        rowdict['type'] = 'user' #add an identifier to distinguish between a user and a post
         newrows2.append(rowdict)
 
-    newrows += newrows2
+    newrows += newrows2 #add the two rows together
 
     if newrows == []:
-        msg = "No results found"
-
+        msg = "No results found" #if nothing found, give error message
     return render_template('ajaxsearchposts.html', rows=newrows, username=username, msg=msg)
 
 

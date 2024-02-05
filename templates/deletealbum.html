@@ -1,24 +1,14 @@
 {% extends 'base.html' %}
 {% block content %}
 
-
-{% if not deleted %}
-      
-      
-  <h3>Are you sure you want to delete this album?</h3>
+{% if not deleted %} <!-- if deleted state if False-->
+  <h3>Are you sure you want to delete this album?</h3> <!-- make sure the user definitely wants to delete the ablum -->
   <form method="POST">
     <input type="submit" value="Yes" name="yes"> <input type="submit" value="No" name="no">
-    
   </form>
-
 {% else %}
-  <h3>Album deleted</h3>
+  <h3>Album deleted</h3> <!-- if deleted state if True, provide message and option to return to account page -->
   <a href="/account" class="linkbutton">Return to account</a>
-  
 
 {% endif %}
-
-
-
-
 {% endblock %}

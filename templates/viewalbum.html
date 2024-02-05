@@ -34,14 +34,14 @@
 <div class="userlink">
 {% for row in userrows %}
     {% if row[0] != username %}
-        <a href="/viewaccount?id={{row[0]}}" style="display: flex; align-items: center;">
+        <a href="/viewaccount?id={{row[0]}}" style="display: flex; align-items: center;"> <!-- if the user viewing does not match the user who posted, if the username / pfp is clicked, redirect to view account-->
             <img src="{{ url_for('static', filename='ProfilePictures/' + row[9]) }}" alt="Image">
-            <span>{{row[0]}}</span>
+            <span>{{row[0]}}</span> <!-- username -->
         </a>
     {% else %}
-        <a href="/account" style="display: flex; align-items: center;">
+        <a href="/account" style="display: flex; align-items: center;"> <!-- if you are viewing your own album, redirect to account if the username / pfp is clicked -->
             <img src="{{ url_for('static', filename='ProfilePictures/' + row[9]) }}" alt="Image">
-            <span>{{row[0]}}</span>
+            <span>{{row[0]}}</span> <!-- username -->
         </a>
     {% endif %}
 {% endfor %}
@@ -49,31 +49,31 @@
 
 {% for row2 in rows2 %}
   <div class="text-container">
-    <h2>{{row2['text']}} </h2>
+    <h2>{{row2['text']}} </h2> <!-- title-->
 
-    <h3>{{row2['descr']}}</h3>
+    <h3>{{row2['descr']}}</h3> <!-- description -->
   </div>
 <form method="POST">
-  {% if checksaved == False %}
-    <p><input type="submit" value="Save" name="save"></p>
+  {% if checksaved == False %} <!-- check if the viewing user has saved it -->
+    <p><input type="submit" value="Save" name="save"></p> <!-- if they haven't, the save button should be displayed-->
   {% else %}
-    <p><input type="submit" value="Unsave" name="unsave"></p>
+    <p><input type="submit" value="Unsave" name="unsave"></p> <!-- if they have saved it before, the unsave button should be displayed-->
   {% endif %}
 </form>
   {% if row2["timeposted"][-5:] == "12:51" %}
         <h4>Posted at: {{row2["timeposted"]}} ;)</h4><br><br>
   {% else %}
-        <h4>Posted at: {{row2["timeposted"]}}</h4><br><br>
+        <h4>Posted at: {{row2["timeposted"]}}</h4><br><br> <!-- show the timeposted -->
   {% endif %}
   
-  {% if getalbumuser == username %}
+  {% if getalbumuser == username %} <!-- if you are viewing your own album, you have the permission to edit/delete the album -->
     <a href="/editalbum?id={{row2['id']}}" class="linkbuttonsmall">Edit</a>
     <a href="/deletealbum?id={{row2['id']}}" class="linkbuttonsmall">Delete</a>
     <br>
     <br>
   {% endif %}
   {% if not rows %}
-    <h3 style="color: red;">Empty. Is This It...?</h3>
+    <h3 style="color: red;">Empty. Is This It...?</h3> <!-- if the album has no posts in it, provide a message-->
   {% endif %}
 
 
@@ -81,57 +81,54 @@
   <div id="map" style="height: 600px;" class="map-container-big"></div>
   <script>
         var map;
-        var filenames = {{ filenames | tojson | safe }};
+        var filenames = {{ filenames | tojson | safe }}; //get the filenames (needs to be converted to json and marked as safe)
         var imagesize = {{ imagesize | tojson | safe }};
 
-        function calcheight(width, height) {
+        function calcheight(width, height) { //calc the image aspect ratio which is the width /height
           var aspectratio = width / height;
-          return (50 / aspectratio);
+          return (50 / aspectratio); //since each image should have a fixed width of 50, multiplying the width by the aspect ratio gets the custom height for each image (allows for proper resizing without distortion)
         }
 
 
-        function initMap() {
-            var lnglatpoints = {{ lnglatpoints | tojson | safe }};
+        function initMap() { //create map
+            var lnglatpoints = {{ lnglatpoints | tojson | safe }}; //the points of each marker in a list
             map = new google.maps.Map(document.getElementById('map'), {
-                center: { lat: {{ row2['lat'] }}, lng: {{ row2['lng'] }} },
+                center: { lat: {{ row2['lat'] }}, lng: {{ row2['lng'] }} }, //centre around the calculated average location of the album (func in python)
                 zoom: 2
             });
 
             var points = [];
 
-            for (var i = 0; i < lnglatpoints.length; i++) {
+            for (var i = 0; i < lnglatpoints.length; i++) { //iterate through each point
                 points.push({
-                    lat: parseFloat(lnglatpoints[i][0]),
+                    lat: parseFloat(lnglatpoints[i][0]), //get a list of each lat and lng
                     lng: parseFloat(lnglatpoints[i][1])
                 });
 
-                var width = imagesize[i][1]
-                var height = imagesize[i][0]
-                let postid = lnglatpoints[i][2]
+                var width = imagesize[i][1] //get the file width
+                var height = imagesize[i][0] //get the file height
+                let postid = lnglatpoints[i][2] //get the post id
 
-                var marker = new google.maps.Marker({
+                var marker = new google.maps.Marker({ //for each point, place a marker at its location
                 position: { lat: points[i].lat, lng: points[i].lng },
                 map: map,
-                icon: {
+                icon: { //each marker has an icon of the image that is associated with its location
                     url: "/static/UploadedPhotos/" + filenames[i],
-                    scaledSize: new google.maps.Size(50,calcheight(width,height))
+                    scaledSize: new google.maps.Size(50,calcheight(width,height)) // custom height calc above
                 }
                 });
-
-                marker.addListener('click', function () {
+                marker.addListener('click', function () { //if a marker is clicked, redirect to the viewpost page for that id
                     window.location.href = "/viewpost?id=" + postid;
                 });
             }
-
-            var line = new google.maps.Polyline({
+            var line = new google.maps.Polyline({ //draw a red line between each of the points
                 path: points,
                 geodesic: true,
                 strokeColor: '#FF0000',
                 strokeOpacity: 1.0,
                 strokeWeight: 2
             });
-
-            line.setMap(map);
+            line.setMap(map); //draw the line
         }
   </script>
   <script async defer
@@ -141,28 +138,28 @@
       
 
 <br>
-  <div class="image-grid">
+  <div class="image-grid"> <!-- below the map, each post that features in that album should be displayed-->
     {% if rows %}
       {% for row in rows %}
       <div class="image-item">
         <div class="image-title">
-          {% if row["user"] != username %}
-            <a href="/viewaccount?id={{row['user']}}" style="display: flex; align-items: center;">
+          {% if row["user"] != username %} <!-- if the user did not create the album they are viewing-->
+            <a href="/viewaccount?id={{row['user']}}" style="display: flex; align-items: center;"> <!-- if the username/pfp above each post is clicked, redirect to viewaccount -->
                 <img src="{{ url_for('static', filename='ProfilePictures/' + row['pfp']) }}" alt="Image" class="rounded-image-small">
-                <span>{{row["user"]}}</span>
+                <span>{{row["user"]}}</span> <!-- username -->
             </a>
           {% else %}
-            <a href="/account" style="display: flex; align-items: center;">
+            <a href="/account" style="display: flex; align-items: center;"> <!-- if the user is viewing their own album and they click the pfp/username redirect to account page-->
                 <img src="{{ url_for('static', filename='ProfilePictures/' + row['pfp']) }}" alt="Image" class="rounded-image-small">
-                <span>{{row["user"]}}</span>
+                <span>{{row["user"]}}</span> <!-- username -->
             </a>
           {% endif %}
 
-          <a href="/viewpost?id={{row['id']}}">
-          <img src="{{ url_for('static', filename='UploadedPhotos/' + row['filename']) }}" loading="lazy" alt="Image" class="scaled-image">
+          <a href="/viewpost?id={{row['id']}}"> <!-- if the image/title etc clicked then redirect to view post page -->
+          <img src="{{ url_for('static', filename='UploadedPhotos/' + row['filename']) }}" loading="lazy" alt="Image" class="scaled-image"> <!-- image -->
           <br>
           <br>
-          {% if row['text']|length > 50 %}
+          {% if row['text']|length > 50 %} <!-- if the title > 50 then truncate -->
             {{ row['text'][:50] }}...</a>
           {% else %}
             {{ row['text'] }}</a>
@@ -171,7 +168,7 @@
 
            <div class="map-container">
             <body>
-              <gmp-map center="{{row['lat']}},{{row['lng']}}" zoom="2" map-id="map">
+              <gmp-map center="{{row['lat']}},{{row['lng']}}" zoom="2" map-id="map"> <!-- below each image for each post, put a map with a marker at location of the post -->
                     <gmp-advanced-marker
                         position="{{row['lat']}},{{row['lng']}}"
                         title="Pin"
@@ -179,24 +176,12 @@
                 </gmp-map>
             </body>
             </div>
-          {% if row2["user"] == username %}
-            {{row2['albumid']}}
-              <a href="/removefromalbum?postid={{row['id']}}&albumid={{row2['id']}}" class="linkbuttonsmall">Remove</a>
+          {% if row2["user"] == username %} <!-- if the user is viewing their own album, they can remove a post from the album with the below button-->
+              <a href="/removefromalbum?postid={{row['id']}}&albumid={{row2['id']}}" class="linkbuttonsmall">Remove</a> <!-- Redirect to remove from album page, add post and album id to url for identification-->
           {% endif %}
-
-
-
-
-
-
-
-
-
       </div>
     </div>
     {% endfor %}
   {% endif %}
 {% endfor %}
-
-
 {% endblock %}

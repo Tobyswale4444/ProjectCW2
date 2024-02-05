@@ -33,23 +33,20 @@
     </style>
 
 <h1>Edit Post</h1>
-<a href ='/viewpost?id={{postid}}' class="linkbuttonsmall">View Post</a>
+<a href ='/viewpost?id={{postid}}' class="linkbuttonsmall">View Post</a> <!-- when editing, option to go back to view post or to delete the post -->
 <a href ='/deletepost?id={{postid}}' class="linkbuttonsmall">Delete Post</a>
 <br><br>
-
-
-
 
 <form method="POST">
     <div class = "photoandmeta">
       <div class="photo-container">
           {% for row in rows %}
-            <img src="{{ url_for('static', filename='UploadedPhotos/' + row['filename']) }}" alt="Image" class="scaled-image-big">
+            <img src="{{ url_for('static', filename='UploadedPhotos/' + row['filename']) }}" alt="Image" class="scaled-image-big"> <!-- show image -->
       </div>
         <div class="meta-container">
             {% for row2 in rows2 %}
                 <h3>Date:</h3>
-                <input type="date" name="date" value='{{date}}'>
+                <input type="date" name="date" value='{{date}}'> <!-- input types with default values of the existing details-->
                 <input type="time" name="time" value='{{time}}'>
                 <h3>Aperture: <input type="text" name="fstop" value='{{row2["fstop"]}}' placeholder="fstop"></h3>
                 <h3>ISO: <input type="number" name="ISO" value='{{row2["ISO"]}}' placeholder="ISO"></h3>
@@ -61,7 +58,7 @@
         </div>
     </div>
 
-        <h3>Add a title</h3>
+        <h3>Add a title</h3> <!-- edit the title and the description, default value the existing title/description-->
         <p><textarea class="textareatitle" name="text" placeholder="Enter text here" maxlength="100">{{row["text"]}}</textarea></p>
         <h3>Add a description</h3>
         <p><textarea class="textareadescr" name="description" placeholder="Enter text here" maxlength="250">{{row["descr"]}}</textarea></p>
@@ -73,7 +70,7 @@
         var map;
             var existingmarker;
 
-            var existinglat = {{row['lat']}};
+            var existinglat = {{row['lat']}}; //get existing lat and lng of post location
             var existinglng = {{row['lng']}};
 
             function initMap() {
@@ -90,14 +87,14 @@
                     title: 'Pin',
                 });
 
-                function sendCoordinates(lat, lng) {
+                function sendCoordinates(lat, lng) { //function to send coords
                     var xmlhttp = new XMLHttpRequest();
                     xmlhttp.open('POST', '/coords', true);
                     xmlhttp.setRequestHeader('Content-Type', 'application/json');
                     xmlhttp.send(JSON.stringify({ lat: lat, lng: lng }));
                 }
 
-                sendCoordinates(existinglat, existinglng);
+                sendCoordinates(existinglat, existinglng); //send coords first in case no changes are made
 
                 map.addListener('click', function (event) {
                     if (existingmarker) {
@@ -111,10 +108,10 @@
                         draggable: true
                     });
 
-                var lat = event.latLng.lat();
+                var lat = event.latLng.lat(); //clicked so update lat and lng
                 var lng = event.latLng.lng();
 
-                sendCoordinates(lat, lng);
+                sendCoordinates(lat, lng); //if click the send new coords to python
             });
         }
     </script>
@@ -122,23 +119,8 @@
 </body>
 
 
-
-    
-
-
-
-
-
-
-  
-        <p><input type="submit" value="Update"> <input type="submit" name="cancel" value="Cancel"></p>
-        <h4>Posted at: {{row["timeposted"]}}</h4>  
-         
+        <p><input type="submit" value="Update"> <input type="submit" name="cancel" value="Cancel"></p> <!-- option to save changes or discard-->
+        <h4>Posted at: {{row["timeposted"]}}</h4>
       {% endfor %}
-
-  
-  
 </form>
-
-
 {% endblock %}

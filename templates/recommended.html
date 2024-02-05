@@ -1,71 +1,56 @@
 {% extends 'base.html' %}
 {% block content %}
 <h1>Recommended</h1>
-
 <head>
   <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCrLn37j2Aln7yh58GPY2AuQIDU3poAgrg&callback=console.debug&libraries=maps,marker&v=beta">
 </script>
 </head>
 
-<h3>{{msg}}</h3>
-
+<h3>{{msg}}</h3> <!-- if no posts found, display message here -->
+<!-- normal display posts code -->
 <div class="image-grid">
   {% for row in rows %}
   <div class="image-item">
     <div class="image-title">
-        {% if row["user"] != username %}
-            <a href="/viewaccount?id={{row['user']}}" style="display: flex; align-items: center;">
-                <img src="{{ url_for('static', filename='ProfilePictures/' + row['pfp']) }}" alt="Image" class="rounded-image-small">
-                <span>{{row["user"]}}</span>
+        {% if row["user"] != username %} <!-- test if the user who posted matches the logged in user, should be possible to add yourself, but just to be safe -->
+            <a href="/viewaccount?id={{row['user']}}" style="display: flex; align-items: center;"><!-- if not your own post, redirect to viewaccount page -->
+                <img src="{{ url_for('static', filename='ProfilePictures/' + row['pfp']) }}" alt="Image" class="rounded-image-small"><!--  profile pic-->
+                <span>{{row["user"]}}</span><!-- username -->
             </a>
         {% else %}
-            <a href="/account" style="display: flex; align-items: center;">
-                <img src="{{ url_for('static', filename='ProfilePictures/' + row['pfp']) }}" alt="Image" class="rounded-image-small">
-                <span>{{row["user"]}}</span>
+            <a href="/account" style="display: flex; align-items: center;"><!--  if it is your post, go to account page-->
+                <img src="{{ url_for('static', filename='ProfilePictures/' + row['pfp']) }}" alt="Image" class="rounded-image-small"><!--  profile pic-->
+                <span>{{row["user"]}}</span><!-- username -->
             </a>
         {% endif %}
-
-
-        {% if row["album"] == "True" %}
+        {% if row["album"] == "True" %}<!-- if it is an album, if clicked go to viewalbum -->
             <a href="/viewalbum?id={{row['id']}}">
             <br>
         {% else %}
-            <a href="/viewpost?id={{row['id']}}">
+            <a href="/viewpost?id={{row['id']}}"><!-- if it is a post, if clicked go to viewpost -->
             <br>
         {% endif %}
 
-        <img src="{{ url_for('static', filename='UploadedPhotos/' + row['filename']) }}" alt="Image" loading="lazy" class="scaled-image">
+        <img src="{{ url_for('static', filename='UploadedPhotos/' + row['filename']) }}" alt="Image" loading="lazy" class="scaled-image"><!-- image -->
             <br>
             <br>
-            {% if row['text']|length > 50 %}
+            {% if row['text']|length > 50 %}<!-- if title too long truncate-->
               {{ row['text'][:50] }}...</a>
             {% else %}
               {{ row['text'] }}</a>
             {% endif %}
-
-
-
-
-
-
-
                  <div class="map-container">
-                 {% if row["album"] != "True" %}
+                 {% if row["album"] != "True" %}<!-- if an album, do not show a map  -->
                   <body>
-                    <gmp-map center="{{row['lat']}},{{row['lng']}}" zoom="2" map-id="map">
+                    <gmp-map center="{{row['lat']}},{{row['lng']}}" zoom="2" map-id="map"> <!-- centre map around the location  -->
                     <gmp-advanced-marker
-                        position="{{row['lat']}},{{row['lng']}}"
+                        position="{{row['lat']}},{{row['lng']}}"<!-- add a marker at the location-->
                         title="Pin"
                     ></gmp-advanced-marker>
                 </gmp-map>
                   </body>
                  {% endif %}
                   </div>
-
-
-
-
-
   </div>
 </div>
   {% endfor %}

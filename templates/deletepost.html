@@ -1,24 +1,15 @@
 {% extends 'base.html' %}
 {% block content %}
 
-
-{% if not deleted %}
-      
-      
+{% if not deleted %} <!-- if delete state is false, i.e., not deleted yet -->
   <h3>Are you sure you want to delete this post?</h3>
   <form method="POST">
-    <input type="submit" value="Yes" name="yes"> <input type="submit" value="No" name="no">
-    
+    <input type="submit" value="Yes" name="yes"> <input type="submit" value="No" name="no"> <!-- option to delete post -->
   </form>
 
 {% else %}
-  <h3>Post deleted</h3>
-  <a href="/account" class="linkbutton">Return to account</a>
-  
+  <h3>Post deleted</h3> <!-- if the user chose "yes", delete state becomes true so display text to verify deletion -->
+  <a href="/account" class="linkbutton">Return to account</a> <!-- give option to return to account -->
 
 {% endif %}
-
-
-
-
 {% endblock %}

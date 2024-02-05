@@ -2,44 +2,34 @@
 {% block content %}
 <h1>All Posts</h1>
 
-
-
 <head>
 <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCrLn37j2Aln7yh58GPY2AuQIDU3poAgrg&callback=initMap&libraries=maps,marker&v=beta"></script>
 </head>
 
-
 <form method="POST">
-
-
-  <select name="selected_option">
+  <select name="selected_option"> <!-- options to filter by -->
     <option value="Newest">Newest</option>
     <option value="Oldest">Oldest</option>
     <option value="Popularity">Popularity</option>
   </select>
   <br>
   <br>
-    <input type="submit" name="sort" value="Sort">
-
-{% if filtered != True %}
+    <input type="submit" name="sort" value="Sort"> <!-- sort button-->
+{% if filtered != True %} <!-- if a filter already active, they must remove it to filter again, so dont show-->
 <div>
   <br>
-  <input type="range" id="slider" name="slidervalue" min="0" max="6000000" step="1000" value="3000000" style="width: 400px;">
+  <input type="range" id="slider" name="slidervalue" min="0" max="6000000" step="1000" value="400000" style="width: 400px;"> <!-- slider-->
   <h4 style="margin-bottom: 5;">Radius: <span id="val"></span>m<a href="/helppage#sf" style="margin: 0; margin-left: 10;"><img src="static/information-button.svg" width="20" height="20" style="filter: invert(100%) sepia(91%) saturate(2%) hue-rotate(252deg) brightness(107%) contrast(100%); vertical-align: middle; margin-bottom: 5;"></a></h4>
-
-
-
-</div>
+</div> <!--Display of how many metres long the radius is, as well as info button to help users  -->
 
 <body>
     <div id="map1"  style="width: 400px; height: 300px;" class="map-container"></div>
-
     <script>
     var map;
     var existingmarker;
     var circle;
-    var sliderval = 3000000;
-    var latlnglist = {{ latlnglist | tojson | safe }};
+    var sliderval = 400000; //default value
+    var latlnglist = {{ latlnglist | tojson | safe }}; //get list of all post/album points
 
     function initMap() {
         map = new google.maps.Map(document.getElementById('map1'), {
@@ -48,11 +38,11 @@
         });
 
         existingmarker = new google.maps.Marker({
-            position: map.getCenter(),
+            position: map.getCenter(), //default location of the circle centre
             map: map,
         });
 
-        circle = new google.maps.Circle({
+        circle = new google.maps.Circle({ //default circle
             strokeColor: '#FF0000',
             strokeOpacity: 0.8,
             strokeWeight: 2,
@@ -60,52 +50,52 @@
             fillOpacity: 0.35,
             map: map,
             center: map.getCenter(),
-            radius: sliderval,
+            radius: sliderval, //default radius is 400000
         });
 
 
-        for (var i = 0; i < latlnglist.length; i++) {
-            let lat = parseFloat(latlnglist[i][0]);
-            let lng = parseFloat(latlnglist[i][1]);
-            let postid = latlnglist[i][2]
-            let state = latlnglist[i][3]
+        for (var i = 0; i < latlnglist.length; i++) { //iterate through all the post locations
+            let lat = parseFloat(latlnglist[i][0]); //get latitude
+            let lng = parseFloat(latlnglist[i][1]); //get longitude
+            let postid = latlnglist[i][2] //get the post id
+            let state = latlnglist[i][3] //get whether it is an album or not
 
-            var postmarker = new google.maps.Marker({
+            var postmarker = new google.maps.Marker({ //for each post/album add a marker at its position
                 position: { lat: lat, lng: lng },
                 map: map,
                 icon: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
             });
 
-            if (state === "True") {
+            if (state === "True") { //if it is an album, change color of marker to red
                 postmarker.setIcon('http://maps.google.com/mapfiles/ms/icons/red-dot.png');
             }
 
             postmarker.addListener('click', function () {
-                if (state === 'False') {
+                if (state === 'False') { //if not an album take to viewpost
                     window.location.href = "/viewpost?id=" + postid;
-                } else {
+                } else { //if an album, take to viewalbum
                     window.location.href = "/viewalbum?id=" + postid;
                 }
             });
         }
 
-        map.addListener('click', function(event) {
+        map.addListener('click', function(event) { //code to change location of marker
 
             if (existingmarker) {
-                existingmarker.setMap(null);
+                existingmarker.setMap(null); //if already a marker and clicked, set old to null (remove)
             }
 
-            existingmarker = new google.maps.Marker({
+            existingmarker = new google.maps.Marker({ //place new marker at click location
                 position: event.latLng,
                 map: map,
                 title: 'Pin',
             });
 
-            if (circle) {
+            if (circle) { //if there is already a circle, remove it
                 circle.setMap(null);
             }
 
-            circle = new google.maps.Circle({
+            circle = new google.maps.Circle({ //ad a new circle at click location
                 strokeColor: '#FF0000',
                 strokeOpacity: 0.8,
                 strokeWeight: 2,
@@ -113,118 +103,102 @@
                 fillOpacity: 0.35,
                 map: map,
                 center: event.latLng,
-                radius: sliderval,
+                radius: sliderval, //set radius to slider value
             });
         });
     }
 
-    function updatecircler(value) {
+    function updatecircler(value) { //function to update the radius of the circle
         if (circle) {
             circle.setRadius(value);
         }
     }
 
-    var slider = document.getElementById("slider");
-    var output = document.getElementById("val");
-    var sliderval = parseInt(slider.value);
+    var slider = document.getElementById("slider"); //the slider
+    var output = document.getElementById("val"); //to display the radius value
+    var sliderval = parseInt(slider.value); //set radius display value to the slider value
 
-    output.innerHTML = sliderval;
-
+    output.innerHTML = sliderval; //update the radius display value
     slider.oninput = function() {
-        sliderval = parseInt(this.value);
-        output.innerHTML = sliderval;
-        updatecircler(sliderval);
+        sliderval = parseInt(this.value); //get the value of the slider when it is changed
+        output.innerHTML = sliderval; //update the radius display value
+        updatecircler(sliderval); //update the circle radius
 
 
-        var latLng = existingmarker ? existingmarker.getPosition() : map.getCenter();
+        var latLng = existingmarker.getPosition(); //get lat lng of the marker,
         var lat = latLng.lat();
         var lng = latLng.lng();
 
         var xmlhttp = new XMLHttpRequest();
         xmlhttp.open('POST', '/filtercoords', true);
         xmlhttp.setRequestHeader('Content-Type', 'application/json');
-        xmlhttp.send(JSON.stringify({ lat: lat, lng: lng, radius: sliderval }));
+        xmlhttp.send(JSON.stringify({ lat: lat, lng: lng, radius: sliderval })); //send to python
     }
 
 </script>
 </body>
 
 
-<h3>Filter Posts: <input type="checkbox" id="posts" name="posts"></h3>
-
-<h3>Filter Albums: <input type="checkbox" id="albums" name="albums"> </h3>
+<h3>Filter Posts: <input type="checkbox" id="posts" name="posts"></h3> <!-- to filter only posts -->
+<h3>Filter Albums: <input type="checkbox" id="albums" name="albums"> </h3> <!-- to filter only albums -->
 {% endif %}
 
-
-{% if filtered == True %}
+{% if filtered == True %} <!-- if a filter is already active, give option to remove filter -->
     <br><br><input type="submit" name="unfilter" value="Remove Filter">
 {% else %}
-    <input type="submit" name="filter" value="Filter">
+    <input type="submit" name="filter" value="Filter"> <!-- if a filter is not active, they may filter -->
 {% endif %}
-    <h3>{{msg}}</h3>
-
+    <h3>{{msg}}</h3> <!-- if no results found -->
 </form>
 
-
-
+<!-- code to display posts/albums -->
 <div class="image-grid">
   {% for row in rows %}
   <div class="image-item">
     <div class="image-title">
-    {% if row["user"] != username %}
+    {% if row["user"] != username %} <!-- if the logged in user does not match the post creator -->
         <a href="/viewaccount?id={{row['user']}}" style="display: flex; align-items: center;">
             <img src="{{ url_for('static', filename='ProfilePictures/' + row['pfp']) }}" alt="Image" class="rounded-image-small">
-            <span>{{row["user"]}}</span>
+            <span>{{row["user"]}}</span> <!-- clicking username/profile picture takes to viewaccount -->
         </a>
     {% else %}
         <a href="/account" style="display: flex; align-items: center;">
             <img src="{{ url_for('static', filename='ProfilePictures/' + row['pfp']) }}" alt="Image" class="rounded-image-small">
-            <span>{{row["user"]}}</span>
+            <span>{{row["user"]}}</span> <!-- otherwise, redirect to account page -->
         </a>
     {% endif %}
 
-    {% if row["album"] == "True" %}
+    {% if row["album"] == "True" %} <!-- if its an album, clicking the item just take to viewalbum -->
       <a href="/viewalbum?id={{row['id']}}">
       <br>
     {% else %}
-      <a href="/viewpost?id={{row['id']}}">
+      <a href="/viewpost?id={{row['id']}}"> <!-- if its a post, clicking the item just take to viewpost -->
       <br>
     {% endif %}
 
-
-      <img src="{{ url_for('static', filename='UploadedPhotos/' + row['filename']) }}" alt="Image" loading="lazy" class="scaled-image">
+      <img src="{{ url_for('static', filename='UploadedPhotos/' + row['filename']) }}" alt="Image" loading="lazy" class="scaled-image"> <!-- post/album image -->
           <br>
           <br>
-          {% if row['text']|length > 50 %}
+          {% if row['text']|length > 50 %} <!-- if title too long, truncate with ... -->
             {{ row['text'][:50] }}...</a>
           {% else %}
             {{ row['text'] }}</a>
           {% endif %}
 
-
-
-
-
               <div class="map-container">
-              {% if row["album"] != "True" %}
+              {% if row["album"] != "True" %} <!-- if not an album, show a map  -->
                 <body>
-                  <gmp-map center="{{row['lat']}},{{row['lng']}}" zoom="2" map-id="map">
+                  <gmp-map center="{{row['lat']}},{{row['lng']}}" zoom="2" map-id="map"> <!--  centre on marker-->
                     <gmp-advanced-marker
-                        position="{{row['lat']}},{{row['lng']}}"
+                        position="{{row['lat']}},{{row['lng']}}" <!-- create marker -->
                         title="Pin"
                     ></gmp-advanced-marker>
                 </gmp-map>
                 </body>
-
               {% endif %}
               </div>
 
   </div>
 </div>
-
   {% endfor %}
-
-
-
-
 {% endblock %}

@@ -1,17 +1,14 @@
 {% extends 'base.html' %}
 {% block content %}
 <h1>Search</h1>
-
 <head>
   <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCrLn37j2Aln7yh58GPY2AuQIDU3poAgrg&callback=console.debug&libraries=maps,marker&v=beta">
 </script>
 </head>
 <form>
-    <input name="search" id="search" placeholder="Search for a place, user, camera, etc..." onkeyup="searchposts()" type="text" style="width: 350;">
+    <input name="search" id="search" placeholder="Search for a place, user, camera, etc..." onkeyup="searchposts()" type="text" style="width: 350;"> <!-- Search bar-->
     <br>
     <br>
-    <div id="div1"></div>
-
+    <div id="div1"></div> <!-- div1 is where the search results go-->
 </form>
-
 {% endblock %}
